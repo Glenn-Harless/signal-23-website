@@ -1,0 +1,20 @@
+/* responsive.css */
+@media (min-width: 768px) {
+    /* Tablet styles */
+    body {
+        padding: 40px;
+    }
+}
+
+@media (min-width: 1024px) {
+    /* Desktop styles */
+    main {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+    }
+
+    section {
+        width: 48%;
+    }
+}
