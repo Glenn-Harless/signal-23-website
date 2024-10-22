@@ -10,7 +10,6 @@ const App = () => {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
     let animationFrameId;
-    let time = 0;  // Added for wave animation
 
     const resizeCanvas = () => {
       canvas.width = window.innerWidth;
@@ -54,62 +53,12 @@ const App = () => {
       }
     };
 
-    const drawWave = (imageData, type) => {
-      const data = imageData.data;
-      const width = canvas.width;
-      const startY = Math.random() * canvas.height;
-      const amplitude = Math.random() * 30 + 10;
-      const frequency = Math.random() * 0.02 + 0.01;
-      const thickness = Math.floor(Math.random() * 3) + 1;
-
-      for (let x = 0; x < width; x++) {
-        let y;
-        
-        switch(type) {
-          case 'sine':
-            y = startY + Math.sin(x * frequency + time) * amplitude;
-            break;
-          case 'triangle':
-            y = startY + (Math.abs(((x * frequency + time) % (2 * Math.PI)) - Math.PI) - Math.PI/2) * amplitude/2;
-            break;
-          case 'saw':
-            y = startY + ((x * frequency + time) % Math.PI) * amplitude/Math.PI;
-            break;
-          default:
-            y = startY + Math.sin(x * frequency + time) * amplitude;
-        }
-
-        // Draw with thickness
-        for (let t = -thickness; t <= thickness; t++) {
-          const yPos = Math.floor(y + t);
-          if (yPos >= 0 && yPos < canvas.height) {
-            const index = (yPos * width + x) * 4;
-            data[index] = 255;      // Make the waves white
-            data[index + 1] = 255;
-            data[index + 2] = 255;
-            data[index + 3] = 255;
-          }
-        }
-      }
-    };
-
     const animate = () => {
       const imageData = generateNoise();
-      
-      // Original signal
       if (Math.random() < 0.1) {
         drawSignal(imageData);
       }
-
-      // Random waves
-      if (Math.random() < 0.2) {
-        const waveTypes = ['sine', 'triangle', 'saw'];
-        const randomType = waveTypes[Math.floor(Math.random() * waveTypes.length)];
-        drawWave(imageData, randomType);
-      }
-
       ctx.putImageData(imageData, 0, 0);
-      time += 0.05;
       animationFrameId = requestAnimationFrame(animate);
     };
 
