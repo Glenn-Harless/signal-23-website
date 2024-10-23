@@ -1,13 +1,17 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Play, Pause, Music2, Mail, Info, ExternalLink } from 'lucide-react';
+import * as THREE from 'three';
 
 const App = () => {
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
   const [hoveredLink, setHoveredLink] = useState(null);
+  const [isMobile, setIsMobile] = useState(false);
   const canvasRef = useRef(null);
   const audioRef = useRef(null);
+  const mouseRef = useRef({ x: 0, y: 0 });
   const dropdownTimeoutRef = useRef(null);
 
+  // Define navigation links
   const navLinks = [
     { 
       icon: <Info className="w-5 h-5" />,
@@ -35,118 +39,29 @@ const App = () => {
     }
   ];
 
-  // Canvas and noise effect
+  // Dropdown menu control
+  const handleMouseEnter = (index) => {
+    if (dropdownTimeoutRef.current) {
+      clearTimeout(dropdownTimeoutRef.current);
+    }
+    setHoveredLink(index);
+  };
+
+  const handleMouseLeave = () => {
+    dropdownTimeoutRef.current = setTimeout(() => {
+      setHoveredLink(null);
+    }, 300);
+  };
+
+  // Add useEffect to detect mobile
   useEffect(() => {
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
-    let animationFrameId;
-    let time = 0;
-
-    const resizeCanvas = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
     };
-
-    window.addEventListener('resize', resizeCanvas);
-    resizeCanvas();
-
-    const generateNoise = () => {
-      const imageData = ctx.createImageData(canvas.width, canvas.height);
-      const data = imageData.data;
-
-      for (let i = 0; i < data.length; i += 4) {
-        const value = Math.random() * 255;
-        data[i] = value;     // red
-        data[i + 1] = value; // green
-        data[i + 2] = value; // blue
-        data[i + 3] = 255;   // alpha
-      }
-
-      return imageData;
-    };
-
-    const drawSignal = (imageData) => {
-      const data = imageData.data;
-      const signalPhrase = "SIGNAL-23";
-      const signalStart = Math.random() * (data.length / 4 - signalPhrase.length * 8);
-
-      for (let i = 0; i < signalPhrase.length; i++) {
-        const charCode = signalPhrase.charCodeAt(i);
-        for (let j = 0; j < 8; j++) {
-          const bit = (charCode >> j) & 1;
-          const index = (signalStart + i * 8 + j) * 4;
-          if (bit && index < data.length - 4) {
-            data[index] = 255;     // red
-            data[index + 1] = 0;   // green
-            data[index + 2] = 0;   // blue
-          }
-        }
-      }
-    };
-
-    const drawWave = (imageData, type) => {
-      const data = imageData.data;
-      const width = canvas.width;
-      const startY = Math.random() * canvas.height;
-      const amplitude = Math.random() * 30 + 10;
-      const frequency = Math.random() * 0.02 + 0.01;
-      const thickness = Math.floor(Math.random() * 3) + 1;
-
-      for (let x = 0; x < width; x++) {
-        let y;
-        
-        switch(type) {
-          case 'sine':
-            y = startY + Math.sin(x * frequency + time) * amplitude;
-            break;
-          case 'triangle':
-            y = startY + (Math.abs(((x * frequency + time) % (2 * Math.PI)) - Math.PI) - Math.PI/2) * amplitude/2;
-            break;
-          case 'saw':
-            y = startY + ((x * frequency + time) % Math.PI) * amplitude/Math.PI;
-            break;
-          default:
-            y = startY + Math.sin(x * frequency + time) * amplitude;
-        }
-
-        for (let t = -thickness; t <= thickness; t++) {
-          const yPos = Math.floor(y + t);
-          if (yPos >= 0 && yPos < canvas.height) {
-            const index = (yPos * width + x) * 4;
-            if (index < data.length - 4) {
-              data[index] = 255;     // white waves
-              data[index + 1] = 255;
-              data[index + 2] = 255;
-            }
-          }
-        }
-      }
-    };
-
-    const animate = () => {
-      const imageData = generateNoise();
-      
-      if (Math.random() < 0.1) {
-        drawSignal(imageData);
-      }
-
-      if (Math.random() < 0.2) {
-        const waveTypes = ['sine', 'triangle', 'saw'];
-        const randomType = waveTypes[Math.floor(Math.random() * waveTypes.length)];
-        drawWave(imageData, randomType);
-      }
-
-      ctx.putImageData(imageData, 0, 0);
-      time += 0.05;
-      animationFrameId = requestAnimationFrame(animate);
-    };
-
-    animate();
-
-    return () => {
-      cancelAnimationFrame(animationFrameId);
-      window.removeEventListener('resize', resizeCanvas);
-    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
   // Audio control
@@ -158,31 +73,228 @@ const App = () => {
     }
   }, [isPlayingAudio]);
 
-  // Dropdown menu control
-  useEffect(() => {
-    return () => {
-      if (dropdownTimeoutRef.current) {
-        clearTimeout(dropdownTimeoutRef.current);
+  // Complete noise implementation
+  const noiseShader = `
+    vec4 permute(vec4 x){return mod(((x*34.0)+1.0)*x, 289.0);}
+    vec4 taylorInvSqrt(vec4 r){return 1.79284291400159 - 0.85373472095314 * r;}
+
+    float snoise(vec3 v){ 
+      const vec2  C = vec2(1.0/6.0, 1.0/3.0) ;
+      const vec4  D = vec4(0.0, 0.5, 1.0, 2.0);
+      vec3 i  = floor(v + dot(v, C.yyy) );
+      vec3 x0 =   v - i + dot(i, C.xxx) ;
+      vec3 g = step(x0.yzx, x0.xyz);
+      vec3 l = 1.0 - g;
+      vec3 i1 = min( g.xyz, l.zxy );
+      vec3 i2 = max( g.xyz, l.zxy );
+      vec3 x1 = x0 - i1 + C.xxx;
+      vec3 x2 = x0 - i2 + C.yyy;
+      vec3 x3 = x0 - D.yyy;
+      i = mod(i, 289.0 );
+      vec4 p = permute( permute( permute( 
+                i.z + vec4(0.0, i1.z, i2.z, 1.0 ))
+                + i.y + vec4(0.0, i1.y, i2.y, 1.0 )) 
+                + i.x + vec4(0.0, i1.x, i2.x, 1.0 ));
+      float n_ = 1.0/7.0;
+      vec3  ns = n_ * D.wyz - D.xzx;
+      vec4 j = p - 49.0 * floor(p * ns.z *ns.z);
+      vec4 x_ = floor(j * ns.z);
+      vec4 y_ = floor(j - 7.0 * x_ );
+      vec4 x = x_ *ns.x + ns.yyyy;
+      vec4 y = y_ *ns.x + ns.yyyy;
+      vec4 h = 1.0 - abs(x) - abs(y);
+      vec4 b0 = vec4( x.xy, y.xy );
+      vec4 b1 = vec4( x.zw, y.zw );
+      vec4 s0 = floor(b0)*2.0 + 1.0;
+      vec4 s1 = floor(b1)*2.0 + 1.0;
+      vec4 sh = -step(h, vec4(0.0));
+      vec4 a0 = b0.xzyw + s0.xzyw*sh.xxyy ;
+      vec4 a1 = b1.xzyw + s1.xzyw*sh.zzww ;
+      vec3 p0 = vec3(a0.xy,h.x);
+      vec3 p1 = vec3(a0.zw,h.y);
+      vec3 p2 = vec3(a1.xy,h.z);
+      vec3 p3 = vec3(a1.zw,h.w);
+      vec4 norm = taylorInvSqrt(vec4(dot(p0,p0), dot(p1,p1), dot(p2, p2), dot(p3,p3)));
+      p0 *= norm.x;
+      p1 *= norm.y;
+      p2 *= norm.z;
+      p3 *= norm.w;
+      vec4 m = max(0.6 - vec4(dot(x0,x0), dot(x1,x1), dot(x2,x2), dot(x3,x3)), 0.0);
+      m = m * m;
+      return 42.0 * dot(m*m, vec4(dot(p0,x0), dot(p1,x1), dot(p2,x2), dot(p3,x3)));
+    }
+
+    float fbm(vec3 p) {
+      float value = 0.0;
+      float amplitude = 0.5;
+      float frequency = 1.0;
+      for(int i = 0; i < 4; i++) {
+        value += amplitude * snoise(p * frequency);
+        amplitude *= 0.5;
+        frequency *= 2.0;
       }
+      return value;
+    }
+  `;
+
+  const vertexShader = `
+    varying vec2 vUv;
+    varying vec3 vPosition;
+    
+    void main() {
+      vUv = uv;
+      vPosition = position;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }
+  `;
+
+  const fragmentShader = `
+    ${noiseShader}
+    
+    uniform float time;
+    uniform vec2 mouse;
+    uniform vec2 resolution;
+    uniform bool isMobile;
+    varying vec2 vUv;
+    
+    void main() {
+      vec2 uv = vUv;
+      
+      // Adjust center and portal size based on screen type
+      vec2 center;
+      vec2 portalSize;
+      
+      if (isMobile) {
+        // Mobile: Center horizontally but maintain vertical offset
+        center = vec2(0.5, 0.5);
+        // Taller and slightly narrower portal for mobile
+        portalSize = vec2(0.85, 1.2);
+      } else {
+        // Desktop: Off-center positioning
+        center = vec2(0.33, 0.5);
+        portalSize = vec2(0.7, 0.8);
+      }
+      
+      // Calculate rectangular mask with smooth edges
+      float horizontalMask = smoothstep(0.0, 0.05, abs(uv.x - center.x) - portalSize.x * (isMobile ? 0.15 : 0.1));
+      float verticalMask = smoothstep(0.0, 0.05, abs(uv.y - center.y) - portalSize.y * (isMobile ? 0.3 : 0.5));
+      float frame = max(horizontalMask, verticalMask);
+      
+      // Adjust mouse interaction based on device type
+      vec2 mouseOffset = (mouse - center) * (isMobile ? 0.05 : 0.1);
+      float mouseRatio = smoothstep(1.0, 0.0, length((uv + mouseOffset - center) * 2.0));
+      
+      // Create ripple effect
+      vec2 q = uv * 2.0 - 1.0;
+      q += mouseOffset;
+      float ripple = sin(length(q) * 10.0 - time * 2.0) * 0.5 + 0.5;
+      
+      // Create flowing waves using FBM noise
+      float noise = fbm(vec3(uv * 6.0 + mouseOffset, time * 0.2));
+      noise += fbm(vec3(uv * 3.0 + vec2(noise) * 0.5 + mouseOffset, time * 0.15));
+      
+      // Create glowing edge effect
+      float edge = (1.0 - frame) * 0.8;
+      float glow = smoothstep(0.5, 0.0, length((uv - center) * 2.0)) * 0.5;
+      
+      // Combine everything with a white glow
+      vec3 color = vec3(1.0);
+      float alpha = (noise * 0.8 + ripple * 0.2 + glow) * (1.0 - frame) + edge * 0.5;
+      
+      gl_FragColor = vec4(color, alpha);
+    }
+  `;
+
+  useEffect(() => {
+    if (!canvasRef.current) return;
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({
+      canvas: canvasRef.current,
+      antialias: true,
+      alpha: true
+    });
+
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setClearColor(0x000000, 1);
+
+    const geometry = new THREE.PlaneGeometry(16, 9, 128, 128);
+    const material = new THREE.ShaderMaterial({
+      vertexShader,
+      fragmentShader,
+      uniforms: {
+        time: { value: 0 },
+        mouse: { value: new THREE.Vector2(0.5, 0.5) },
+        resolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
+        isMobile: { value: window.innerWidth <= 768 }
+      },
+      transparent: true,
+      side: THREE.DoubleSide
+    });
+
+    const portal = new THREE.Mesh(geometry, material);
+    scene.add(portal);
+
+    camera.position.z = 7;
+
+    const handleMouseMove = (event) => {
+      mouseRef.current.x = (event.clientX / window.innerWidth);
+      mouseRef.current.y = 1 - (event.clientY / window.innerHeight);
+    };
+
+    const handleTouchMove = (event) => {
+      if (event.touches.length > 0) {
+        mouseRef.current.x = (event.touches[0].clientX / window.innerWidth);
+        mouseRef.current.y = 1 - (event.touches[0].clientY / window.innerHeight);
+      }
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('touchmove', handleTouchMove);
+
+    let time = 0;
+    const animate = () => {
+      requestAnimationFrame(animate);
+      time += 0.01;
+
+      material.uniforms.time.value = time;
+      material.uniforms.mouse.value.set(mouseRef.current.x, mouseRef.current.y);
+
+      renderer.render(scene, camera);
+    };
+
+    animate();
+
+    const handleResize = () => {
+      const width = window.innerWidth;
+      const height = window.innerHeight;
+
+      camera.aspect = width / height;
+      camera.updateProjectionMatrix();
+      renderer.setSize(width, height);
+      material.uniforms.resolution.value.set(width, height);
+      material.uniforms.isMobile.value = width <= 768;
+    };
+
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('touchmove', handleTouchMove);
+      window.removeEventListener('resize', handleResize);
+      geometry.dispose();
+      material.dispose();
+      renderer.dispose();
     };
   }, []);
 
-  const handleMouseEnter = (index) => {
-    if (dropdownTimeoutRef.current) {
-      clearTimeout(dropdownTimeoutRef.current);
-    }
-    setHoveredLink(index);
-  };
-
-  const handleMouseLeave = () => {
-    dropdownTimeoutRef.current = setTimeout(() => {
-      setHoveredLink(null);
-    }, 300); // Increased delay for better usability
-  };
-
   return (
-    <div className="relative w-full h-screen overflow-hidden">
-      <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />
+    <div className="relative w-full h-screen overflow-hidden bg-black">
+      <canvas 
+        ref={canvasRef} 
+        className="absolute inset-0 w-full h-full"
+      />
       
       {/* Navigation Links */}
       <nav className="absolute top-0 right-0 p-6 z-20">
@@ -244,7 +356,7 @@ const App = () => {
       </div>
 
       <audio ref={audioRef} loop>
-        <source src="/abridged_tim0.mp3" type="audio/mpeg" />
+        <source src="/pieces-website-mp3.mp3" type="audio/mpeg" />
       </audio>
     </div>
   );
