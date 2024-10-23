@@ -14,29 +14,30 @@ const App = () => {
   // Define navigation links
   const navLinks = [
     { 
-      icon: <Info className="w-5 h-5" />,
+      // icon: <Info className="w-5 h-5" />,
       label: "INFO",
       href: "#",
       description: "About Signal-23" 
     },
     { 
-      icon: <Mail className="w-5 h-5" />,
+      // icon: <Mail className="w-5 h-5" />,
       label: "CONTACT",
       href: "mailto:your@email.com",
       description: "Get in touch" 
     },
-    { 
-      icon: <Music2 className="w-5 h-5" />,
-      label: "MUSIC",
-      href: "#",
-      description: "Listen on platforms",
-      platforms: [
-        { name: "Spotify", url: "#" },
-        { name: "Apple Music", url: "#" },
-        { name: "Bandcamp", url: "#" },
-        { name: "SoundCloud", url: "#" }
-      ]
-    }
+    // Uncomment to add music platforms
+    // { 
+    //   // icon: <Music2 className="w-5 h-5" />,
+    //   label: "MUSIC",
+    //   href: "#",
+    //   description: "Listen on platforms",
+    //   platforms: [
+    //     { name: "Spotify", url: "#" },
+    //     { name: "Apple Music", url: "#" },
+    //     { name: "Bandcamp", url: "#" },
+    //     { name: "SoundCloud", url: "#" }
+    //   ]
+    // }
   ];
 
   // Dropdown menu control
@@ -172,7 +173,7 @@ const App = () => {
       } else {
         // Desktop: Off-center positioning
         center = vec2(0.33, 0.5);
-        portalSize = vec2(0.7, 0.8);
+        portalSize = vec2(1.25, 0.8);
       }
       
       // Calculate rectangular mask with smooth edges
@@ -288,17 +289,58 @@ const App = () => {
       renderer.dispose();
     };
   }, []);
-
   return (
     <div className="relative w-full h-screen overflow-hidden bg-black">
+      {/* Fix for white borders */}
+      <div className="fixed inset-0 bg-black -z-10" />
+      
       <canvas 
         ref={canvasRef} 
-        className="absolute inset-0 w-full h-full"
+        className="absolute inset-0 w-full h-full z-0"
       />
+{/* Desktop layout */}
+<div className="hidden md:block absolute inset-0 z-10">
+      {/* Centered play button - floating over everything */}
+      <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 z-30">
+        <button 
+          onClick={() => setIsPlayingAudio(!isPlayingAudio)} 
+          className="p-3 bg-white/10 rounded-full hover:bg-white/20 transition-colors"
+        >
+          {isPlayingAudio ? <Pause className="w-8 h-8 text-white" /> : <Play className="w-8 h-8 text-white" />}
+        </button>
+      </div>
+
+      {/* Text column - positioned relative to door's end */}
+      <div className="absolute right-20 top-0 h-full flex flex-col justify-center">
+        {[...Array(6)].map((_, i) => (
+          <div 
+            key={i} 
+            className="text-6xl font-bold text-white font-neo-brutalist mb-8"
+          >
+            SIGNAL-23
+          </div>
+        ))}
+      </div>
+    </div>
       
+      {/* Mobile view */}
+      <div className="md:hidden absolute inset-0 flex flex-col items-center z-20">
+        <h1 className="text-6xl font-bold text-white font-neo-brutalist mt-12">
+          SIGNAL-23
+        </h1>
+        <div className="absolute top-1/2 transform -translate-y-1/2">
+          <button 
+            onClick={() => setIsPlayingAudio(!isPlayingAudio)} 
+            className="p-3 bg-white/10 rounded-full hover:bg-white/20 transition-colors"
+          >
+            {isPlayingAudio ? <Pause className="w-8 h-8 text-white" /> : <Play className="w-8 h-8 text-white" />}
+          </button>
+        </div>
+      </div>
+  
       {/* Navigation Links */}
-      <nav className="absolute top-0 right-0 p-6 z-20">
-        <div className="flex flex-col space-y-4">
+      <nav className="absolute bottom-0 left-0 right-0 p-6 z-20">
+        <div className="flex justify-center space-x-8">
           {navLinks.map((link, index) => (
             <div 
               key={index} 
@@ -317,7 +359,7 @@ const App = () => {
               {/* Dropdown for Music platforms */}
               {link.platforms && hoveredLink === index && (
                 <div 
-                  className="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white/10 backdrop-blur-sm"
+                  className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 w-48 rounded-md shadow-lg bg-white/10 backdrop-blur-sm"
                   onMouseEnter={() => handleMouseEnter(index)}
                   onMouseLeave={handleMouseLeave}
                 >
@@ -341,20 +383,7 @@ const App = () => {
           ))}
         </div>
       </nav>
-
-      {/* Main Content */}
-      <div className="absolute inset-0 flex flex-col items-center justify-center z-10">
-        <h1 className="text-6xl font-bold mb-8 text-white font-neo-brutalist">SIGNAL-23</h1>
-        <div className="flex space-x-4">
-          <button 
-            onClick={() => setIsPlayingAudio(!isPlayingAudio)} 
-            className="p-3 bg-white/10 rounded-full hover:bg-white/20 transition-colors"
-          >
-            {isPlayingAudio ? <Pause className="w-8 h-8 text-white" /> : <Play className="w-8 h-8 text-white" />}
-          </button>
-        </div>
-      </div>
-
+  
       <audio ref={audioRef} loop>
         <source src="/pieces-website-mp3.mp3" type="audio/mpeg" />
       </audio>
