@@ -325,7 +325,7 @@ const App = () => {
       
       {/* Mobile view */}
       <div className="md:hidden absolute inset-0 flex flex-col items-center z-20">
-        <h1 className="text-6xl font-bold text-white font-neo-brutalist mt-12">
+        <h1 className="text-5xl font-bold text-white font-neo-brutalist mt-12">
           SIGNAL-23
         </h1>
         <div className="absolute top-1/2 transform -translate-y-1/2">
