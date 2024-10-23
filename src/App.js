@@ -13,16 +13,16 @@ const App = () => {
 
   // Define navigation links
   const navLinks = [
-    { 
-      // icon: <Info className="w-5 h-5" />,
-      label: "INFO",
-      href: "#",
-      description: "About Signal-23" 
-    },
+    // { 
+    //   // icon: <Info className="w-5 h-5" />,
+    //   label: "INFO",
+    //   href: "#",
+    //   description: "About Signal-23" 
+    // },
     { 
       // icon: <Mail className="w-5 h-5" />,
       label: "CONTACT",
-      href: "mailto:your@email.com",
+      href: "mailto:signal.23.music@gmail.com",
       description: "Get in touch" 
     },
     // Uncomment to add music platforms
