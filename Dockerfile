@@ -5,7 +5,13 @@ WORKDIR /app
 # Copy package.json and package-lock.json (if available)
 COPY package*.json ./
 
-# Install dependencies
+# Copy TypeScript config
+COPY tsconfig.json ./
+
+# Install dependencies including TypeScript and Babel presets
+RUN npm install --save-dev typescript @types/react @types/react-dom @types/three @babel/preset-typescript
+
+# Install all other dependencies
 RUN npm install
 
 # Copy the rest of your app's source code

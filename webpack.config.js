@@ -3,13 +3,29 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 module.exports = {
-  entry: './src/index.js',
+  entry: './src/index.tsx',  // Changed from index.js to index.tsx
   output: {
     path: path.resolve(__dirname, 'build'),
     filename: 'bundle.js',
   },
   module: {
     rules: [
+      {
+        test: /\.(ts|tsx)$/,  // Add TypeScript file handling
+        exclude: /node_modules/,
+        use: [
+          {
+            loader: 'babel-loader',
+            options: {
+              presets: [
+                '@babel/preset-env',
+                '@babel/preset-react',
+                '@babel/preset-typescript'  // Add TypeScript preset
+              ]
+            }
+          }
+        ]
+      },
       {
         test: /\.(js|jsx)$/,
         exclude: /node_modules/,
@@ -46,7 +62,7 @@ module.exports = {
     }),
   ],
   resolve: {
-    extensions: ['*', '.js', '.jsx', '.css'],
+    extensions: ['.tsx', '.ts', '.js', '.jsx', '.css'],  // Add TypeScript extensions
     modules: [path.resolve(__dirname, 'src'), 'node_modules'],
   },
   devServer: {
