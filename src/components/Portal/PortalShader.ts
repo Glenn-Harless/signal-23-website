@@ -95,8 +95,8 @@ export const fragmentShader = `
       portalSize = vec2(0.85, 1.2);
     } else {
       // Desktop: Off-center positioning
-      center = vec2(0.33, 0.5);
-      portalSize = vec2(1.25, 0.8);
+      center = vec2(0.5, 0.5);
+      portalSize = vec2(2, .75);
     }
     
     // Calculate rectangular mask with smooth edges

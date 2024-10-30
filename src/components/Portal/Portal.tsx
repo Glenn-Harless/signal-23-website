@@ -15,6 +15,7 @@ export const Portal: React.FC<PortalProps> = ({ isMobile }) => {
 
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+
     const renderer = new THREE.WebGLRenderer({
       canvas: canvasRef.current,
       antialias: true,
@@ -23,7 +24,6 @@ export const Portal: React.FC<PortalProps> = ({ isMobile }) => {
 
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setClearColor(0x000000, 1);
-
     const geometry = new THREE.PlaneGeometry(16, 9, 128, 128);
     const material = new THREE.ShaderMaterial({
       vertexShader,
