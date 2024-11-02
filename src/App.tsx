@@ -202,9 +202,9 @@ const App: React.FC = () => {
       <div className="md:hidden absolute inset-0 flex flex-col items-center z-20">
         <h1 
           className="text-5xl font-bold text-white font-neo-brutalist mt-12"
-          style={{
-            filter: 'url(#eroded-blur)'
-          }}
+          // style={{
+          //   filter: 'url(#eroded-blur)'
+          // }}
         >
           SIGNAL-23
         </h1>
