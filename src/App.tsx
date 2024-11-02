@@ -171,7 +171,6 @@ const App: React.FC = () => {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Add animation effect
   useEffect(() => {
     const interval = setInterval(() => {
       setOffset(prev => (prev + 1) % 100);
@@ -183,6 +182,7 @@ const App: React.FC = () => {
     <div className="relative w-full h-screen overflow-hidden bg-black">
       <div className="fixed inset-0 bg-black -z-10" />
       
+      {/* Portal now positioned at root level like in working version */}
       <Portal isMobile={isMobile} />
 
       {/* Desktop layout */}
@@ -198,13 +198,13 @@ const App: React.FC = () => {
         <DistortedStack isPlayingAudio={isPlayingAudio} />
       </div>
       
-      {/* Mobile view */}
+      {/* Mobile view - simplified to match working version */}
       <div className="md:hidden absolute inset-0 flex flex-col items-center z-20">
         <h1 
           className="text-5xl font-bold text-white font-neo-brutalist mt-12"
-          // style={{
-          //   filter: 'url(#eroded-blur)'
-          // }}
+          style={{
+            filter: 'url(#eroded-blur)'
+          }}
         >
           SIGNAL-23
         </h1>
@@ -226,7 +226,7 @@ const App: React.FC = () => {
         </div>
       </nav>
 
-      {/* SVG filters - moved to App level so mobile view can use them */}
+      {/* Keep SVG filters */}
       <svg className="hidden">
         <defs>
           <filter id="eroded-blur">
@@ -247,25 +247,6 @@ const App: React.FC = () => {
               <feFuncB type="linear" slope="1.8" intercept="-0.2"/>
             </feComponentTransfer>
             <feComposite operator="in" in2="SourceGraphic"/>
-          </filter>
-
-          <filter id="irregular-outline">
-            <feTurbulence 
-              type="turbulence" 
-              baseFrequency="0.7"
-              numOctaves="3"
-              seed={offset}
-            />
-            <feDisplacementMap
-              in="SourceGraphic"
-              scale="1"
-            />
-            <feGaussianBlur stdDeviation="0.3"/>
-            <feComponentTransfer>
-              <feFuncR type="linear" slope="1.2"/>
-              <feFuncG type="linear" slope="1.2"/>
-              <feFuncB type="linear" slope="1.2"/>
-            </feComponentTransfer>
           </filter>
         </defs>
       </svg>
