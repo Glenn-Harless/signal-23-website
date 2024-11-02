@@ -4,7 +4,7 @@ import { Portal } from './components/Portal/Portal';
 import { AudioPlayer } from './components/Audio/AudioPlayer';
 import { NavigationLink } from './components/Navigation/NavigationLink';
 
-const DistortedStack: React.FC<{ isPlayingAudio: boolean }> = ({ isPlayingAudio }) => {
+const DistortedStack = ({ isPlayingAudio }) => {
   const [offset, setOffset] = useState(0);
 
   useEffect(() => {
@@ -13,6 +13,18 @@ const DistortedStack: React.FC<{ isPlayingAudio: boolean }> = ({ isPlayingAudio 
     }, 50);
     return () => clearInterval(interval);
   }, []);
+
+  // Split text into individual characters to mirror each one
+  const textToMirror = "SIGNAL-23";
+  const mirroredText = textToMirror.split('').map((char, index) => (
+    <span 
+      key={index}
+      className="inline-block"
+      style={{ transform: 'scale(-1, 1)' }}
+    >
+      {char}
+    </span>
+  )).reverse().join('');
 
   return (
     <>
@@ -47,7 +59,11 @@ const DistortedStack: React.FC<{ isPlayingAudio: boolean }> = ({ isPlayingAudio 
                 : 'text-white'
             }`}
           >
-            {i === 3 ? 'SIGNAL-23' : '32-LANGIS'}
+            {i === 3 ? 'SIGNAL-23' : (
+              <div style={{ transform: 'scale(-1, 1)', display: 'inline-block' }}>
+                SIGNAL-23
+              </div>
+            )}
           </div>
         ))}
       </div>
