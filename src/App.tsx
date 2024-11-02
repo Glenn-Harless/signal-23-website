@@ -4,6 +4,123 @@ import { Portal } from './components/Portal/Portal';
 import { AudioPlayer } from './components/Audio/AudioPlayer';
 import { NavigationLink } from './components/Navigation/NavigationLink';
 
+const DistortedStack: React.FC<{ isPlayingAudio: boolean }> = ({ isPlayingAudio }) => {
+  const [offset, setOffset] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setOffset(prev => (prev + 1) % 100);
+    }, 50);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <>
+      <style>
+        {`
+          @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.9; }
+          }
+        `}
+      </style>
+      <div className="absolute right-20 top-0 h-full flex flex-col justify-center">
+        {[...Array(7)].map((_, i) => (
+          <div 
+            key={i} 
+            style={{
+              ...i === 3 
+                ? {
+                    WebkitTextStroke: '0.02px white',
+                    color: 'black',
+                    filter: 'url(#irregular-outline)'
+                  }
+                : {
+                    filter: isPlayingAudio ? 'url(#playing-effect)' : 'url(#default-effect)',
+                    animation: `pulse ${2 + i * 0.1}s ease-in-out infinite`,
+                    transition: 'filter 0.3s ease'
+                  }
+            }}
+            className={`text-6xl font-bold font-neo-brutalist mb-8 ${
+              i === 3 
+                ? '' 
+                : 'text-white'
+            }`}
+          >
+            {i === 3 ? 'SIGNAL-23' : '32-LANGIS'}
+          </div>
+        ))}
+      </div>
+
+      <svg className="hidden">
+        <defs>
+          {/* Default effect with mild erosion */}
+          <filter id="default-effect">
+            <feTurbulence 
+              type="fractalNoise" 
+              baseFrequency="1.2"
+              numOctaves="5"
+              seed={offset}
+            />
+            <feDisplacementMap
+              in="SourceGraphic"
+              scale="12"
+            />
+            <feGaussianBlur stdDeviation="2"/>
+            <feComponentTransfer>
+              <feFuncR type="linear" slope="1.8" intercept="-0.2"/>
+              <feFuncG type="linear" slope="1.8" intercept="-0.2"/>
+              <feFuncB type="linear" slope="1.8" intercept="-0.2"/>
+            </feComponentTransfer>
+            <feComposite operator="in" in2="SourceGraphic"/>
+          </filter>
+
+          {/* More intense effect for when playing */}
+          <filter id="playing-effect">
+            <feTurbulence 
+              type="fractalNoise" 
+              baseFrequency="2.5"
+              numOctaves="6"
+              seed={offset}
+            />
+            <feDisplacementMap
+              in="SourceGraphic"
+              scale="25"
+            />
+            <feGaussianBlur stdDeviation="1.5"/>
+            <feComponentTransfer>
+              <feFuncR type="linear" slope="2" intercept="-0.2"/>
+              <feFuncG type="linear" slope="2" intercept="-0.2"/>
+              <feFuncB type="linear" slope="2" intercept="-0.2"/>
+            </feComponentTransfer>
+            <feComposite operator="in" in2="SourceGraphic"/>
+          </filter>
+
+          {/* Outline effect stays the same */}
+          <filter id="irregular-outline">
+            <feTurbulence 
+              type="turbulence" 
+              baseFrequency="0.7"
+              numOctaves="3"
+              seed={offset}
+            />
+            <feDisplacementMap
+              in="SourceGraphic"
+              scale="1"
+            />
+            <feGaussianBlur stdDeviation="0.3"/>
+            <feComponentTransfer>
+              <feFuncR type="linear" slope="1.2"/>
+              <feFuncG type="linear" slope="1.2"/>
+              <feFuncB type="linear" slope="1.2"/>
+            </feComponentTransfer>
+          </filter>
+        </defs>
+      </svg>
+    </>
+  );
+};
+
 interface NavLink {
   icon?: React.ReactNode;
   label: string;
@@ -18,6 +135,7 @@ interface NavLink {
 const App: React.FC = () => {
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [offset, setOffset] = useState(0);
 
   const navLinks: NavLink[] = [
     { 
@@ -25,21 +143,6 @@ const App: React.FC = () => {
       href: "mailto:signal.23.music@gmail.com",
       description: "Get in touch" 
     }
-    // {
-    //   label: "INFO",
-    //   href: "/info",
-    //   description: "Learn more"
-    // },
-    // {
-    //   label: "MUSIC",
-    //   href: "/music",
-    //   description: "Listen on your favorite platform",
-    //   platforms: [
-    //     { name: "Spotify", url: "https://open.spotify.com/artist/4w8b2J7t2j8KkYk5LrQX3Q" },
-    //     { name: "Apple Music", url: "https://music.apple.com/us/artist/signal-23/1566932954" },
-    //     { name: "YouTube", url: "https://www.youtube.com/channel/UC7Jf6t6m2sQp9d2Q8Hv1Z8w" }
-    //   ]
-    // }
   ];
 
   useEffect(() => {
@@ -50,6 +153,14 @@ const App: React.FC = () => {
     checkMobile();
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // Add animation effect
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setOffset(prev => (prev + 1) % 100);
+    }, 50);
+    return () => clearInterval(interval);
   }, []);
 
   return (
@@ -68,21 +179,17 @@ const App: React.FC = () => {
           />
         </div>
 
-        <div className="absolute right-20 top-0 h-full flex flex-col justify-center">
-          {[...Array(6)].map((_, i) => (
-            <div 
-              key={i} 
-              className="text-6xl font-bold text-white font-neo-brutalist mb-8"
-            >
-              SIGNAL-23
-            </div>
-          ))}
-        </div>
+        <DistortedStack isPlayingAudio={isPlayingAudio} />
       </div>
       
       {/* Mobile view */}
       <div className="md:hidden absolute inset-0 flex flex-col items-center z-20">
-        <h1 className="text-5xl font-bold text-white font-neo-brutalist mt-12">
+        <h1 
+          className="text-5xl font-bold text-white font-neo-brutalist mt-12"
+          style={{
+            filter: 'url(#eroded-blur)'
+          }}
+        >
           SIGNAL-23
         </h1>
         <div className="absolute top-1/2 transform -translate-y-1/2">
@@ -102,6 +209,50 @@ const App: React.FC = () => {
           ))}
         </div>
       </nav>
+
+      {/* SVG filters - moved to App level so mobile view can use them */}
+      <svg className="hidden">
+        <defs>
+          <filter id="eroded-blur">
+            <feTurbulence 
+              type="fractalNoise" 
+              baseFrequency="1.2"
+              numOctaves="5"
+              seed={offset}
+            />
+            <feDisplacementMap
+              in="SourceGraphic"
+              scale="12"
+            />
+            <feGaussianBlur stdDeviation="2"/>
+            <feComponentTransfer>
+              <feFuncR type="linear" slope="1.8" intercept="-0.2"/>
+              <feFuncG type="linear" slope="1.8" intercept="-0.2"/>
+              <feFuncB type="linear" slope="1.8" intercept="-0.2"/>
+            </feComponentTransfer>
+            <feComposite operator="in" in2="SourceGraphic"/>
+          </filter>
+
+          <filter id="irregular-outline">
+            <feTurbulence 
+              type="turbulence" 
+              baseFrequency="0.7"
+              numOctaves="3"
+              seed={offset}
+            />
+            <feDisplacementMap
+              in="SourceGraphic"
+              scale="1"
+            />
+            <feGaussianBlur stdDeviation="0.3"/>
+            <feComponentTransfer>
+              <feFuncR type="linear" slope="1.2"/>
+              <feFuncG type="linear" slope="1.2"/>
+              <feFuncB type="linear" slope="1.2"/>
+            </feComponentTransfer>
+          </filter>
+        </defs>
+      </svg>
     </div>
   );
 };
