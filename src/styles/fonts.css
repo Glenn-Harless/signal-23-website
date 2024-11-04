@@ -1,6 +1,27 @@
 @font-face {
-    font-family: 'Neo Brutalist';
-    src: url('../assets/fonts/Neo Brutalist.otf') format('opentype');
-    font-weight: normal;
-    font-style: normal;
-  }
+  font-family: 'Neo Brutalist';
+  src: url('../assets/fonts/Neo Brutalist.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Neobrutalist2';
+  src: url('../assets/fonts/Neobrutalist2.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Neobrutalist2 closer spacing';
+  src: url('../assets/fonts/Neobrutalist2 closer spacing.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Neobrutetest';
+  src: url('../assets/fonts/NeoBruteTest.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+}
