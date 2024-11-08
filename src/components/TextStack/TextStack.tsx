@@ -2,7 +2,17 @@ import React, { useEffect, useState } from 'react';
 
 export const DistortedStack = ({ isPlayingAudio }) => {
     const [offset, setOffset] = useState(0);
-  
+    const fontFamilies = [
+      'neo-brutalist',
+      'neo-brute-transparent',
+      'neo-brutalist4',
+      'neo-brutalist5',
+      'neo-brutalist6',
+      'neo-brutalist7',
+      'neo-brutalist8',
+      'neo-brutalist9'
+    ];
+
     useEffect(() => {
       const interval = setInterval(() => {
         setOffset(prev => (prev + 1) % 100);
@@ -49,15 +59,15 @@ export const DistortedStack = ({ isPlayingAudio }) => {
                       transition: 'filter 0.3s ease'
                     }
               }}
-              className={`text-6xl font-bold font-neo-brute-test mb-8 ${
+              className={`text-6xl font-bold font-${fontFamilies[i]} ${
                 i === 3 
                   ? '' 
                   : 'text-white'
               }`}
             >
-              {i === 3 ? 'SIGNAL-3' : (
+              {i === 3 ? 'SIGNAL23' : (
                 <div style={{ transform: 'scale(-1, 1)', display: 'inline-block' }}>
-                  SIGNAL-3
+                  SIGNAL23
                 </div>
               )}
             </div>
@@ -78,7 +88,7 @@ export const DistortedStack = ({ isPlayingAudio }) => {
                 in="SourceGraphic"
                 scale="12"
               />
-              <feGaussianBlur stdDeviation=".3"/>
+              <feGaussianBlur stdDeviation="3"/>
               <feComponentTransfer>
                 <feFuncR type="linear" slope="1.8" intercept="-0.2"/>
                 <feFuncG type="linear" slope="1.8" intercept="-0.2"/>
@@ -120,7 +130,7 @@ export const DistortedStack = ({ isPlayingAudio }) => {
                 in="SourceGraphic"
                 scale="1"
               />
-              <feGaussianBlur stdDeviation="0.3"/>
+              <feGaussianBlur stdDeviation="0.03"/>
               <feComponentTransfer>
                 <feFuncR type="linear" slope="1.2"/>
                 <feFuncG type="linear" slope="1.2"/>

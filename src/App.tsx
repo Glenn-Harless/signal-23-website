@@ -88,7 +88,7 @@ const App: React.FC = () => {
       {/* Mobile view - simplified to match working version */}
       <div className="md:hidden absolute inset-0 flex flex-col items-center z-20">
         <h1 
-          className="text-5xl font-bold text-white font-neo-brute-test mt-12"
+          className="text-5xl font-bold text-white font-neo-brute-transparent mt-12"
           style={{
             filter: 'url(#eroded-blur)'
           }}
