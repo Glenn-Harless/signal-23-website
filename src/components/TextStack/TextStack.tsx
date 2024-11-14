@@ -3,8 +3,8 @@ import React, { useEffect, useState } from 'react';
 export const DistortedStack = ({ isPlayingAudio }) => {
     const [offset, setOffset] = useState(0);
     const fontFamilies = [
-      'neo-brutalist',
-      'neo-brute-transparent',
+      'neo-brutalist6',
+      'neo-brutalist6',
       'neo-brutalist4',
       'neo-brutalist5',
       'neo-brutalist6',
@@ -20,18 +20,6 @@ export const DistortedStack = ({ isPlayingAudio }) => {
       return () => clearInterval(interval);
     }, []);
   
-    // Split text into individual characters to mirror each one
-    const textToMirror = "SIGNAL-3";
-    const mirroredText = textToMirror.split('').map((char, index) => (
-      <span 
-        key={index}
-        className="inline-block"
-        style={{ transform: 'scale(-1, 1)' }}
-      >
-        {char}
-      </span>
-    )).reverse().join('');
-  
     return (
       <>
         <style>
@@ -42,7 +30,7 @@ export const DistortedStack = ({ isPlayingAudio }) => {
             }
           `}
         </style>
-        <div className="absolute right-20 top-0 h-full flex flex-col justify-center">
+        <div className="absolute right-20 top-0 h-full flex flex-col justify-center space-y-6">
           {[...Array(7)].map((_, i) => (
             <div 
               key={i} 
@@ -88,7 +76,7 @@ export const DistortedStack = ({ isPlayingAudio }) => {
                 in="SourceGraphic"
                 scale="12"
               />
-              <feGaussianBlur stdDeviation="3"/>
+              <feGaussianBlur stdDeviation=".3"/>
               <feComponentTransfer>
                 <feFuncR type="linear" slope="1.8" intercept="-0.2"/>
                 <feFuncG type="linear" slope="1.8" intercept="-0.2"/>
@@ -119,7 +107,7 @@ export const DistortedStack = ({ isPlayingAudio }) => {
             </filter>
   
             {/* Outline effect stays the same */}
-            <filter id="irregular-outline">
+            {/* <filter id="irregular-outline">
               <feTurbulence 
                 type="turbulence" 
                 baseFrequency="0.7"
@@ -136,7 +124,7 @@ export const DistortedStack = ({ isPlayingAudio }) => {
                 <feFuncG type="linear" slope="1.2"/>
                 <feFuncB type="linear" slope="1.2"/>
               </feComponentTransfer>
-            </filter>
+            </filter> */}
           </defs>
         </svg>
       </>
