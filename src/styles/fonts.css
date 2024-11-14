@@ -1,6 +1,49 @@
 @font-face {
-    font-family: 'Neo Brutalist';
-    src: url('../assets/fonts/Neo Brutalist.otf') format('opentype');
-    font-weight: normal;
-    font-style: normal;
-  }
+  font-family: 'Neo Brutalist';
+  src: url('../assets/fonts/Neo Brutalist.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'NeobruteTest4';
+  src: url('../assets/fonts/NeobruteTest4.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'NeobruteTest5';
+  src: url('../assets/fonts/NeobruteTest5.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+
+@font-face {
+  font-family: 'NeobruteTest6';
+  src: url('../assets/fonts/NeobruteTest6.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'NeobruteTest7';
+  src: url('../assets/fonts/NeobruteTest7.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'NeobruteTest8';
+  src: url('../assets/fonts/NeobruteTest8.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Neobrutetest';
+  src: url('../assets/fonts/NeoBruteTest.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+}

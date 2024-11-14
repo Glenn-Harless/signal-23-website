@@ -94,7 +94,7 @@ const App = () => {
 
       for (let x = 0; x < width; x++) {
         let y;
-        
+
         switch(type) {
           case 'sine':
             y = startY + Math.sin(x * frequency + time) * amplitude;
@@ -125,7 +125,7 @@ const App = () => {
 
     const animate = () => {
       const imageData = generateNoise();
-      
+
       if (Math.random() < 0.1) {
         drawSignal(imageData);
       }
@@ -183,7 +183,7 @@ const App = () => {
   return (
     <div className="relative w-full h-screen overflow-hidden">
       <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />
-      
+
       {/* Navigation Links */}
       <nav className="absolute top-0 right-0 p-6 z-20">
         <div className="flex flex-col space-y-4">
@@ -201,7 +201,7 @@ const App = () => {
                 {link.icon}
                 <span className="text-sm font-medium">{link.label}</span>
               </a>
-              
+
               {/* Dropdown for Music platforms */}
               {link.platforms && hoveredLink === index && (
                 <div 
