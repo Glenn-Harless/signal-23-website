@@ -89,7 +89,7 @@ export const EnhancedNumberStation: React.FC<NumberStationProps> = ({
     // Single warning interval effect
     useEffect(() => {
       const warningInterval = setInterval(() => {
-        if (Math.random() > 0.1) {
+        if (Math.random() > 0.4) {
           const newWarning = warnings[Math.floor(Math.random() * warnings.length)];
           console.log('Showing warning:', newWarning);
           setWarning(newWarning);
@@ -100,7 +100,7 @@ export const EnhancedNumberStation: React.FC<NumberStationProps> = ({
             onGlitchChange(false);  // Notify parent
           }, 2000);
         }
-      }, 3000);
+      }, 7000);
       
       return () => clearInterval(warningInterval);
     }, [onGlitchChange]);
