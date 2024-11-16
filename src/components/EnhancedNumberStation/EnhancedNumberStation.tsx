@@ -1,20 +1,21 @@
 import React, { useState, useCallback, useEffect } from 'react';
 
-
 interface NumberStationProps {
     isMobile: boolean;
-  }
+    onGlitchChange: (isGlitching: boolean) => void;  // Added this prop
+}
 
-export const EnhancedNumberStation: React.FC<NumberStationProps> = ({ isMobile }) => {
+export const EnhancedNumberStation: React.FC<NumberStationProps> = ({ 
+    isMobile, 
+    onGlitchChange 
+}) => {
     const BASE_OPACITY = 0.7;
     const HIDDEN_OPACITY = 0;
     
-    // Expanded state to handle more complex display
     const [sequence, setSequence] = useState([]);
     const [warning, setWarning] = useState('');
     const [glitchEffect, setGlitchEffect] = useState(false);
     
-    // Nuclear warning messages that occasionally appear
     const warnings = [
       "THIS PLACE IS A MESSAGE AND PART OF A SYSTEM OF MESSAGES",
       "WHAT IS HERE IS DANGEROUS AND REPULSIVE TO US",
@@ -25,7 +26,7 @@ export const EnhancedNumberStation: React.FC<NumberStationProps> = ({ isMobile }
       "DATA CORRUPTION DETECTED"
     ];
   
-    // Generate binary-like sequence with special characters
+    // ... other functions remain the same ...
     const generateSequence = () => {
       const specialChars = ['0', '1', '█', '▓', '▒', '░'];
       return Array.from({ length: 8 }, () => ({
@@ -35,7 +36,6 @@ export const EnhancedNumberStation: React.FC<NumberStationProps> = ({ isMobile }
       }));
     };
   
-    // Simulate data corruption effect
     const createGlitchEffect = useCallback((index) => {
       setSequence(prev => 
         prev.map((num, i) => 
@@ -48,7 +48,6 @@ export const EnhancedNumberStation: React.FC<NumberStationProps> = ({ isMobile }
       );
     }, []);
   
-    // Neural network-inspired pattern generation
     const generatePattern = useCallback(async () => {
       const patternLength = Math.floor(Math.random() * 3) + 2;
       for (let i = 0; i < patternLength; i++) {
@@ -61,7 +60,6 @@ export const EnhancedNumberStation: React.FC<NumberStationProps> = ({ isMobile }
     }, [sequence.length]);
   
     const flashNumbers = async (indices, duration) => {
-      // Flash with glitch probability
       const shouldGlitch = Math.random() > 0.7;
       if (shouldGlitch) setGlitchEffect(true);
       
@@ -87,20 +85,26 @@ export const EnhancedNumberStation: React.FC<NumberStationProps> = ({ isMobile }
       setGlitchEffect(false);
       await new Promise(r => setTimeout(r, duration * 0.5));
     };
-  
-    // Randomly display warning messages
+
+    // Single warning interval effect
     useEffect(() => {
       const warningInterval = setInterval(() => {
-        if (Math.random() > 0.7) {
-          setWarning(warnings[Math.floor(Math.random() * warnings.length)]);
-          setTimeout(() => setWarning(''), 3000);
+        if (Math.random() > 0.4) {
+          const newWarning = warnings[Math.floor(Math.random() * warnings.length)];
+          console.log('Showing warning:', newWarning);
+          setWarning(newWarning);
+          onGlitchChange(true);  // Notify parent
+
+          setTimeout(() => {
+            setWarning('');
+            onGlitchChange(false);  // Notify parent
+          }, 2000);
         }
-      }, 5000);
+      }, 7000);
       
       return () => clearInterval(warningInterval);
-    }, []);
+    }, [onGlitchChange]);
   
-    // Main sequence effect
     useEffect(() => {
       const runSequence = async () => {
         setSequence(generateSequence());
@@ -139,11 +143,10 @@ export const EnhancedNumberStation: React.FC<NumberStationProps> = ({ isMobile }
           </div>
           {warning && (
             <div 
-              className={`text-xs text-red-500 opacity-70 tracking-wider
-                ${isMobile ? 'ml-4 max-w-[160px]' : 'mt-2'}`}
-              style={{
-                animation: 'fadeInOut 3s ease-in-out'
-              }}
+              className={`
+                text-xs text-red-500 opacity-70 tracking-wider animate-fadeInOut
+                ${isMobile ? 'ml-4 max-w-[160px]' : 'mt-2'}
+              `}
             >
               {warning}
             </div>
@@ -151,5 +154,4 @@ export const EnhancedNumberStation: React.FC<NumberStationProps> = ({ isMobile }
         </div>
       </div>
     );
-  };
-  
+};

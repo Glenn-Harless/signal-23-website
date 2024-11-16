@@ -8,6 +8,10 @@ COPY package*.json ./
 # Copy TypeScript config
 COPY tsconfig.json ./
 
+# Clean npm cache and remove existing node_modules (if any)
+RUN npm cache clean --force && \
+    rm -rf node_modules
+
 # Install dependencies including TypeScript and Babel presets
 RUN npm install --save-dev typescript @types/react @types/react-dom @types/three @babel/preset-typescript
 
