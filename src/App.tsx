@@ -114,7 +114,7 @@ const App: React.FC = () => {
               SIGNAL-3
             </h1>
             <div className="absolute top-1/2 -translate-y-1/2">
-              <button 
+              {/* <button 
                 onClick={() => setIsPlayingAudio(!isPlayingAudio)} 
                 className="p-3 bg-white/10 rounded-full hover:bg-white/20 transition-colors"
               >
@@ -122,7 +122,7 @@ const App: React.FC = () => {
                   <Pause className="w-8 h-8 text-white" /> : 
                   <Play className="w-8 h-8 text-white" />
                 }
-              </button>
+              </button> */}
             </div>
           </div>
 
