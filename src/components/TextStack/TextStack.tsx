@@ -30,36 +30,45 @@ export const DistortedStack = ({ isPlayingAudio }) => {
             }
           `}
         </style>
-        <div className="absolute right-20 top-0 h-full flex flex-col justify-center space-y-6">
-          {[...Array(7)].map((_, i) => (
-            <div 
-              key={i} 
-              style={{
-                ...i === 3 
-                  ? {
-                      WebkitTextStroke: '0.02px white',
-                      color: 'black',
-                      filter: 'url(#irregular-outline)'
-                    }
-                  : {
-                      filter: isPlayingAudio ? 'url(#playing-effect)' : 'url(#default-effect)',
-                      animation: `pulse ${2 + i * 0.1}s ease-in-out infinite`,
-                      transition: 'filter 0.3s ease'
-                    }
-              }}
-              className={`text-6xl font-bold font-${fontFamilies[i]} ${
-                i === 3 
-                  ? '' 
-                  : 'text-white'
-              }`}
-            >
-              {i === 3 ? 'SIGNAL23' : (
-                <div style={{ transform: 'scale(-1, 1)', display: 'inline-block' }}>
-                  SIGNAL23
-                </div>
-              )}
-            </div>
-          ))}
+        <div className="absolute right-0 lg:right-20 top-0 h-full flex flex-col justify-center">
+          <div className="space-y-6 transform-gpu">
+            {[...Array(7)].map((_, i) => (
+              <div 
+                key={i} 
+                style={{
+                  ...i === 3 
+                    ? {
+                        WebkitTextStroke: '0.02px white',
+                        color: 'black',
+                        filter: 'url(#irregular-outline)'
+                      }
+                    : {
+                        filter: isPlayingAudio ? 'url(#playing-effect)' : 'url(#default-effect)',
+                        animation: `pulse ${2 + i * 0.1}s ease-in-out infinite`,
+                        transition: 'filter 0.3s ease'
+                      }
+                }}
+                className={`
+                  text-4xl md:text-5xl lg:text-6xl 
+                  font-bold 
+                  font-${fontFamilies[i]}
+                  transform-gpu
+                  transition-all duration-300
+                  ${i === 3 ? '' : 'text-white'}
+                  px-6 lg:px-0
+                `}
+              >
+                {i === 3 ? 'SIGNAL23' : (
+                  <div 
+                    style={{ transform: 'scale(-1, 1)' }} 
+                    className="inline-block"
+                  >
+                    SIGNAL23
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
         </div>
   
         <svg className="hidden">
@@ -105,9 +114,9 @@ export const DistortedStack = ({ isPlayingAudio }) => {
               </feComponentTransfer>
               <feComposite operator="in" in2="SourceGraphic"/>
             </filter>
-  
-            {/* Outline effect stays the same */}
-            {/* <filter id="irregular-outline">
+
+            {/* Outline effect */}
+            <filter id="irregular-outline">
               <feTurbulence 
                 type="turbulence" 
                 baseFrequency="0.7"
@@ -124,10 +133,9 @@ export const DistortedStack = ({ isPlayingAudio }) => {
                 <feFuncG type="linear" slope="1.2"/>
                 <feFuncB type="linear" slope="1.2"/>
               </feComponentTransfer>
-            </filter> */}
+            </filter>
           </defs>
         </svg>
       </>
     );
   };
-  

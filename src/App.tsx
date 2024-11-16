@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Music2, Mail, Info } from 'lucide-react';
+import { Music2, Mail, Info, Play, Pause } from 'lucide-react';  // Added Play and Pause
 import { Portal } from './components/Portal/Portal';
 import { AudioPlayer } from './components/Audio/AudioPlayer';
 import { NavigationLink } from './components/Navigation/NavigationLink';
@@ -72,55 +72,68 @@ const App: React.FC = () => {
     return () => clearInterval(interval);
   }, []);
 
-  return (
 
+  return (
     <div className="relative w-full h-screen overflow-hidden bg-black">
       <div className="fixed inset-0 bg-black -z-10" />
-      {/* Portal now positioned at root level like in working version */}
-      <Portal isMobile={isMobile} />
-      <EnhancedNumberStation isMobile={isMobile} />
-
-
-      {/* Desktop layout */}
-      <div className="hidden md:block absolute inset-0 z-10">
-        <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 z-30">
-          <AudioPlayer 
-            isPlaying={isPlayingAudio}
-            onPlayPause={() => setIsPlayingAudio(!isPlayingAudio)}
-            audioSource="/pieces-website-mp3.mp3"
-          />
-        </div>
-
-        <DistortedStack isPlayingAudio={isPlayingAudio} />
-      </div>
       
-      {/* Mobile view - simplified to match working version */}
-      <div className="md:hidden absolute inset-0 flex flex-col items-center z-20">
-        <h1 
-          className="text-5xl font-bold text-white font-neo-brute-transparent mt-12"
-          style={{
-            filter: 'url(#eroded-blur)'
-          }}
-        >
-          SIGNAL-3
-        </h1>
-        <div className="absolute top-1/2 transform -translate-y-1/2">
+      {/* Base layout container */}
+      <div className="relative h-full">
+        {/* Position the play button relative to the Portal */}
+        <div className="absolute inset-0 z-20">
           <AudioPlayer 
             isPlaying={isPlayingAudio}
             onPlayPause={() => setIsPlayingAudio(!isPlayingAudio)}
             audioSource="/pieces-website-mp3.mp3"
           />
         </div>
-      </div>
-  
-      {/* Navigation Links */}
-      <nav className="absolute bottom-0 left-0 right-0 p-6 z-20">
-        <div className="flex justify-center space-x-8">
-          {navLinks.map((link, index) => (
-            <NavigationLink key={index} {...link} />
-          ))}
+
+        <Portal isMobile={isMobile} />
+        <EnhancedNumberStation isMobile={isMobile} />
+
+        {/* Desktop Layout */}
+        <div className="hidden md:grid grid-cols-12 h-full relative z-10">
+          {/* Left section - Animation area */}
+          <div className="col-span-7 xl:col-span-8 relative">
+            {/* Removed AudioPlayer from here */}
+          </div>
+
+          {/* Right section - Text stack area */}
+          <div className="col-span-5 xl:col-span-4 relative">
+            <div className="h-full">
+              <DistortedStack isPlayingAudio={isPlayingAudio} />
+            </div>
+          </div>
         </div>
-      </nav>
+
+        {/* Mobile Layout - Keep visible button for mobile */}
+        <div className="md:hidden flex flex-col items-center h-full relative z-10">
+          <h1 className="text-4xl sm:text-5xl font-bold text-white font-neo-brute-transparent mt-12">
+            SIGNAL-3
+          </h1>
+          <div className="absolute top-1/2 -translate-y-1/2">
+            <button 
+              onClick={() => setIsPlayingAudio(!isPlayingAudio)} 
+              className="p-3 bg-white/10 rounded-full hover:bg-white/20 transition-colors"
+            >
+              {/* issue here */}
+              {isPlayingAudio ? 
+                <Pause className="w-8 h-8 text-white" /> : 
+                <Play className="w-8 h-8 text-white" />
+              }
+            </button>
+          </div>
+        </div>
+
+        {/* Navigation */}
+        <nav className="absolute bottom-0 left-0 right-0 p-6 z-20">
+          <div className="flex justify-center space-x-8">
+            {navLinks.map((link, index) => (
+              <NavigationLink key={index} {...link} />
+            ))}
+          </div>
+        </nav>
+      </div>
 
       {/* Keep SVG filters */}
       <svg className="hidden">

@@ -26,12 +26,16 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
     <>
       <button 
         onClick={onPlayPause} 
-        className="p-3 bg-white/10 rounded-full hover:bg-white/20 transition-colors"
+        className="w-96 h-96 rounded-full opacity-0 hover:opacity-5 transition-opacity cursor-pointer absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
+        aria-label={isPlaying ? "Pause" : "Play"}
       >
-        {isPlaying ? 
-          <Pause className="w-8 h-8 text-white" /> : 
-          <Play className="w-8 h-8 text-white" />
-        }
+        {/* Optional: Very faint icon that appears on hover */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+          {isPlaying ? 
+            <Pause className="w-16 h-16 text-white" /> : 
+            <Play className="w-16 h-16 text-white" />
+          }
+        </div>
       </button>
       <audio ref={audioRef} loop>
         <source src={audioSource} type="audio/mpeg" />
