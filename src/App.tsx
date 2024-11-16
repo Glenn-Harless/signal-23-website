@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Music2, Mail, Info } from 'lucide-react';
 import { Portal } from './components/Portal/Portal';
 import { AudioPlayer } from './components/Audio/AudioPlayer';
 import { NavigationLink } from './components/Navigation/NavigationLink';
 import { DistortedStack } from './components/TextStack/TextStack';
+import { EnhancedNumberStation } from './components/EnhancedNumberStation/EnhancedNumberStation';
+
 
 
 interface NavLink {
@@ -15,6 +17,11 @@ interface NavLink {
     name: string;
     url: string;
   }>;
+}
+
+
+interface NumberStationProps {
+  isMobile: boolean;
 }
 
 const App: React.FC = () => {
@@ -71,6 +78,8 @@ const App: React.FC = () => {
       <div className="fixed inset-0 bg-black -z-10" />
       {/* Portal now positioned at root level like in working version */}
       <Portal isMobile={isMobile} />
+      <EnhancedNumberStation isMobile={isMobile} />
+
 
       {/* Desktop layout */}
       <div className="hidden md:block absolute inset-0 z-10">
