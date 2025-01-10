@@ -16,6 +16,8 @@ module.exports = {
         'neo-brutalist7': ['NeobruteTest7', 'sans-serif'],
         'neo-brutalist8': ['NeobruteTest8', 'sans-serif'],
         'neo-brutalist9': ['NeobruteTest9', 'sans-serif'],
+        'ibm-mono': ['IBM Plex Mono', 'monospace'],
+        'space-mono': ['Space Mono', 'monospace'],
       },
       animation: {
         'flash': 'flash 0.5s ease-in-out infinite',

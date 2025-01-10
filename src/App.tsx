@@ -10,7 +10,7 @@ import { GlitchOverlay } from './components/GlitchOverlay/GlitchOverlay';
 interface NavLink {
   icon?: React.ReactNode;
   label: string;
-  href: string;
+  href?: string;
   description: string;
   platforms?: Array<{
     name: string;
@@ -30,8 +30,8 @@ const App: React.FC = () => {
 
   const navLinks: NavLink[] = [
     { 
-      label: "CONTACT",
-      href: "mailto:signal.23.music@gmail.com",
+      label: "music@signal23.net",
+      // href: "mailto:signal.23.music@gmail.com",
       description: "Get in touch" 
     }
   ];
@@ -128,7 +128,7 @@ const App: React.FC = () => {
 
           {/* Navigation */}
           <nav className="absolute bottom-0 left-0 right-0 p-6 z-20">
-            <div className="flex justify-center space-x-8">
+            <div className="flex justify-center space-x-8 opacity-60 font-ibm-mono">
               {navLinks.map((link, index) => (
                 <NavigationLink key={index} {...link} />
               ))}
