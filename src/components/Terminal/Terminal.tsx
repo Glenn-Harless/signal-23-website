@@ -36,7 +36,7 @@ export const Terminal: React.FC<TerminalProps> = ({ isMobile }) => {
   const socialLinks = [
     { name: 'SoundCloud', url: 'https://soundcloud.com/signal-23' },
     { name: 'YouTube', url: 'https://youtube.com/@signal-23' },
-    { name: 'Spotify', url: 'https://open.spotify.com/artist/signal-23' }
+    // { name: 'Spotify', url: 'https://open.spotify.com/artist/signal-23' }
   ];
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
