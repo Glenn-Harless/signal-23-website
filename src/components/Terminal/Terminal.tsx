@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { audioStreamer } from './AudioStreamer';
 
 interface TerminalProps {
   isMobile: boolean;
@@ -24,11 +25,19 @@ export const Terminal: React.FC<TerminalProps> = ({ isMobile }) => {
   const terminalRef = useRef(null);
   const inputRef = useRef(null);
 
+  const frequencies = [
+    { 
+      name: 'FREQ-23.1', 
+      url: 'https://www.dropbox.com/scl/fi/cylqe5y0yf8q9bw28k72p/glitch-noise-alt-wip1.mp3?rlkey=rv0ho4psnmsg124fh1sgiavv7&dl=1'
+    }
+  ];
+  const [currentFrequency, setCurrentFrequency] = useState<string | null>(null);
+
   const menuItems = [
     { command: 'help', label: 'Available Commands' },
     { command: 'social', label: 'Social Media Links' },
     { command: 'signal', label: 'About SIGNAL-23' },
-    { command: 'date', label: 'Current Time' },
+    // { command: 'date', label: 'Current Time' },
     { command: 'clear', label: 'Clear Terminal' },
     { command: 'exit', label: 'Exit Terminal' }
   ];
@@ -65,12 +74,13 @@ export const Terminal: React.FC<TerminalProps> = ({ isMobile }) => {
     help: () => [
       'Available commands:',
       '----------------',
-      'help     - Show this help message',
-      'social   - View social media links',
-      'signal   - About SIGNAL-23',
-      'date     - Show current date/time',
-      'clear    - Clear the terminal',
-      'exit     - Exit terminal'
+      'help           - Show this help message',
+      'social         - View social media links',
+      'signal         - About SIGNAL-23',
+      'date           - Show current date/time',
+      'scan frequency - Scan random transmission frequency',
+      'clear          - Clear the terminal',
+      'exit           - Exit terminal'
     ],
     social: () => {
       setSelectedLink(0);
@@ -92,6 +102,37 @@ export const Terminal: React.FC<TerminalProps> = ({ isMobile }) => {
     date: () => {
       const now = new Date();
       return [`Current timestamp: ${now.toLocaleString()}`];
+    },
+    scan: (args: string[]) => {
+      if (args[0]?.toLowerCase() === 'frequency') {
+        if (audioStreamer.isPlaying()) {
+          audioStreamer.stop();
+          setCurrentFrequency(null);
+          return ['Frequency scan terminated.'];
+        }
+
+        const randomFreq = frequencies[Math.floor(Math.random() * frequencies.length)];
+        setCurrentFrequency(randomFreq.name);
+
+        audioStreamer.playRandomSegment({
+          url: randomFreq.url,
+          onError: (error) => {
+            setOutput(prev => [
+              ...prev,
+              { type: 'error', content: `Transmission error: ${error.message}` }
+            ]);
+          }
+        });
+
+        return [
+          'INITIATING FREQUENCY SCAN',
+          '------------------------',
+          `Intercepting transmission on ${randomFreq.name}`,
+          'Decoding signal...',
+          '[Press CTRL+C or type "scan frequency" again to terminate]'
+        ];
+      }
+      return ['Usage: scan frequency'];
     },
     clear: () => {
       // Reset to initial state
@@ -172,13 +213,33 @@ export const Terminal: React.FC<TerminalProps> = ({ isMobile }) => {
     }
   }, [output]);
 
+  useEffect(() => {
+    return () => {
+      audioStreamer.stop();
+    };
+  }, []);
+
   return (
     <div 
       className={`bg-black text-green-500 p-4 font-mono h-screen ${
         isMobile ? 'text-sm flex flex-col' : 'text-base'
       }`}
       onClick={() => !isMobile && inputRef.current?.focus()}
-      onKeyDown={!isMobile ? handleKeyDown : undefined}
+      onKeyDown={(e) => {
+        if (e.ctrlKey && e.key === 'c' && currentFrequency) {
+          audioStreamer.stop();
+          setCurrentFrequency(null);
+          setOutput(prev => [
+            ...prev,
+            { type: 'system', content: 'Frequency scan terminated.' },
+            { type: 'prompt', content: '>' }
+          ]);
+          return;
+        }
+        if (!isMobile) {
+          handleKeyDown(e);
+        }
+      }}
       ref={terminalRef}
       tabIndex={0}
     >
@@ -243,7 +304,10 @@ export const Terminal: React.FC<TerminalProps> = ({ isMobile }) => {
 
       {isMobile && (
         <div className="mt-4 border-t border-green-500/30 pt-4 grid grid-cols-2 gap-2">
-          {menuItems.map((item, index) => (
+          {[
+            ...menuItems,
+            { command: 'scan frequency', label: 'Scan Frequency' }
+          ].map((item, index) => (
             <button
               key={index}
               className="p-3 border border-green-500/30 rounded text-center hover:bg-green-500/10 active:bg-green-500/20 transition-colors"
