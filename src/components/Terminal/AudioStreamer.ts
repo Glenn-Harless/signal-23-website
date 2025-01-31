@@ -1,98 +1,128 @@
+// In your AudioStreamer.ts
+import { audioDebugger } from './AudioDebugger';
+
 class AudioStreamer {
   private audio: HTMLAudioElement | null = null;
   private currentTimeout: NodeJS.Timeout | null = null;
 
   constructor() {
-    this.audio = new Audio();
+    audioDebugger.log('AudioStreamer initialized', {
+      deviceInfo: audioDebugger.getDeviceInfo(),
+      audioContext: audioDebugger.getAudioContextInfo()
+    });
   }
 
   private getDirectDropboxLink(url: string): string {
-    // Convert www.dropbox.com to dl.dropboxusercontent.com and keep the rlkey
     const match = url.match(/\/scl\/fi\/([^?]+)/);
-    if (!match) return url;
+    if (!match) {
+      audioDebugger.log('Invalid Dropbox URL format', { url });
+      return url;
+    }
     
     const filePath = match[1];
     const rlkeyMatch = url.match(/rlkey=([^&]+)/);
     const rlkey = rlkeyMatch ? rlkeyMatch[1] : '';
     
-    return `https://dl.dropboxusercontent.com/scl/fi/${filePath}?rlkey=${rlkey}&dl=1`; // Added dl=1
+    const directUrl = `https://dl.dropboxusercontent.com/scl/fi/${filePath}?rlkey=${rlkey}&raw=1&dl=1`;
+    audioDebugger.log('Generated direct URL', { directUrl });
+    return directUrl;
   }
 
   async playRandomSegment(options: AudioStreamOptions) {
     try {
+      audioDebugger.log('Starting playRandomSegment');
       this.stop();
-      this.audio = new Audio();
-      
+
+      // First test URL accessibility
       const directUrl = this.getDirectDropboxLink(options.url);
-      console.log('Playing from URL:', directUrl);
-      
+      try {
+        audioDebugger.log('Testing URL accessibility');
+        const response = await fetch(directUrl, { 
+          method: 'HEAD',
+          headers: {
+            'Range': 'bytes=0-0' // Test byte-range support
+          }
+        });
+        audioDebugger.log('URL test response', {
+          status: response.status,
+          headers: Object.fromEntries(response.headers.entries())
+        });
+      } catch (fetchError) {
+        audioDebugger.log('URL test failed', { error: fetchError.message });
+        throw new Error(`Cannot access audio file: ${fetchError.message}`);
+      }
+
+      this.audio = new Audio();
+      this.audio.preload = 'auto';
       this.audio.crossOrigin = 'anonymous';
-      this.audio.preload = 'auto'; // Changed to 'auto' for better buffering
-      this.audio.src = directUrl;
-      
-      // Set up buffering
-      this.audio.addEventListener('waiting', () => {
-        console.log('Buffering...');
+
+      // Add all relevant event listeners
+      const events = [
+        'loadstart', 'durationchange', 'loadedmetadata', 'loadeddata',
+        'progress', 'canplay', 'canplaythrough', 'playing', 'waiting',
+        'stalled', 'error', 'abort'
+      ];
+
+      events.forEach(event => {
+        this.audio?.addEventListener(event, () => {
+          audioDebugger.log(`Audio event: ${event}`, {
+            currentTime: this.audio?.currentTime,
+            readyState: this.audio?.readyState,
+            networkState: this.audio?.networkState,
+            error: this.audio?.error ? {
+              code: this.audio.error.code,
+              message: this.audio.error.message
+            } : null
+          });
+        });
       });
 
-      this.audio.addEventListener('playing', () => {
-        console.log('Playback resumed');
-      });
-      
+      this.audio.src = directUrl;
+      audioDebugger.log('Set audio source');
+
       await new Promise((resolve, reject) => {
         if (!this.audio) return reject(new Error('No audio element'));
         
+        const timeout = setTimeout(() => {
+          audioDebugger.log('Audio loading timeout');
+          reject(new Error('Audio loading timeout after 30s'));
+        }, 30000);
+
         const onCanPlay = () => {
+          clearTimeout(timeout);
           this.audio?.removeEventListener('canplay', onCanPlay);
           this.audio?.removeEventListener('error', onError);
+          audioDebugger.log('Audio can play');
           resolve(true);
         };
         
         const onError = (e: Event) => {
-          console.error('Audio error:', e);
+          clearTimeout(timeout);
           this.audio?.removeEventListener('canplay', onCanPlay);
           this.audio?.removeEventListener('error', onError);
-          reject(new Error('Failed to load audio'));
+          const errorDetails = this.audio?.error ? {
+            code: this.audio.error.code,
+            message: this.audio.error.message
+          } : 'Unknown error';
+          audioDebugger.log('Audio error occurred', errorDetails);
+          reject(new Error(`Audio error: ${JSON.stringify(errorDetails)}`));
         };
         
         this.audio.addEventListener('canplay', onCanPlay);
         this.audio.addEventListener('error', onError);
       });
 
-      if (this.audio.duration) {
-        // Play a random 2-minute segment (or full duration if shorter)
-        const segmentLength = 120; // 2 minutes in seconds
-        const maxTime = Math.max(0, this.audio.duration - segmentLength);
-        const randomStart = Math.random() * maxTime;
-        this.audio.currentTime = randomStart;
-        console.log(`Starting playback at ${randomStart}s`);
-        
-        // Set timeout for segment length
-        if (this.currentTimeout) {
-          clearTimeout(this.currentTimeout);
-        }
-        
-        this.currentTimeout = setTimeout(() => {
-          this.stop();
-        }, segmentLength * 1000);
+      // Add the debug command to your terminal
+      try {
+        await this.audio.play();
+        audioDebugger.log('Audio playback started');
+      } catch (playError) {
+        audioDebugger.log('Play error occurred', { error: playError.message });
+        throw playError;
       }
 
-      this.audio.addEventListener('timeupdate', () => {
-        if (options.onProgress && this.audio) {
-          options.onProgress(this.audio.currentTime);
-        }
-      });
-
-      this.audio.addEventListener('ended', () => {
-        if (this.currentTimeout) {
-          clearTimeout(this.currentTimeout);
-        }
-      });
-
-      await this.audio.play();
-      console.log('Audio playing successfully');
     } catch (error) {
-      console.error('Audio playback error:', error);
+      audioDebugger.log('Playback error in playRandomSegment', { error });
       if (options.onError) {
         options.onError(error as Error);
       }
@@ -100,6 +130,7 @@ class AudioStreamer {
   }
 
   stop() {
+    audioDebugger.log('Stopping audio');
     if (this.currentTimeout) {
       clearTimeout(this.currentTimeout);
       this.currentTimeout = null;
@@ -115,6 +146,11 @@ class AudioStreamer {
 
   isPlaying() {
     return this.audio ? !this.audio.paused : false;
+  }
+
+  // Add method to get debug logs
+  getDebugLogs() {
+    return audioDebugger.getFullReport();
   }
 }
 
