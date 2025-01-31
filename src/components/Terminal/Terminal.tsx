@@ -29,7 +29,7 @@ export const Terminal: React.FC<TerminalProps> = ({ isMobile }) => {
   const frequencies = [
     { 
       name: 'FREQ-23.1', 
-      url: 'https://www.dropbox.com/scl/fi/cylqe5y0yf8q9bw28k72p/glitch-noise-alt-wip1.mp3?rlkey=rv0ho4psnmsg124fh1sgiavv7&dl=1'
+      url: 'https://dl.dropboxusercontent.com/scl/fi/cylqe5y0yf8q9bw28k72p/glitch-noise-alt-wip1.mp3?rlkey=rv0ho4psnmsg124fh1sgiavv7&raw=1&dl=1'
     }
   ];
   const [currentFrequency, setCurrentFrequency] = useState<string | null>(null);
