@@ -8,6 +8,7 @@ interface TerminalProps {
 
 export const Terminal: React.FC<TerminalProps> = ({ isMobile }) => {
   const navigate = useNavigate();
+  const [viewportHeight, setViewportHeight] = useState(window.innerHeight);
   
   const handleExit = () => {
     navigate('/', { state: { isMobile } });
@@ -22,13 +23,13 @@ export const Terminal: React.FC<TerminalProps> = ({ isMobile }) => {
   ]);
   const [selectedLink, setSelectedLink] = useState(-1);
   const [lastSocialIndex, setLastSocialIndex] = useState(-1);
-  const terminalRef = useRef(null);
-  const inputRef = useRef(null);
+  const terminalRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const frequencies = [
     { 
       name: 'FREQ-23.1', 
-      url: 'https://www.dropbox.com/scl/fi/cylqe5y0yf8q9bw28k72p/glitch-noise-alt-wip1.mp3?rlkey=rv0ho4psnmsg124fh1sgiavv7&dl=1'
+      url: 'https://dl.dropboxusercontent.com/scl/fi/cylqe5y0yf8q9bw28k72p/glitch-noise-alt-wip1.mp3?rlkey=rv0ho4psnmsg124fh1sgiavv7&raw=1&dl=1'
     }
   ];
   const [currentFrequency, setCurrentFrequency] = useState<string | null>(null);
@@ -37,7 +38,7 @@ export const Terminal: React.FC<TerminalProps> = ({ isMobile }) => {
     { command: 'help', label: 'Available Commands' },
     { command: 'social', label: 'Social Media Links' },
     { command: 'signal', label: 'About SIGNAL-23' },
-    // { command: 'date', label: 'Current Time' },
+    { command: 'scan frequency', label: 'Scan Frequency' },
     { command: 'clear', label: 'Clear Terminal' },
     { command: 'exit', label: 'Exit Terminal' }
   ];
@@ -45,8 +46,26 @@ export const Terminal: React.FC<TerminalProps> = ({ isMobile }) => {
   const socialLinks = [
     { name: 'SoundCloud', url: 'https://soundcloud.com/signal-23' },
     { name: 'YouTube', url: 'https://youtube.com/@signal-23' },
-    // { name: 'Spotify', url: 'https://open.spotify.com/artist/signal-23' }
   ];
+
+  useEffect(() => {
+    const handleResize = () => {
+      const height = window.visualViewport?.height || window.innerHeight;
+      setViewportHeight(height);
+    };
+
+    window.visualViewport?.addEventListener('resize', handleResize);
+    window.visualViewport?.addEventListener('scroll', handleResize);
+    window.addEventListener('resize', handleResize);
+
+    handleResize();
+
+    return () => {
+      window.visualViewport?.removeEventListener('resize', handleResize);
+      window.visualViewport?.removeEventListener('scroll', handleResize);
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (selectedLink >= 0) {
@@ -64,7 +83,6 @@ export const Terminal: React.FC<TerminalProps> = ({ isMobile }) => {
         e.preventDefault();
         setSelectedLink(-1);
       }
-      // Prevent any other key actions while in social navigation mode
       e.stopPropagation();
       return;
     }
@@ -119,7 +137,8 @@ export const Terminal: React.FC<TerminalProps> = ({ isMobile }) => {
           onError: (error) => {
             setOutput(prev => [
               ...prev,
-              { type: 'error', content: `Transmission error: ${error.message}` }
+              { type: 'error', content: `Transmission error: ${error.message}` },
+              { type: 'prompt', content: '>' }
             ]);
           }
         });
@@ -135,7 +154,6 @@ export const Terminal: React.FC<TerminalProps> = ({ isMobile }) => {
       return ['Usage: scan frequency'];
     },
     clear: () => {
-      // Reset to initial state
       setOutput([
         { type: 'system', content: 'SIGNAL-23 Terminal [Version 1.0.0]' },
         { type: 'system', content: '(c) 2025 SIGNAL-23. All rights reserved.' },
@@ -176,9 +194,7 @@ export const Terminal: React.FC<TerminalProps> = ({ isMobile }) => {
   };
 
   const executeCommand = (command: string) => {
-    console.log('Executing command:', command);
     const result = handleCommand(command);
-    console.log('Command result:', result);
     
     if (command.toLowerCase() === 'clear') {
       commands.clear();
@@ -188,12 +204,9 @@ export const Terminal: React.FC<TerminalProps> = ({ isMobile }) => {
     const newOutput = [
       ...output,
       { type: 'command', content: command },
-      ...result.map(line => ({ type: 'output', content: line }))
+      ...result.map(line => ({ type: 'output', content: line })),
+      { type: 'prompt', content: '>' }
     ];
-
-    if (command.toLowerCase() !== 'clear') {
-      newOutput.push({ type: 'prompt', content: '>' });
-    }
 
     setOutput(newOutput);
   };
@@ -221,9 +234,12 @@ export const Terminal: React.FC<TerminalProps> = ({ isMobile }) => {
 
   return (
     <div 
-      className={`bg-black text-green-500 p-4 font-mono h-screen ${
-        isMobile ? 'text-sm flex flex-col' : 'text-base'
-      }`}
+      className={`bg-black text-green-500 font-mono flex flex-col`}
+      style={{
+        height: isMobile ? `${viewportHeight}px` : '100vh',
+        maxHeight: isMobile ? `${viewportHeight}px` : '100vh',
+        paddingBottom: isMobile ? 'env(safe-area-inset-bottom)' : '1rem',
+      }}
       onClick={() => !isMobile && inputRef.current?.focus()}
       onKeyDown={(e) => {
         if (e.ctrlKey && e.key === 'c' && currentFrequency) {
@@ -243,7 +259,7 @@ export const Terminal: React.FC<TerminalProps> = ({ isMobile }) => {
       ref={terminalRef}
       tabIndex={0}
     >
-      <div className={`${isMobile ? 'flex-1 overflow-auto' : 'h-screen overflow-auto'} pb-4`}>
+      <div className={`flex-1 overflow-auto p-4 ${isMobile ? 'text-sm' : 'text-base'}`}>
         {output.map((line, i) => (
           <div key={i} className="flex">
             {line.type === 'prompt' ? (
@@ -280,7 +296,9 @@ export const Terminal: React.FC<TerminalProps> = ({ isMobile }) => {
             ) : (
               <span 
                 className={`${
-                  line.type === 'command' ? 'text-blue-400' : ''
+                  line.type === 'command' ? 'text-blue-400' : 
+                  line.type === 'error' ? 'text-red-500' :
+                  'text-green-500'
                 } ${
                   line.content.includes('http') ? 'cursor-pointer hover:text-green-300' : ''
                 } ${
@@ -303,18 +321,12 @@ export const Terminal: React.FC<TerminalProps> = ({ isMobile }) => {
       </div>
 
       {isMobile && (
-        <div className="mt-4 border-t border-green-500/30 pt-4 grid grid-cols-2 gap-2">
-          {[
-            ...menuItems,
-            { command: 'scan frequency', label: 'Scan Frequency' }
-          ].map((item, index) => (
+        <div className="border-t border-green-500/30 bg-black p-4 grid grid-cols-2 gap-2">
+          {menuItems.map((item, index) => (
             <button
               key={index}
               className="p-3 border border-green-500/30 rounded text-center hover:bg-green-500/10 active:bg-green-500/20 transition-colors"
-              onClick={() => {
-                console.log('Button clicked:', item.command);
-                executeCommand(item.command);
-              }}
+              onClick={() => executeCommand(item.command)}
             >
               {item.label}
             </button>
