@@ -1,19 +1,24 @@
+import Hls from 'hls.js';
+
+interface AudioStreamOptions {
+  onError?: (error: Error) => void;
+}
+
 class AudioStreamer {
   private audio: HTMLAudioElement | null = null;
-  private currentTimeout: NodeJS.Timeout | null = null;
+  private hls: Hls | null = null;
   private debugMode: boolean = true;
-  private retryCount: number = 0;
-  private maxRetries: number = 3;
   private isMobile: boolean;
   private isIOS: boolean;
-  private isChrome: boolean;
+  private isPlaying: boolean = false;
+  private segmentFileId: string = 'ub356bile8ozsuwes1h8y';
+  private segmentRlkey: string = 'zqz775il1yqoqghiyibdwso4f';
 
   constructor() {
     this.debugLog('Initializing AudioStreamer');
     this.isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
     this.isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-    this.isChrome = /Chrome/.test(navigator.userAgent);
-    this.debugLog(`Platform: ${this.isMobile ? 'Mobile' : 'Desktop'} (iOS: ${this.isIOS}, Chrome: ${this.isChrome})`);
+    this.debugLog(`Platform: ${this.isMobile ? 'Mobile' : 'Desktop'} (iOS: ${this.isIOS})`);
   }
 
   private debugLog(message: string, data?: any) {
@@ -23,148 +28,123 @@ class AudioStreamer {
     }
   }
 
-  private getDirectDropboxLink(url: string): string {
-    const match = url.match(/\/scl\/fi\/([^?]+)/);
-    if (!match) {
+  private getDropboxDirectUrl(url: string): string {
+    // Extract file ID and rlkey from URL
+    const fileMatch = url.match(/\/scl\/fi\/([^?]+)/);
+    const rlkeyMatch = url.match(/rlkey=([^&]+)/);
+    
+    if (!fileMatch || !rlkeyMatch) {
       this.debugLog('Invalid Dropbox URL format');
       return url;
     }
     
-    const filePath = match[1];
-    const rlkeyMatch = url.match(/rlkey=([^&]+)/);
-    const rlkey = rlkeyMatch ? rlkeyMatch[1] : '';
+    const fileId = fileMatch[1];
+    const rlkey = rlkeyMatch[1];
     
-    // Add dl=1 to force download mode and raw=1 to get direct file
-    return `https://dl.dropboxusercontent.com/scl/fi/${filePath}?rlkey=${rlkey}&raw=1&dl=1`;
+    // Return direct download link
+    return `https://dl.dropboxusercontent.com/scl/fi/${fileId}?rlkey=${rlkey}&raw=1`;
   }
 
-  private async validateAudioURL(url: string): Promise<boolean> {
-    // Skip validation for mobile Chrome as it doesn't handle range requests well for large files
-    if (this.isMobile && this.isChrome) {
-      this.debugLog('Skipping URL validation for mobile Chrome');
-      return true;
-    }
-
-    try {
-      // For Safari, use a simple HEAD request
-      if (this.isIOS) {
-        const response = await fetch(url, { 
-          method: 'HEAD',
-          mode: 'cors',
-          credentials: 'omit'
-        });
-        return response.ok;
-      }
-
-      // For other browsers, use a minimal range request
-      const response = await fetch(url, {
-        headers: { 'Range': 'bytes=0-0' },
-        mode: 'cors',
-        credentials: 'omit'
-      });
-
-      return response.status === 206 || response.ok;
-    } catch (error) {
-      this.debugLog('URL validation failed:', error);
-      return false;
-    }
+  private getSegmentUrl(segmentName: string): string {
+    // Construct URL for segments using their file ID and rlkey
+    return `https://dl.dropboxusercontent.com/scl/fi/${this.segmentFileId}/${segmentName}?rlkey=${this.segmentRlkey}&raw=1`;
   }
 
-  async playRandomSegment(options: AudioStreamOptions) {
+  async playRandomSegment(options: AudioStreamOptions): Promise<void> {
     try {
-      this.debugLog('Starting playRandomSegment');
+      this.debugLog('Starting playback');
       this.stop();
 
-      const directUrl = this.getDirectDropboxLink(options.url);
-      this.debugLog('Processing URL:', directUrl);
+      const playlistUrl = this.getDropboxDirectUrl('https://www.dropbox.com/scl/fi/19upvjkgjmcpsqzadfsuj/playlist.m3u8?rlkey=ayaqpygc1e3iup4knh1p5uojk');
+      this.debugLog('Playlist URL:', playlistUrl);
 
-      // Create new audio element
       this.audio = new Audio();
-      
-      if (this.isIOS) {
-        // iOS-specific settings
-        this.audio.preload = 'metadata';
-        this.debugLog('Using iOS-specific audio settings');
-      } else if (this.isMobile && this.isChrome) {
-        // Chrome mobile specific settings
-        this.audio.preload = 'auto';
-        this.audio.crossOrigin = 'anonymous';
-        this.debugLog('Using Chrome mobile settings');
-      } else {
-        // Desktop settings
-        this.audio.preload = 'auto';
-        this.debugLog('Using desktop audio settings');
-      }
+      this.audio.crossOrigin = 'anonymous';
 
-      // Set up event logging
-      const events = ['loadstart', 'loadedmetadata', 'canplay', 'error'];
-      events.forEach(event => {
-        this.audio?.addEventListener(event, () => {
-          this.debugLog(`Audio event: ${event}`, {
-            currentTime: this.audio?.currentTime,
-            readyState: this.audio?.readyState,
-            error: this.audio?.error
-          });
+      if (Hls.isSupported()) {
+        this.hls = new Hls({
+          debug: this.debugMode,
+          enableWorker: true,
+          lowLatencyMode: true,
+          backBufferLength: 90,
+          xhrSetup: (xhr, url) => {
+            // If this is a segment request, rewrite the URL
+            if (url.includes('segment')) {
+              const segmentName = url.split('/').pop() || '';
+              const segmentUrl = this.getSegmentUrl(segmentName);
+              this.debugLog('Loading segment:', segmentUrl);
+              xhr.open('GET', segmentUrl, true);
+            } else {
+              xhr.open('GET', url, true);
+            }
+          }
         });
-      });
 
-      // Set the source
-      this.audio.src = directUrl;
+        this.hls.loadSource(playlistUrl);
+        this.hls.attachMedia(this.audio);
 
-      // For iOS, we need to explicitly load
-      if (this.isIOS) {
-        this.audio.load();
+        this.hls.on(Hls.Events.MEDIA_ATTACHED, () => {
+          this.debugLog('HLS Media Attached');
+        });
+
+        this.hls.on(Hls.Events.MANIFEST_PARSED, () => {
+          this.debugLog('HLS Manifest Parsed');
+          if (this.audio) {
+            const totalDuration = this.hls?.levels[0].details.totalduration || 0;
+            const randomStart = Math.floor(Math.random() * (Math.max(0, totalDuration - 60)));
+            this.audio.currentTime = randomStart;
+            this.audio.play()
+              .then(() => {
+                this.isPlaying = true;
+                this.debugLog('Playback started at time:', randomStart);
+              })
+              .catch(error => {
+                this.debugLog('Play failed:', error);
+                throw error;
+              });
+          }
+        });
+
+        this.hls.on(Hls.Events.ERROR, (event, data) => {
+          this.debugLog('HLS Error:', data);
+          if (data.fatal) {
+            switch (data.type) {
+              case Hls.ErrorTypes.NETWORK_ERROR:
+                this.debugLog('Network error, attempting to recover');
+                this.hls?.startLoad();
+                break;
+              case Hls.ErrorTypes.MEDIA_ERROR:
+                this.debugLog('Media error, attempting to recover');
+                this.hls?.recoverMediaError();
+                break;
+              default:
+                this.debugLog('Fatal error, stopping');
+                this.stop();
+                if (options.onError) {
+                  options.onError(new Error(data.details));
+                }
+                break;
+            }
+          }
+        });
+      } else {
+        throw new Error('HLS playback not supported on this device');
       }
-
-      // Wait for the audio to be ready
-      await new Promise((resolve, reject) => {
-        if (!this.audio) return reject(new Error('No audio element'));
-        
-        const timeout = setTimeout(() => {
-          reject(new Error('Audio loading timeout'));
-        }, 30000);
-
-        const onCanPlay = () => {
-          clearTimeout(timeout);
-          this.audio?.removeEventListener('canplay', onCanPlay);
-          this.audio?.removeEventListener('error', onError);
-          resolve(true);
-        };
-        
-        const onError = () => {
-          clearTimeout(timeout);
-          this.audio?.removeEventListener('canplay', onCanPlay);
-          this.audio?.removeEventListener('error', onError);
-          reject(new Error('Audio loading failed'));
-        };
-        
-        this.audio.addEventListener('canplay', onCanPlay);
-        this.audio.addEventListener('error', onError);
-      });
-
-      // Start playback
-      await this.audio.play();
-      this.debugLog('Playback started successfully');
-
     } catch (error) {
       this.debugLog('Playback error:', error);
-      let errorMessage = 'Failed to load audio';
-      
-      if (error instanceof Error) {
-        errorMessage = error.message;
-      }
-      
       if (options.onError) {
-        options.onError(new Error(errorMessage));
+        options.onError(error instanceof Error ? error : new Error('Unknown error'));
       }
     }
   }
 
   stop() {
     this.debugLog('Stopping playback');
-    if (this.currentTimeout) {
-      clearTimeout(this.currentTimeout);
-      this.currentTimeout = null;
+    this.isPlaying = false;
+    
+    if (this.hls) {
+      this.hls.destroy();
+      this.hls = null;
     }
     
     if (this.audio) {
@@ -176,8 +156,12 @@ class AudioStreamer {
     }
   }
 
-  isPlaying() {
-    return this.audio ? !this.audio.paused : false;
+  getIsPlaying() {
+    return this.isPlaying;
+  }
+
+  getCurrentTime() {
+    return this.audio?.currentTime || 0;
   }
 }
 
