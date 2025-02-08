@@ -9,6 +9,7 @@ interface TerminalProps {
 export const Terminal: React.FC<TerminalProps> = ({ isMobile }) => {
   const navigate = useNavigate();
   const [viewportHeight, setViewportHeight] = useState(window.innerHeight);
+  const outputRef = useRef<HTMLDivElement>(null);
   
   const handleExit = () => {
     navigate('/', { state: { isMobile } });
@@ -53,6 +54,11 @@ export const Terminal: React.FC<TerminalProps> = ({ isMobile }) => {
     const handleResize = () => {
       const height = window.visualViewport?.height || window.innerHeight;
       setViewportHeight(height);
+      
+      // Force scroll to bottom whenever viewport changes
+      if (outputRef.current) {
+        outputRef.current.scrollTop = outputRef.current.scrollHeight;
+      }
     };
 
     window.visualViewport?.addEventListener('resize', handleResize);
@@ -89,6 +95,7 @@ export const Terminal: React.FC<TerminalProps> = ({ isMobile }) => {
     }
   };
 
+  // ... commands object remains the same ...
   const commands = {
     help: () => [
       'Available commands:',
@@ -159,7 +166,6 @@ export const Terminal: React.FC<TerminalProps> = ({ isMobile }) => {
       }
       return ['Usage: scan frequency'];
     },
-  
     clear: () => {
       setOutput([
         { type: 'system', content: 'SIGNAL-23 Terminal [Version 1.0.0]' },
@@ -224,9 +230,10 @@ export const Terminal: React.FC<TerminalProps> = ({ isMobile }) => {
     setInput('');
   };
 
+  // Update scroll position whenever output changes
   useEffect(() => {
-    if (terminalRef.current) {
-      terminalRef.current.scrollTop = terminalRef.current.scrollHeight;
+    if (outputRef.current) {
+      outputRef.current.scrollTop = outputRef.current.scrollHeight;
     }
     if (inputRef.current) {
       inputRef.current.focus();
@@ -241,11 +248,10 @@ export const Terminal: React.FC<TerminalProps> = ({ isMobile }) => {
 
   return (
     <div 
-      className={`bg-black text-green-500 font-mono flex flex-col`}
+      className="bg-black text-green-500 font-mono flex flex-col"
       style={{
         height: isMobile ? `${viewportHeight}px` : '100vh',
         maxHeight: isMobile ? `${viewportHeight}px` : '100vh',
-        paddingBottom: isMobile ? 'env(safe-area-inset-bottom)' : '1rem',
       }}
       onClick={() => !isMobile && inputRef.current?.focus()}
       onKeyDown={(e) => {
@@ -266,69 +272,82 @@ export const Terminal: React.FC<TerminalProps> = ({ isMobile }) => {
       ref={terminalRef}
       tabIndex={0}
     >
-      <div className={`flex-1 overflow-auto p-4 ${isMobile ? 'text-sm' : 'text-base'}`}>
-        {output.map((line, i) => (
-          <div key={i} className="flex">
-            {line.type === 'prompt' ? (
-              <>
-                {!isMobile && <span className="text-green-500 mr-2">{line.content}</span>}
-                {i === output.length - 1 && !isMobile && (
-                  <div className="flex-1 relative">
-                    <input
-                      ref={inputRef}
-                      type="text"
-                      value={input}
-                      onChange={(e) => {
-                        if (selectedLink >= 0) return;
-                        setInput(e.target.value);
-                      }}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' && !selectedLink >= 0) {
-                          e.preventDefault();
-                          handleSubmit(e);
-                        }
-                      }}
-                      className="bg-transparent text-green-500 focus:outline-none w-full"
-                      autoFocus
-                      disabled={selectedLink >= 0}
-                    />
-                    {selectedLink >= 0 && (
-                      <div className="absolute top-0 left-0 w-full text-yellow-500">
-                        Press ESC to return to command mode
-                      </div>
-                    )}
-                  </div>
-                )}
-              </>
-            ) : (
-              <span 
-                className={`${
-                  line.type === 'command' ? 'text-blue-400' : 
-                  line.type === 'error' ? 'text-red-500' :
-                  'text-green-500'
-                } ${
-                  line.content.includes('http') ? 'cursor-pointer hover:text-green-300' : ''
-                } ${
-                  selectedLink >= 0 && line.content.includes(socialLinks[selectedLink].url) 
-                    ? 'text-green-300 font-bold'
-                    : ''
-                }`}
-                onClick={() => {
-                  if (line.content.includes('http')) {
-                    const link = socialLinks.find(l => line.content.includes(l.url));
-                    if (link) window.open(link.url, '_blank');
-                  }
-                }}
-              >
-                {line.content}
-              </span>
-            )}
-          </div>
-        ))}
+      <div 
+        ref={outputRef}
+        className={`flex-1 overflow-y-auto p-4 flex flex-col ${isMobile ? 'text-sm' : 'text-base'}`}
+        style={{
+          minHeight: 0,
+        }}
+      >
+        <div className="flex-1">
+          {output.map((line, i) => (
+            <div key={i} className="flex whitespace-pre-wrap break-words">
+              {line.type === 'prompt' ? (
+                <>
+                  {!isMobile && <span className="text-green-500 mr-2">{line.content}</span>}
+                  {i === output.length - 1 && !isMobile && (
+                    <div className="flex-1 relative">
+                      <input
+                        ref={inputRef}
+                        type="text"
+                        value={input}
+                        onChange={(e) => {
+                          if (selectedLink >= 0) return;
+                          setInput(e.target.value);
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' && !selectedLink >= 0) {
+                            e.preventDefault();
+                            handleSubmit(e);
+                          }
+                        }}
+                        className="bg-transparent text-green-500 focus:outline-none w-full"
+                        autoFocus
+                        disabled={selectedLink >= 0}
+                      />
+                      {selectedLink >= 0 && (
+                        <div className="absolute top-0 left-0 w-full text-yellow-500">
+                          Press ESC to return to command mode
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </>
+              ) : (
+                <span 
+                  className={`${
+                    line.type === 'command' ? 'text-blue-400' : 
+                    line.type === 'error' ? 'text-red-500' :
+                    'text-green-500'
+                  } ${
+                    line.content.includes('http') ? 'cursor-pointer hover:text-green-300' : ''
+                  } ${
+                    selectedLink >= 0 && line.content.includes(socialLinks[selectedLink].url) 
+                      ? 'text-green-300 font-bold'
+                      : ''
+                  }`}
+                  onClick={() => {
+                    if (line.content.includes('http')) {
+                      const link = socialLinks.find(l => line.content.includes(l.url));
+                      if (link) window.open(link.url, '_blank');
+                    }
+                  }}
+                >
+                  {line.content}
+                </span>
+              )}
+            </div>
+          ))}
+        </div>
       </div>
 
       {isMobile && (
-        <div className="border-t border-green-500/30 bg-black p-4 grid grid-cols-2 gap-2">
+        <div 
+          className="border-t border-green-500/30 bg-black p-4 grid grid-cols-2 gap-2"
+          style={{
+            paddingBottom: `calc(env(safe-area-inset-bottom) + 1rem)`
+          }}
+        >
           {menuItems.map((item, index) => (
             <button
               key={index}

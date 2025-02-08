@@ -12,6 +12,7 @@ import { GlitchOverlay } from './components/GlitchOverlay/GlitchOverlay';
 const Home = ({ isMobile, setIsMobile }) => {
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
   const [showGlitch, setShowGlitch] = useState(false);
+  const [viewportHeight, setViewportHeight] = useState(window.innerHeight);
   const navigate = useNavigate();
 
   const navLinks = [
@@ -21,6 +22,25 @@ const Home = ({ isMobile, setIsMobile }) => {
     }
   ];
 
+  useEffect(() => {
+    const handleResize = () => {
+      const height = window.visualViewport?.height || window.innerHeight;
+      setViewportHeight(height);
+    };
+
+    window.visualViewport?.addEventListener('resize', handleResize);
+    window.visualViewport?.addEventListener('scroll', handleResize);
+    window.addEventListener('resize', handleResize);
+
+    handleResize();
+
+    return () => {
+      window.visualViewport?.removeEventListener('resize', handleResize);
+      window.visualViewport?.removeEventListener('scroll', handleResize);
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
+
   // Handle portal click to navigate to terminal
   const handlePortalClick = () => {
     navigate('/terminal');
@@ -28,7 +48,14 @@ const Home = ({ isMobile, setIsMobile }) => {
 
   return (
     <>
-      <div className="relative w-full h-screen overflow-hidden bg-black">
+      <div 
+        className="relative w-full h-screen overflow-hidden bg-black cursor-pointer" 
+        onClick={handlePortalClick}
+        style={{
+          height: isMobile ? `${viewportHeight}px` : '100vh',
+          maxHeight: isMobile ? `${viewportHeight}px` : '100vh'
+        }}
+      >
         <div className="fixed inset-0 bg-black -z-10" />
         
         <div className="relative h-full">
@@ -40,7 +67,6 @@ const Home = ({ isMobile, setIsMobile }) => {
             />
           </div>
 
-          {/* Make Portal clickable */}
           <Portal 
             isMobile={isMobile} 
             onClick={handlePortalClick}
@@ -68,7 +94,12 @@ const Home = ({ isMobile, setIsMobile }) => {
             </h1>
           </div>
 
-          <nav className="absolute bottom-0 left-0 right-0 p-6 z-20">
+          <nav 
+            className="absolute bottom-0 left-0 right-0 z-20 p-6"
+            style={{
+              paddingBottom: isMobile ? 'calc(env(safe-area-inset-bottom) + 1.5rem)' : '1.5rem'
+            }}
+          >
             <div className="flex justify-center space-x-8 opacity-60 font-ibm-mono">
               {navLinks.map((link, index) => (
                 <NavigationLink key={index} {...link} />
