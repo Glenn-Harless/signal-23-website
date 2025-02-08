@@ -16,16 +16,116 @@ export const Terminal: React.FC<TerminalProps> = ({ isMobile }) => {
   };
 
   const [input, setInput] = useState('');
-  const [output, setOutput] = useState([
-    { type: 'system', content: 'SIGNAL-23 Terminal [Version 1.0.0]' },
-    { type: 'system', content: '(c) 2025 SIGNAL-23. All rights reserved.' },
-    { type: 'system', content: isMobile ? 'Tap menu items below to navigate' : 'Type "help" for available commands.' },
-    { type: 'prompt', content: '>' }
-  ]);
+  const initialMessages = [
+    { content: '█ █ █ █ █ █ █ █ █ █ █ █ █ █ ', type: 'separator' },
+    { content: 'ENCRYPTION ESTABLISHED, CONNECTION SECURE', type: 'system' },
+    { content: '...........................', type: 'separator' },
+    { content: 'PROPRIETARY BROADCAST ACTIVITY NETWORKED INFORMATION SYSTEM TERMINAL', type: 'system' },
+    { content: '---------------------------', type: 'separator' },
+    { content: 'FOR USE ON DESIGNATED INFORMATION SYSTEMS ONLY', type: 'system' },
+    { content: 'AUTHORIZED USE ONLY', type: 'system' },
+    { content: 'UNAUTHORIZED RECORDING OR DISTRIBUTION OF MATERIAL IS UNLAWFUL', type: 'system' },
+    { content: '---------------------------', type: 'separator' },
+    { content: 'OPERATOR CREDENTIALS NOT FOUND', type: 'warning' },
+    { content: 'SOME PERMISSIONS RESTRICTED', type: 'warning' },
+    { content: '............................', type: 'separator' }
+  ];
+
+  const [output, setOutput] = useState<Array<{ type: string; content: string }>>([]);
+  const [isInitialized, setIsInitialized] = useState(false);
+
+  useEffect(() => {
+    if (isInitialized) return;
+
+    const typeMessage = async (message: { content: string, type: string }, index: number) => {
+      // Add empty message first
+      setOutput(prev => [...prev, { type: message.type, content: '' }]);
+      
+      if (message.type === 'warning') {
+        // For warning messages, add glitch effect
+        const glitchDelay = 50; // Faster typing for warnings
+        const chars = message.content.split('');
+        
+        for (let i = 0; i <= message.content.length; i++) {
+          await new Promise(resolve => setTimeout(resolve, glitchDelay));
+          
+          // Occasionally add glitch characters that get replaced
+          const shouldGlitch = Math.random() < 0.3; // 30% chance of glitch
+          
+          setOutput(prev => {
+            const newOutput = [...prev];
+            if (newOutput[index]) {
+              let displayContent = message.content.slice(0, i);
+              if (shouldGlitch && i < message.content.length) {
+                displayContent += '█▓▒░';
+              }
+              newOutput[index] = { type: message.type, content: displayContent };
+            }
+            return newOutput;
+          });
+        }
+      } else if (message.type === 'separator') {
+        // Slower typing for separators
+        for (let i = 0; i <= message.content.length; i++) {
+          await new Promise(resolve => setTimeout(resolve, 30));
+          setOutput(prev => {
+            const newOutput = [...prev];
+            if (newOutput[index]) {
+              newOutput[index] = { type: message.type, content: message.content.slice(0, i) };
+            }
+            return newOutput;
+          });
+        }
+      } else {
+        // Normal typing for system messages
+        for (let i = 0; i <= message.content.length; i++) {
+          await new Promise(resolve => setTimeout(resolve, 10));
+          setOutput(prev => {
+            const newOutput = [...prev];
+            if (newOutput[index]) {
+              newOutput[index] = { type: message.type, content: message.content.slice(0, i) };
+            }
+            return newOutput;
+          });
+        }
+      }
+
+      // Longer pause after warnings and separators
+      await new Promise(resolve => 
+        setTimeout(resolve, message.type === 'warning' ? 400 : 
+                            message.type === 'separator' ? 300 : 200)
+      );
+    };
+
+    const initializeTerminal = async () => {
+      for (let i = 0; i < initialMessages.length; i++) {
+        await typeMessage(initialMessages[i], i);
+      }
+      // Add prompt after all messages are typed
+      setOutput(prev => [...prev, { type: 'prompt', content: '>' }]);
+      setIsInitialized(true);
+      
+      // Auto-execute commands after initialization
+      setTimeout(() => {
+        const result = handleCommand('commands');
+        setOutput(prev => [
+          ...prev,
+          { type: 'command', content: 'commands' },
+          ...result.map(line => ({ type: 'output', content: line })),
+          { type: 'prompt', content: '>' }
+        ]);
+      }, 500);
+    };
+
+    initializeTerminal();
+  }, [isInitialized]);
+
   const [selectedLink, setSelectedLink] = useState(-1);
   const [lastSocialIndex, setLastSocialIndex] = useState(-1);
   const terminalRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const [isAwaitingLogin, setIsAwaitingLogin] = useState(false);
+  const [loginStep, setLoginStep] = useState<'operator' | 'passcode' | null>(null);
 
   const frequencies = [
     { 
@@ -37,17 +137,20 @@ export const Terminal: React.FC<TerminalProps> = ({ isMobile }) => {
   const [currentFrequency, setCurrentFrequency] = useState<string | null>(null);
 
   const menuItems = [
-    { command: 'help', label: 'Available Commands' },
-    { command: 'social', label: 'Social Media Links' },
-    { command: 'signal', label: 'About SIGNAL-23' },
-    { command: 'scan frequency', label: 'Scan Frequency' },
+    { command: 'commands', label: 'View Commands' },
+    { command: 'audiovisual', label: 'Audio Visual' },
+    { command: 'scan', label: 'Scan Frequencies' },
+    { command: 'login', label: 'Operator Login' },
     { command: 'clear', label: 'Clear Terminal' },
     { command: 'exit', label: 'Exit Terminal' }
   ];
 
-  const socialLinks = [
-    { name: 'SoundCloud', url: 'https://soundcloud.com/signal-23' },
-    { name: 'YouTube', url: 'https://youtube.com/@signal-23' },
+  const mediaLinks = [
+    { name: 'SPOTIFY', url: 'https://open.spotify.com/artist/yourid' },
+    { name: 'YOUTUBE', url: 'https://youtube.com/@signal-23' },
+    { name: 'SOUNDCLOUD', url: 'https://soundcloud.com/signal-23' },
+    { name: 'BANDCAMP', url: 'https://yourid.bandcamp.com' },
+    { name: 'INSTAGRAM', url: 'https://instagram.com/yourid' },
   ];
 
   useEffect(() => {
@@ -55,7 +158,6 @@ export const Terminal: React.FC<TerminalProps> = ({ isMobile }) => {
       const height = window.visualViewport?.height || window.innerHeight;
       setViewportHeight(height);
       
-      // Force scroll to bottom whenever viewport changes
       if (outputRef.current) {
         outputRef.current.scrollTop = outputRef.current.scrollHeight;
       }
@@ -78,13 +180,13 @@ export const Terminal: React.FC<TerminalProps> = ({ isMobile }) => {
     if (selectedLink >= 0) {
       if (e.key === 'ArrowUp') {
         e.preventDefault();
-        setSelectedLink(prev => (prev > 0 ? prev - 1 : socialLinks.length - 1));
+        setSelectedLink(prev => (prev > 0 ? prev - 1 : mediaLinks.length - 1));
       } else if (e.key === 'ArrowDown') {
         e.preventDefault();
-        setSelectedLink(prev => (prev < socialLinks.length - 1 ? prev + 1 : 0));
+        setSelectedLink(prev => (prev < mediaLinks.length - 1 ? prev + 1 : 0));
       } else if (e.key === 'Enter') {
         e.preventDefault();
-        window.open(socialLinks[selectedLink].url, '_blank');
+        window.open(mediaLinks[selectedLink].url, '_blank');
         setSelectedLink(-1);
       } else if (e.key === 'Escape') {
         e.preventDefault();
@@ -95,104 +197,110 @@ export const Terminal: React.FC<TerminalProps> = ({ isMobile }) => {
     }
   };
 
-  // ... commands object remains the same ...
   const commands = {
-    help: () => [
-      'Available commands:',
-      '----------------',
-      'help           - Show this help message',
-      'social         - View social media links',
-      'signal         - About SIGNAL-23',
-      'date           - Show current date/time',
-      'scan frequency - Scan random transmission frequency',
-      'clear          - Clear the terminal',
-      'exit           - Exit terminal'
+    commands: () => [
+      'TERMINAL COMMANDS DIRECTORY',
+      '————————————————————————————',
+      'COMMANDS      - Display this directory',
+      'AUDIOVISUAL   - Access media archives',
+      'SCAN          - Scan frequencies',
+      'LOGIN         - Access restricted content',
+      'CLEAR         - Clear terminal buffer',
+      'EXIT          - Terminate connection',
+      '————————————————————————————'
     ],
-    social: () => {
+    
+    audiovisual: () => {
       setSelectedLink(0);
+      setLastSocialIndex(output.length + 1);
       return [
-        'INTERCEPTED BROADCAST CHANNELS',
-        '----------------------------',
-        ...socialLinks.map((link, index) => 
-          `${index === selectedLink ? '>' : ' '} ${link.name}: ${link.url}`
+        'SEARCHING AVAILABLE ARCHIVES...',
+        '————————————————————————————',
+        ...mediaLinks.map((link, index) => 
+          `${index === selectedLink ? '>' : ' '} ${link.name}`
         )
       ];
     },
-    signal: () => [
-      'SIGNAL-23 DOSSIER',
-      '----------------',
-      'Electronic music producer based in California.',
-      'Specializing in dark, atmospheric soundscapes.',
-      'Currently active. Status: Producing new material.'
-    ],
-    date: () => {
-      const now = new Date();
-      return [`Current timestamp: ${now.toLocaleString()}`];
-    },
-    scan: (args: string[]) => {
-      if (args[0]?.toLowerCase() === 'frequency') {
-        if (audioStreamer.getIsPlaying()) {
-          audioStreamer.stop();
-          setCurrentFrequency(null);
-          return ['Frequency scan terminated.'];
-        }
-  
-        const randomFreq = frequencies[Math.floor(Math.random() * frequencies.length)];
-        setCurrentFrequency(randomFreq.name);
-  
-        audioStreamer.playRandomSegment({
-          onError: (error) => {
-            setOutput(prev => [
-              ...prev,
-              { type: 'error', content: `Transmission error: ${error.message}` },
-              { type: 'prompt', content: '>' }
-            ]);
-          }
-        });
-  
-        const currentTime = audioStreamer.getCurrentTime();
-        const minutes = Math.floor(currentTime / 60);
-        const seconds = Math.floor(currentTime % 60);
-        const timeDisplay = `${minutes}:${seconds.toString().padStart(2, '0')}`;
-  
-        return [
-          'INITIATING FREQUENCY SCAN',
-          '------------------------',
-          `Intercepting transmission on ${randomFreq.name}`,
-          `Position: ${timeDisplay}`,
-          'Decoding signal...',
-          '[Press CTRL+C or type "scan frequency" again to terminate]'
-        ];
+
+    scan: () => {
+      if (audioStreamer.getIsPlaying()) {
+        audioStreamer.stop();
+        setCurrentFrequency(null);
+        return ['SCAN TERMINATED.'];
       }
-      return ['Usage: scan frequency'];
+
+      const randomFreq = frequencies[Math.floor(Math.random() * frequencies.length)];
+      setCurrentFrequency(randomFreq.name);
+
+      audioStreamer.playRandomSegment({
+        onError: (error) => {
+          setOutput(prev => [
+            ...prev,
+            { type: 'error', content: `TRANSMISSION ERROR: ${error.message}` },
+            { type: 'prompt', content: '>' }
+          ]);
+        }
+      });
+
+      return [
+        'SCAN>STATIONS>ALL>FREQ>ALL',
+        'DURATION: 60 SEC',
+        `TIMESTAMP: ${new Date().toLocaleString()}`,
+        'SCANNING...',
+        'DECODING SIGNAL...',
+        '[CTRL+C TO TERMINATE]'
+      ];
     },
+
+    login: () => {
+      setIsAwaitingLogin(true);
+      setLoginStep('operator');
+      return [
+        'LOGIN SEQUENCE INITIATED',
+        'OPERATOR:'
+      ];
+    },
+
     clear: () => {
       setOutput([
-        { type: 'system', content: 'SIGNAL-23 Terminal [Version 1.0.0]' },
-        { type: 'system', content: '(c) 2025 SIGNAL-23. All rights reserved.' },
-        { type: 'system', content: isMobile ? 'Tap menu items below to navigate' : 'Type "help" for available commands.' },
+        { type: 'system', content: 'ENCRYPTION ESTABLISHED, CONNECTION SECURE' },
+        { type: 'system', content: 'PROPRIETARY BROADCAST ACTIVITY NETWORKED INFORMATION SYSTEM TERMINAL' },
+        { type: 'system', content: 'FOR USE ON DESIGNATED INFORMATION SYSTEMS ONLY' },
         { type: 'prompt', content: '>' }
       ]);
       setSelectedLink(-1);
       setLastSocialIndex(-1);
+      setIsAwaitingLogin(false);
+      setLoginStep(null);
       return [];
     },
+
     exit: () => {
       handleExit();
-      return ['Terminating secure connection...'];
+      return ['TERMINATING SECURE CONNECTION...'];
     }
   };
 
   const handleCommand = (cmd: string) => {
     const parts = cmd.trim().split(' ');
     const command = parts[0].toLowerCase();
-    const args = parts.slice(1);
     
     if (command === '') {
       return [''];
     }
+
+    if (isAwaitingLogin) {
+      if (loginStep === 'operator') {
+        setLoginStep('passcode');
+        return ['PASSCODE:'];
+      } else if (loginStep === 'passcode') {
+        setIsAwaitingLogin(false);
+        setLoginStep(null);
+        return ['INVALID CREDENTIALS', 'ACCESS DENIED'];
+      }
+    }
     
-    if (command === 'social') {
+    if (command === 'audiovisual') {
       setLastSocialIndex(output.length + 1);
     } else {
       setLastSocialIndex(-1);
@@ -200,10 +308,10 @@ export const Terminal: React.FC<TerminalProps> = ({ isMobile }) => {
     setSelectedLink(-1);
     
     if (commands[command]) {
-      return commands[command](args);
+      return commands[command]();
     }
     
-    return [`Command not found: ${command}`];
+    return [`COMMAND NOT RECOGNIZED: ${command.toUpperCase()}`];
   };
 
   const executeCommand = (command: string) => {
@@ -230,7 +338,6 @@ export const Terminal: React.FC<TerminalProps> = ({ isMobile }) => {
     setInput('');
   };
 
-  // Update scroll position whenever output changes
   useEffect(() => {
     if (outputRef.current) {
       outputRef.current.scrollTop = outputRef.current.scrollHeight;
@@ -260,7 +367,7 @@ export const Terminal: React.FC<TerminalProps> = ({ isMobile }) => {
           setCurrentFrequency(null);
           setOutput(prev => [
             ...prev,
-            { type: 'system', content: 'Frequency scan terminated.' },
+            { type: 'system', content: 'SCAN TERMINATED.' },
             { type: 'prompt', content: '>' }
           ]);
           return;
@@ -318,18 +425,20 @@ export const Terminal: React.FC<TerminalProps> = ({ isMobile }) => {
                   className={`${
                     line.type === 'command' ? 'text-blue-400' : 
                     line.type === 'error' ? 'text-red-500' :
+                    line.type === 'warning' ? 'text-yellow-500 font-bold' :
+                    line.type === 'separator' ? 'text-green-700' :
                     'text-green-500'
                   } ${
-                    line.content.includes('http') ? 'cursor-pointer hover:text-green-300' : ''
+                    i > lastSocialIndex && i <= lastSocialIndex + mediaLinks.length ? 'cursor-pointer hover:text-green-300' : ''
                   } ${
-                    selectedLink >= 0 && line.content.includes(socialLinks[selectedLink].url) 
-                      ? 'text-green-300 font-bold'
-                      : ''
+                    i === lastSocialIndex + selectedLink + 1 && selectedLink >= 0 ? 'text-green-300 font-bold' : ''
                   }`}
                   onClick={() => {
-                    if (line.content.includes('http')) {
-                      const link = socialLinks.find(l => line.content.includes(l.url));
-                      if (link) window.open(link.url, '_blank');
+                    if (i > lastSocialIndex && i <= lastSocialIndex + mediaLinks.length) {
+                      const linkIndex = i - lastSocialIndex - 1;
+                      if (mediaLinks[linkIndex]) {
+                        window.open(mediaLinks[linkIndex].url, '_blank');
+                      }
                     }
                   }}
                 >
