@@ -67,7 +67,7 @@ export const Terminal: React.FC<TerminalProps> = ({ isMobile }) => {
       } else if (message.type === 'separator') {
         // Slower typing for separators
         for (let i = 0; i <= message.content.length; i++) {
-          await new Promise(resolve => setTimeout(resolve, 30));
+          await new Promise(resolve => setTimeout(resolve, 15));
           setOutput(prev => {
             const newOutput = [...prev];
             if (newOutput[index]) {
@@ -79,7 +79,7 @@ export const Terminal: React.FC<TerminalProps> = ({ isMobile }) => {
       } else {
         // Normal typing for system messages
         for (let i = 0; i <= message.content.length; i++) {
-          await new Promise(resolve => setTimeout(resolve, 10));
+          await new Promise(resolve => setTimeout(resolve, 5));
           setOutput(prev => {
             const newOutput = [...prev];
             if (newOutput[index]) {
@@ -421,29 +421,33 @@ export const Terminal: React.FC<TerminalProps> = ({ isMobile }) => {
                   )}
                 </>
               ) : (
-                <span 
-                  className={`${
-                    line.type === 'command' ? 'text-blue-400' : 
-                    line.type === 'error' ? 'text-red-500' :
-                    line.type === 'warning' ? 'text-yellow-500 font-bold' :
-                    line.type === 'separator' ? 'text-green-700' :
-                    'text-green-500'
-                  } ${
-                    i > lastSocialIndex && i <= lastSocialIndex + mediaLinks.length ? 'cursor-pointer hover:text-green-300' : ''
-                  } ${
-                    i === lastSocialIndex + selectedLink + 1 && selectedLink >= 0 ? 'text-green-300 font-bold' : ''
-                  }`}
-                  onClick={() => {
-                    if (i > lastSocialIndex && i <= lastSocialIndex + mediaLinks.length) {
-                      const linkIndex = i - lastSocialIndex - 1;
-                      if (mediaLinks[linkIndex]) {
-                        window.open(mediaLinks[linkIndex].url, '_blank');
-                      }
+              <span 
+                className={`${
+                  line.type === 'command' ? 'text-blue-400' : 
+                  line.type === 'error' ? 'text-red-500' :
+                  line.type === 'warning' ? 'text-yellow-500 font-bold' :
+                  line.type === 'separator' ? 'text-green-700' :
+                  'text-green-500'
+                } ${
+                  i > lastSocialIndex && 
+                  i <= lastSocialIndex + mediaLinks.length && 
+                  lastSocialIndex !== -1 ? 'cursor-pointer hover:text-green-300' : ''
+                } ${
+                  i === lastSocialIndex + selectedLink + 1 && selectedLink >= 0 ? 'text-green-300 font-bold' : ''
+                }`}
+                onClick={() => {
+                  if (i > lastSocialIndex && 
+                      i <= lastSocialIndex + mediaLinks.length && 
+                      lastSocialIndex !== -1) {
+                    const linkIndex = i - lastSocialIndex - 1;
+                    if (mediaLinks[linkIndex]) {
+                      window.open(mediaLinks[linkIndex].url, '_blank');
                     }
-                  }}
-                >
-                  {line.content}
-                </span>
+                  }
+                }}
+              >
+                {line.content}
+              </span>
               )}
             </div>
           ))}
