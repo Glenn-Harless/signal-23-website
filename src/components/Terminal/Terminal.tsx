@@ -250,7 +250,6 @@ export const Terminal: React.FC<TerminalProps> = ({ isMobile }) => {
 
       return [
         'SCAN>STATIONS>ALL>FREQ>ALL',
-        'DURATION: 60 SEC',
         `TIMESTAMP: ${timeString}`,
         'SCANNING...',
         'DECODING SIGNAL...',
