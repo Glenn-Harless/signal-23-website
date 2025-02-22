@@ -138,9 +138,9 @@ export const Terminal: React.FC<TerminalProps> = ({ isMobile }) => {
 
   const menuItems = [
     { command: 'commands', label: 'View Commands' },
-    { command: 'audiovisual', label: 'Audio Visual' },
+    { command: 'archives', label: 'Access Archives' },
     { command: 'scan', label: 'Scan Frequencies' },
-    { command: 'login', label: 'Operator Login' },
+    { command: 'broadcast', label: 'Operator Broadcast' },
     { command: 'clear', label: 'Clear Terminal' },
     { command: 'exit', label: 'Exit Terminal' }
   ];
@@ -202,19 +202,19 @@ export const Terminal: React.FC<TerminalProps> = ({ isMobile }) => {
       'TERMINAL COMMANDS DIRECTORY',
       '————————————————————————————',
       'COMMANDS      - Display this directory',
-      'AUDIOVISUAL   - Access media archives',
+      'ARCHIVES      - Access media archives',
       'SCAN          - Scan frequencies',
-      'LOGIN         - Access restricted content',
+      'BROADCAST     - Operator broadcast',
       'CLEAR         - Clear terminal buffer',
       'EXIT          - Terminate connection',
       '————————————————————————————'
     ],
     
-    audiovisual: () => {
+    archives: () => {
       setSelectedLink(0);
-      setLastSocialIndex(output.length + 1);
+      setLastSocialIndex(output.length + 2); // Adjusted to account for header and separator
       return [
-        'SEARCHING AVAILABLE ARCHIVES...',
+        'RETRIEVING AVAILABLE ARCHIVES',
         '————————————————————————————',
         ...mediaLinks.map((link, index) => 
           `${index === selectedLink ? '>' : ' '} ${link.name}`
@@ -242,22 +242,27 @@ export const Terminal: React.FC<TerminalProps> = ({ isMobile }) => {
         }
       });
 
+      const now = new Date();
+      const hours = now.getUTCHours().toString().padStart(2, '0');
+      const minutes = now.getUTCMinutes().toString().padStart(2, '0');
+      const seconds = now.getUTCSeconds().toString().padStart(2, '0');
+      const timeString = `${hours}${minutes}:${seconds}Z`;
+
       return [
         'SCAN>STATIONS>ALL>FREQ>ALL',
         'DURATION: 60 SEC',
-        `TIMESTAMP: ${new Date().toLocaleString()}`,
+        `TIMESTAMP: ${timeString}`,
         'SCANNING...',
         'DECODING SIGNAL...',
-        '[CTRL+C TO TERMINATE]'
+        isMobile ? 'PRESS SCAN TO STOP' : '[CTRL+C TO TERMINATE]'
       ];
     },
 
-    login: () => {
-      setIsAwaitingLogin(true);
-      setLoginStep('operator');
+    broadcast: () => {
       return [
-        'LOGIN SEQUENCE INITIATED',
-        'OPERATOR:'
+        'PHYSICAL ACCESS KEY NOT DETECTED',
+        'UNABLE TO VERIFY OPERATOR CREDENTIALS',
+        'SOME PERMISSIONS RESTRICTED'
       ];
     },
 
@@ -266,6 +271,7 @@ export const Terminal: React.FC<TerminalProps> = ({ isMobile }) => {
         { type: 'system', content: 'ENCRYPTION ESTABLISHED, CONNECTION SECURE' },
         { type: 'system', content: 'PROPRIETARY BROADCAST ACTIVITY NETWORKED INFORMATION SYSTEM TERMINAL' },
         { type: 'system', content: 'FOR USE ON DESIGNATED INFORMATION SYSTEMS ONLY' },
+        { content: '---------------------------', type: 'separator' },
         { type: 'prompt', content: '>' }
       ]);
       setSelectedLink(-1);
@@ -300,8 +306,8 @@ export const Terminal: React.FC<TerminalProps> = ({ isMobile }) => {
       }
     }
     
-    if (command === 'audiovisual') {
-      setLastSocialIndex(output.length + 1);
+    if (command === 'archives') {
+      setLastSocialIndex(output.length + 2);
     } else {
       setLastSocialIndex(-1);
     }
@@ -429,17 +435,19 @@ export const Terminal: React.FC<TerminalProps> = ({ isMobile }) => {
                   line.type === 'separator' ? 'text-green-700' :
                   'text-green-500'
                 } ${
+                  i === lastSocialIndex && lastSocialIndex !== -1 ? 'mt-2' : ''
+                } ${
                   i > lastSocialIndex && 
-                  i <= lastSocialIndex + mediaLinks.length && 
-                  lastSocialIndex !== -1 ? 'cursor-pointer hover:text-green-300' : ''
+                  i <= lastSocialIndex + mediaLinks.length + 2 && 
+                  lastSocialIndex !== -1 ? 'cursor-pointer hover:text-green-300 block' : ''
                 } ${
                   i === lastSocialIndex + selectedLink + 1 && selectedLink >= 0 ? 'text-green-300 font-bold' : ''
                 }`}
                 onClick={() => {
                   if (i > lastSocialIndex && 
-                      i <= lastSocialIndex + mediaLinks.length && 
+                      i <= lastSocialIndex + mediaLinks.length + 2 && 
                       lastSocialIndex !== -1) {
-                    const linkIndex = i - lastSocialIndex - 1;
+                    const linkIndex = Math.max(0, i - lastSocialIndex - 1);
                     if (mediaLinks[linkIndex]) {
                       window.open(mediaLinks[linkIndex].url, '_blank');
                     }
@@ -464,7 +472,7 @@ export const Terminal: React.FC<TerminalProps> = ({ isMobile }) => {
           {menuItems.map((item, index) => (
             <button
               key={index}
-              className="p-3 border border-green-500/30 rounded text-center hover:bg-green-500/10 active:bg-green-500/20 transition-colors"
+              className="p-3 text-green-500 border border-green-500/30 rounded text-center hover:bg-green-500/10 active:bg-green-500/20 transition-colors"
               onClick={() => executeCommand(item.command)}
             >
               {item.label}
