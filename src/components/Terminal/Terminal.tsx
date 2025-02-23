@@ -146,11 +146,11 @@ export const Terminal: React.FC<TerminalProps> = ({ isMobile }) => {
   ];
 
   const mediaLinks = [
-    { name: 'SPOTIFY', url: 'https://open.spotify.com/artist/yourid' },
-    { name: 'YOUTUBE', url: 'https://youtube.com/@signal-23' },
+    // { name: 'SPOTIFY', url: 'https://open.spotify.com/artist/yourid' },
+    { name: 'YOUTUBE', url: 'https://youtube.com/@signal-23-music' },
     { name: 'SOUNDCLOUD', url: 'https://soundcloud.com/signal-23' },
-    { name: 'BANDCAMP', url: 'https://yourid.bandcamp.com' },
-    { name: 'INSTAGRAM', url: 'https://instagram.com/yourid' },
+    { name: 'BANDCAMP', url: 'https://signal-23.bandcamp.com/' },
+    { name: 'INSTAGRAM', url: 'https://www.instagram.com/signal23music/' },
   ];
 
   useEffect(() => {
