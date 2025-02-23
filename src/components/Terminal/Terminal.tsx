@@ -245,11 +245,11 @@ export const Terminal: React.FC<TerminalProps> = ({ isMobile }) => {
       const timeString = `${hours}${minutes}:${seconds}Z`;
 
       return [
-        'SCAN>STATIONS>ALL>FREQ>ALL',
-        `TIMESTAMP: ${timeString}`,
-        'SCANNING...',
-        'DECODING SIGNAL...',
-        isMobile ? 'PRESS SCAN TO STOP' : '[CTRL+C TO TERMINATE]'
+        { content: 'SCAN>STATIONS>ALL>FREQ>ALL', type: 'output' },
+        { content: `TIMESTAMP: ${timeString}`, type: 'output' },
+        { content: 'SCANNING...', type: 'typing' },
+        { content: 'DECODING SIGNAL...', type: 'typing' },
+        { content: isMobile ? 'PRESS SCAN TO STOP' : '[CTRL+C TO TERMINATE]', type: 'output' }
       ];
     },
 
@@ -363,7 +363,7 @@ export const Terminal: React.FC<TerminalProps> = ({ isMobile }) => {
             return newOutput;
           });
         }
-        await new Promise(resolve => setTimeout(resolve, 300));
+        await new Promise(resolve => setTimeout(resolve, 500)); // change this if music plays before text
       } else {
         setOutput(prev => [...prev, message]);
       }
