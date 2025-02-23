@@ -77,6 +77,23 @@ export const Terminal: React.FC<TerminalProps> = ({ isMobile }) => {
             return newOutput;
           });
         }
+      } else if (message.type === 'typing') {
+        // Add empty message first
+        setOutput(prev => [...prev, { type: message.type, content: '' }]);
+        
+        // Normal typing for system messages
+        for (let i = 0; i <= message.content.length; i++) {
+          await new Promise(resolve => setTimeout(resolve, 5));
+          setOutput(prev => {
+            const newOutput = [...prev];
+            const lastIndex = newOutput.length - 1;
+            if (newOutput[lastIndex]) {
+              newOutput[lastIndex] = { type: message.type, content: message.content.slice(0, i) };
+            }
+            return newOutput;
+          });
+        }
+        await new Promise(resolve => setTimeout(resolve, 300));
       } else {
         // Normal typing for system messages
         for (let i = 0; i <= message.content.length; i++) {
@@ -192,10 +209,12 @@ export const Terminal: React.FC<TerminalProps> = ({ isMobile }) => {
     archives: () => {
       setLastSocialIndex(output.length + 2);
       return [
-        { type: 'output', content: 'RETRIEVING AVAILABLE ARCHIVES' },
-        { type: 'separator', content: '————————————————————————————' },
-        ...mediaLinks.map(link => ({ type: 'link', content: ` ${link.name}` })),
-        { type: 'separator', content: '————————————————————————————' }
+        { content: 'SEARCHING ARCHIVES...', type: 'typing' },
+        { content: 'VERIFYING PERMISSIONS...', type: 'typing' },
+        { content: 'RETRIEVING AVAILABLE ARCHIVES...', type: 'typing' },
+        { content: '————————————————————————————', type: 'separator' },
+        ...mediaLinks.map(link => ({ content: ` ${link.name}`, type: 'link' })),
+        { content: '————————————————————————————', type: 'separator' }
       ];
     },
 
@@ -328,6 +347,23 @@ export const Terminal: React.FC<TerminalProps> = ({ isMobile }) => {
         
         // Longer pause after warnings
         await new Promise(resolve => setTimeout(resolve, 400));
+      } else if (message.type === 'typing') {
+        // Add empty message first
+        setOutput(prev => [...prev, { type: message.type, content: '' }]);
+        
+        // Normal typing for system messages
+        for (let j = 0; j <= message.content.length; j++) {
+          await new Promise(resolve => setTimeout(resolve, 5));
+          setOutput(prev => {
+            const newOutput = [...prev];
+            const lastIndex = newOutput.length - 1;
+            if (newOutput[lastIndex]) {
+              newOutput[lastIndex] = { type: message.type, content: message.content.slice(0, j) };
+            }
+            return newOutput;
+          });
+        }
+        await new Promise(resolve => setTimeout(resolve, 300));
       } else {
         setOutput(prev => [...prev, message]);
       }
@@ -420,6 +456,7 @@ export const Terminal: React.FC<TerminalProps> = ({ isMobile }) => {
                 line.type === 'warning' ? 'text-yellow-500 font-bold' :
                 line.type === 'separator' ? 'text-green-700' :
                 line.type === 'link' ? 'cursor-pointer hover:text-green-300 block' :
+                line.type === 'typing' ? 'text-green-500' :
                 'text-green-500'
               }`}
               onClick={() => {
