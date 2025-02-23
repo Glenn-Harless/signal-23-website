@@ -121,7 +121,6 @@ export const Terminal: React.FC<TerminalProps> = ({ isMobile }) => {
     initializeTerminal();
   }, [isInitialized]);
 
-  const [selectedLink, setSelectedLink] = useState(-1);
   const [lastSocialIndex, setLastSocialIndex] = useState(-1);
   const terminalRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -177,27 +176,6 @@ export const Terminal: React.FC<TerminalProps> = ({ isMobile }) => {
     };
   }, []);
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (selectedLink >= 0) {
-      if (e.key === 'ArrowUp') {
-        e.preventDefault();
-        setSelectedLink(prev => (prev > 0 ? prev - 1 : mediaLinks.length - 1));
-      } else if (e.key === 'ArrowDown') {
-        e.preventDefault();
-        setSelectedLink(prev => (prev < mediaLinks.length - 1 ? prev + 1 : 0));
-      } else if (e.key === 'Enter') {
-        e.preventDefault();
-        window.open(mediaLinks[selectedLink].url, '_blank');
-        setSelectedLink(-1);
-      } else if (e.key === 'Escape') {
-        e.preventDefault();
-        setSelectedLink(-1);
-      }
-      e.stopPropagation();
-      return;
-    }
-  };
-
   const commands = {
     commands: () => [
       'TERMINAL COMMANDS DIRECTORY',
@@ -212,14 +190,12 @@ export const Terminal: React.FC<TerminalProps> = ({ isMobile }) => {
     ],
     
     archives: () => {
-      setSelectedLink(0);
-      setLastSocialIndex(output.length + 2); // Adjusted to account for header and separator
+      setLastSocialIndex(output.length + 2);
       return [
-        'RETRIEVING AVAILABLE ARCHIVES',
-        '————————————————————————————',
-        ...mediaLinks.map((link, index) => 
-          `${index === selectedLink ? '>' : ' '} ${link.name}`
-        )
+        { type: 'output', content: 'RETRIEVING AVAILABLE ARCHIVES' },
+        { type: 'separator', content: '————————————————————————————' },
+        ...mediaLinks.map(link => ({ type: 'link', content: ` ${link.name}` })),
+        { type: 'separator', content: '————————————————————————————' }
       ];
     },
 
@@ -274,7 +250,6 @@ export const Terminal: React.FC<TerminalProps> = ({ isMobile }) => {
         { content: '---------------------------', type: 'separator' },
         { type: 'prompt', content: '>' }
       ]);
-      setSelectedLink(-1);
       setLastSocialIndex(-1);
       setIsAwaitingLogin(false);
       setLoginStep(null);
@@ -294,24 +269,12 @@ export const Terminal: React.FC<TerminalProps> = ({ isMobile }) => {
     if (command === '') {
       return [''];
     }
-
-    if (isAwaitingLogin) {
-      if (loginStep === 'operator') {
-        setLoginStep('passcode');
-        return ['PASSCODE:'];
-      } else if (loginStep === 'passcode') {
-        setIsAwaitingLogin(false);
-        setLoginStep(null);
-        return ['INVALID CREDENTIALS', 'ACCESS DENIED'];
-      }
-    }
-    
+  
     if (command === 'archives') {
       setLastSocialIndex(output.length + 2);
     } else {
       setLastSocialIndex(-1);
     }
-    setSelectedLink(-1);
     
     if (commands[command]) {
       return commands[command]();
@@ -412,10 +375,6 @@ export const Terminal: React.FC<TerminalProps> = ({ isMobile }) => {
             { type: 'system', content: 'SCAN TERMINATED.' },
             { type: 'prompt', content: '>' }
           ]);
-          return;
-        }
-        if (!isMobile) {
-          handleKeyDown(e);
         }
       }}
       ref={terminalRef}
@@ -436,62 +395,44 @@ export const Terminal: React.FC<TerminalProps> = ({ isMobile }) => {
                   {!isMobile && <span className="text-green-500 mr-2">{line.content}</span>}
                   {i === output.length - 1 && !isMobile && (
                     <div className="flex-1 relative">
-                      <input
-                        ref={inputRef}
-                        type="text"
-                        value={input}
-                        onChange={(e) => {
-                          if (selectedLink >= 0) return;
-                          setInput(e.target.value);
-                        }}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter' && !selectedLink >= 0) {
-                            e.preventDefault();
-                            handleSubmit(e);
-                          }
-                        }}
-                        className="bg-transparent text-green-500 focus:outline-none w-full"
-                        autoFocus
-                        disabled={selectedLink >= 0}
-                      />
-                      {selectedLink >= 0 && (
-                        <div className="absolute top-0 left-0 w-full text-yellow-500">
-                          Press ESC to return to command mode
-                        </div>
-                      )}
+                    <input
+                      ref={inputRef}
+                      type="text"
+                      value={input}
+                      onChange={(e) => setInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          handleSubmit(e);
+                        }
+                      }}
+                      className="bg-transparent text-green-500 focus:outline-none w-full"
+                      autoFocus
+                    />
                     </div>
                   )}
                 </>
               ) : (
-              <span 
-                className={`${
-                  line.type === 'command' ? 'text-blue-400' : 
-                  line.type === 'error' ? 'text-red-500' :
-                  line.type === 'warning' ? 'text-yellow-500 font-bold' :
-                  line.type === 'separator' ? 'text-green-700' :
-                  'text-green-500'
-                } ${
-                  i === lastSocialIndex && lastSocialIndex !== -1 ? 'mt-2' : ''
-                } ${
-                  i > lastSocialIndex && 
-                  i <= lastSocialIndex + mediaLinks.length + 2 && 
-                  lastSocialIndex !== -1 ? 'cursor-pointer hover:text-green-300 block' : ''
-                } ${
-                  i === lastSocialIndex + selectedLink + 1 && selectedLink >= 0 ? 'text-green-300 font-bold' : ''
-                }`}
-                onClick={() => {
-                  if (i > lastSocialIndex && 
-                      i <= lastSocialIndex + mediaLinks.length + 2 && 
-                      lastSocialIndex !== -1) {
-                    const linkIndex = Math.max(0, i - lastSocialIndex - 1);
-                    if (mediaLinks[linkIndex]) {
-                      window.open(mediaLinks[linkIndex].url, '_blank');
-                    }
+            <span 
+              className={`${
+                line.type === 'command' ? 'text-blue-400' : 
+                line.type === 'error' ? 'text-red-500' :
+                line.type === 'warning' ? 'text-yellow-500 font-bold' :
+                line.type === 'separator' ? 'text-green-700' :
+                line.type === 'link' ? 'cursor-pointer hover:text-green-300 block' :
+                'text-green-500'
+              }`}
+              onClick={() => {
+                if (line.type === 'link') {
+                  const linkIndex = mediaLinks.findIndex(link => ` ${link.name}` === line.content);
+                  if (linkIndex !== -1 && mediaLinks[linkIndex]) {
+                    window.open(mediaLinks[linkIndex].url, '_blank');
                   }
-                }}
-              >
-                {line.content}
-              </span>
+                }
+              }}
+            >
+              {line.content}
+            </span>
               )}
             </div>
           ))}
