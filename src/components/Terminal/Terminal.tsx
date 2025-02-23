@@ -26,6 +26,7 @@ export const Terminal: React.FC<TerminalProps> = ({ isMobile }) => {
     { content: 'AUTHORIZED USE ONLY', type: 'system' },
     { content: 'UNAUTHORIZED RECORDING OR DISTRIBUTION OF MATERIAL IS UNLAWFUL', type: 'system' },
     { content: '---------------------------', type: 'separator' },
+    { content: 'PHYSICAL ACCESS KEY NOT DETECTED', type: 'warning' },
     { content: 'OPERATOR CREDENTIALS NOT FOUND', type: 'warning' },
     { content: 'SOME PERMISSIONS RESTRICTED', type: 'warning' },
     { content: '............................', type: 'separator' }
@@ -76,6 +77,23 @@ export const Terminal: React.FC<TerminalProps> = ({ isMobile }) => {
             return newOutput;
           });
         }
+      } else if (message.type === 'typing') {
+        // Add empty message first
+        setOutput(prev => [...prev, { type: message.type, content: '' }]);
+        
+        // Normal typing for system messages
+        for (let i = 0; i <= message.content.length; i++) {
+          await new Promise(resolve => setTimeout(resolve, 5));
+          setOutput(prev => {
+            const newOutput = [...prev];
+            const lastIndex = newOutput.length - 1;
+            if (newOutput[lastIndex]) {
+              newOutput[lastIndex] = { type: message.type, content: message.content.slice(0, i) };
+            }
+            return newOutput;
+          });
+        }
+        await new Promise(resolve => setTimeout(resolve, 300));
       } else {
         // Normal typing for system messages
         for (let i = 0; i <= message.content.length; i++) {
@@ -120,7 +138,6 @@ export const Terminal: React.FC<TerminalProps> = ({ isMobile }) => {
     initializeTerminal();
   }, [isInitialized]);
 
-  const [selectedLink, setSelectedLink] = useState(-1);
   const [lastSocialIndex, setLastSocialIndex] = useState(-1);
   const terminalRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -176,27 +193,6 @@ export const Terminal: React.FC<TerminalProps> = ({ isMobile }) => {
     };
   }, []);
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (selectedLink >= 0) {
-      if (e.key === 'ArrowUp') {
-        e.preventDefault();
-        setSelectedLink(prev => (prev > 0 ? prev - 1 : mediaLinks.length - 1));
-      } else if (e.key === 'ArrowDown') {
-        e.preventDefault();
-        setSelectedLink(prev => (prev < mediaLinks.length - 1 ? prev + 1 : 0));
-      } else if (e.key === 'Enter') {
-        e.preventDefault();
-        window.open(mediaLinks[selectedLink].url, '_blank');
-        setSelectedLink(-1);
-      } else if (e.key === 'Escape') {
-        e.preventDefault();
-        setSelectedLink(-1);
-      }
-      e.stopPropagation();
-      return;
-    }
-  };
-
   const commands = {
     commands: () => [
       'TERMINAL COMMANDS DIRECTORY',
@@ -211,14 +207,14 @@ export const Terminal: React.FC<TerminalProps> = ({ isMobile }) => {
     ],
     
     archives: () => {
-      setSelectedLink(0);
-      setLastSocialIndex(output.length + 2); // Adjusted to account for header and separator
+      setLastSocialIndex(output.length + 2);
       return [
-        'RETRIEVING AVAILABLE ARCHIVES',
-        '————————————————————————————',
-        ...mediaLinks.map((link, index) => 
-          `${index === selectedLink ? '>' : ' '} ${link.name}`
-        )
+        { content: 'SEARCHING ARCHIVES...', type: 'typing' },
+        { content: 'VERIFYING PERMISSIONS...', type: 'typing' },
+        { content: 'RETRIEVING AVAILABLE ARCHIVES...', type: 'typing' },
+        { content: '————————————————————————————', type: 'separator' },
+        ...mediaLinks.map(link => ({ content: ` ${link.name}`, type: 'link' })),
+        { content: '————————————————————————————', type: 'separator' }
       ];
     },
 
@@ -249,19 +245,19 @@ export const Terminal: React.FC<TerminalProps> = ({ isMobile }) => {
       const timeString = `${hours}${minutes}:${seconds}Z`;
 
       return [
-        'SCAN>STATIONS>ALL>FREQ>ALL',
-        `TIMESTAMP: ${timeString}`,
-        'SCANNING...',
-        'DECODING SIGNAL...',
-        isMobile ? 'PRESS SCAN TO STOP' : '[CTRL+C TO TERMINATE]'
+        { content: 'SCAN>STATIONS>ALL>FREQ>ALL', type: 'output' },
+        { content: `TIMESTAMP: ${timeString}`, type: 'output' },
+        { content: 'SCANNING...', type: 'typing' },
+        { content: 'DECODING SIGNAL...', type: 'typing' },
+        { content: isMobile ? 'PRESS SCAN TO STOP' : '[CTRL+C TO TERMINATE]', type: 'output' }
       ];
     },
 
     broadcast: () => {
       return [
-        'PHYSICAL ACCESS KEY NOT DETECTED',
-        'UNABLE TO VERIFY OPERATOR CREDENTIALS',
-        'SOME PERMISSIONS RESTRICTED'
+        { content: 'PHYSICAL ACCESS KEY NOT DETECTED', type: 'warning' },
+        { content: 'OPERATOR CREDENTIALS NOT FOUND', type: 'warning' },
+        { content: 'SOME PERMISSIONS RESTRICTED', type: 'warning' }
       ];
     },
 
@@ -273,7 +269,6 @@ export const Terminal: React.FC<TerminalProps> = ({ isMobile }) => {
         { content: '---------------------------', type: 'separator' },
         { type: 'prompt', content: '>' }
       ]);
-      setSelectedLink(-1);
       setLastSocialIndex(-1);
       setIsAwaitingLogin(false);
       setLoginStep(null);
@@ -293,24 +288,12 @@ export const Terminal: React.FC<TerminalProps> = ({ isMobile }) => {
     if (command === '') {
       return [''];
     }
-
-    if (isAwaitingLogin) {
-      if (loginStep === 'operator') {
-        setLoginStep('passcode');
-        return ['PASSCODE:'];
-      } else if (loginStep === 'passcode') {
-        setIsAwaitingLogin(false);
-        setLoginStep(null);
-        return ['INVALID CREDENTIALS', 'ACCESS DENIED'];
-      }
-    }
-    
+  
     if (command === 'archives') {
       setLastSocialIndex(output.length + 2);
     } else {
       setLastSocialIndex(-1);
     }
-    setSelectedLink(-1);
     
     if (commands[command]) {
       return commands[command]();
@@ -319,7 +302,7 @@ export const Terminal: React.FC<TerminalProps> = ({ isMobile }) => {
     return [`COMMAND NOT RECOGNIZED: ${command.toUpperCase()}`];
   };
 
-  const executeCommand = (command: string) => {
+  const executeCommand = async (command: string) => {
     const result = handleCommand(command);
     
     if (command.toLowerCase() === 'clear') {
@@ -327,14 +310,67 @@ export const Terminal: React.FC<TerminalProps> = ({ isMobile }) => {
       return;
     }
 
-    const newOutput = [
-      ...output,
-      { type: 'command', content: command },
-      ...result.map(line => ({ type: 'output', content: line })),
-      { type: 'prompt', content: '>' }
-    ];
+    // Add the command to output first
+    setOutput(prev => [...prev, { type: 'command', content: command }]);
 
-    setOutput(newOutput);
+    // Process each result line
+    for (let i = 0; i < result.length; i++) {
+      const line = result[i];
+      const message = typeof line === 'string' ? { type: 'output', content: line } : line;
+      
+      if (message.type === 'warning') {
+        // Add empty message first
+        setOutput(prev => [...prev, { type: message.type, content: '' }]);
+        
+        // For warning messages, add glitch effect
+        const glitchDelay = 10; // Faster typing for warnings
+        
+        for (let j = 0; j <= message.content.length; j++) {
+          await new Promise(resolve => setTimeout(resolve, glitchDelay));
+          
+          // Occasionally add glitch characters that get replaced
+          const shouldGlitch = Math.random() < 0.3; // 30% chance of glitch
+          
+          setOutput(prev => {
+            const newOutput = [...prev];
+            const index = newOutput.length - 1;
+            if (newOutput[index]) {
+              let displayContent = message.content.slice(0, j);
+              if (shouldGlitch && j < message.content.length) {
+                displayContent += '█▓▒░';
+              }
+              newOutput[index] = { type: message.type, content: displayContent };
+            }
+            return newOutput;
+          });
+        }
+        
+        // Longer pause after warnings
+        await new Promise(resolve => setTimeout(resolve, 400));
+      } else if (message.type === 'typing') {
+        // Add empty message first
+        setOutput(prev => [...prev, { type: message.type, content: '' }]);
+        
+        // Normal typing for system messages
+        for (let j = 0; j <= message.content.length; j++) {
+          await new Promise(resolve => setTimeout(resolve, 5));
+          setOutput(prev => {
+            const newOutput = [...prev];
+            const lastIndex = newOutput.length - 1;
+            if (newOutput[lastIndex]) {
+              newOutput[lastIndex] = { type: message.type, content: message.content.slice(0, j) };
+            }
+            return newOutput;
+          });
+        }
+        await new Promise(resolve => setTimeout(resolve, 500)); // change this if music plays before text
+      } else {
+        setOutput(prev => [...prev, message]);
+      }
+    }
+
+    // Add prompt at the end
+    setOutput(prev => [...prev, { type: 'prompt', content: '>' }]);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -375,10 +411,6 @@ export const Terminal: React.FC<TerminalProps> = ({ isMobile }) => {
             { type: 'system', content: 'SCAN TERMINATED.' },
             { type: 'prompt', content: '>' }
           ]);
-          return;
-        }
-        if (!isMobile) {
-          handleKeyDown(e);
         }
       }}
       ref={terminalRef}
@@ -399,62 +431,45 @@ export const Terminal: React.FC<TerminalProps> = ({ isMobile }) => {
                   {!isMobile && <span className="text-green-500 mr-2">{line.content}</span>}
                   {i === output.length - 1 && !isMobile && (
                     <div className="flex-1 relative">
-                      <input
-                        ref={inputRef}
-                        type="text"
-                        value={input}
-                        onChange={(e) => {
-                          if (selectedLink >= 0) return;
-                          setInput(e.target.value);
-                        }}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter' && !selectedLink >= 0) {
-                            e.preventDefault();
-                            handleSubmit(e);
-                          }
-                        }}
-                        className="bg-transparent text-green-500 focus:outline-none w-full"
-                        autoFocus
-                        disabled={selectedLink >= 0}
-                      />
-                      {selectedLink >= 0 && (
-                        <div className="absolute top-0 left-0 w-full text-yellow-500">
-                          Press ESC to return to command mode
-                        </div>
-                      )}
+                    <input
+                      ref={inputRef}
+                      type="text"
+                      value={input}
+                      onChange={(e) => setInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          handleSubmit(e);
+                        }
+                      }}
+                      className="bg-transparent text-green-500 focus:outline-none w-full"
+                      autoFocus
+                    />
                     </div>
                   )}
                 </>
               ) : (
-              <span 
-                className={`${
-                  line.type === 'command' ? 'text-blue-400' : 
-                  line.type === 'error' ? 'text-red-500' :
-                  line.type === 'warning' ? 'text-yellow-500 font-bold' :
-                  line.type === 'separator' ? 'text-green-700' :
-                  'text-green-500'
-                } ${
-                  i === lastSocialIndex && lastSocialIndex !== -1 ? 'mt-2' : ''
-                } ${
-                  i > lastSocialIndex && 
-                  i <= lastSocialIndex + mediaLinks.length + 2 && 
-                  lastSocialIndex !== -1 ? 'cursor-pointer hover:text-green-300 block' : ''
-                } ${
-                  i === lastSocialIndex + selectedLink + 1 && selectedLink >= 0 ? 'text-green-300 font-bold' : ''
-                }`}
-                onClick={() => {
-                  if (i > lastSocialIndex && 
-                      i <= lastSocialIndex + mediaLinks.length + 2 && 
-                      lastSocialIndex !== -1) {
-                    const linkIndex = Math.max(0, i - lastSocialIndex - 1);
-                    if (mediaLinks[linkIndex]) {
-                      window.open(mediaLinks[linkIndex].url, '_blank');
-                    }
+            <span 
+              className={`${
+                line.type === 'command' ? 'text-blue-400' : 
+                line.type === 'error' ? 'text-red-500' :
+                line.type === 'warning' ? 'text-yellow-500 font-bold' :
+                line.type === 'separator' ? 'text-green-700' :
+                line.type === 'link' ? 'cursor-pointer hover:text-green-300 block' :
+                line.type === 'typing' ? 'text-green-500' :
+                'text-green-500'
+              }`}
+              onClick={() => {
+                if (line.type === 'link') {
+                  const linkIndex = mediaLinks.findIndex(link => ` ${link.name}` === line.content);
+                  if (linkIndex !== -1 && mediaLinks[linkIndex]) {
+                    window.open(mediaLinks[linkIndex].url, '_blank');
                   }
-                }}
-              >
-                {line.content}
-              </span>
+                }
+              }}
+            >
+              {line.content}
+            </span>
               )}
             </div>
           ))}
