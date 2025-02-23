@@ -26,6 +26,7 @@ export const Terminal: React.FC<TerminalProps> = ({ isMobile }) => {
     { content: 'AUTHORIZED USE ONLY', type: 'system' },
     { content: 'UNAUTHORIZED RECORDING OR DISTRIBUTION OF MATERIAL IS UNLAWFUL', type: 'system' },
     { content: '---------------------------', type: 'separator' },
+    { content: 'PHYSICAL ACCESS KEY NOT DETECTED', type: 'warning' },
     { content: 'OPERATOR CREDENTIALS NOT FOUND', type: 'warning' },
     { content: 'SOME PERMISSIONS RESTRICTED', type: 'warning' },
     { content: '............................', type: 'separator' }
@@ -259,9 +260,9 @@ export const Terminal: React.FC<TerminalProps> = ({ isMobile }) => {
 
     broadcast: () => {
       return [
-        'PHYSICAL ACCESS KEY NOT DETECTED',
-        'UNABLE TO VERIFY OPERATOR CREDENTIALS',
-        'SOME PERMISSIONS RESTRICTED'
+        { content: 'PHYSICAL ACCESS KEY NOT DETECTED', type: 'warning' },
+        { content: 'OPERATOR CREDENTIALS NOT FOUND', type: 'warning' },
+        { content: 'SOME PERMISSIONS RESTRICTED', type: 'warning' }
       ];
     },
 
@@ -319,7 +320,7 @@ export const Terminal: React.FC<TerminalProps> = ({ isMobile }) => {
     return [`COMMAND NOT RECOGNIZED: ${command.toUpperCase()}`];
   };
 
-  const executeCommand = (command: string) => {
+  const executeCommand = async (command: string) => {
     const result = handleCommand(command);
     
     if (command.toLowerCase() === 'clear') {
@@ -327,14 +328,50 @@ export const Terminal: React.FC<TerminalProps> = ({ isMobile }) => {
       return;
     }
 
-    const newOutput = [
-      ...output,
-      { type: 'command', content: command },
-      ...result.map(line => ({ type: 'output', content: line })),
-      { type: 'prompt', content: '>' }
-    ];
+    // Add the command to output first
+    setOutput(prev => [...prev, { type: 'command', content: command }]);
 
-    setOutput(newOutput);
+    // Process each result line
+    for (let i = 0; i < result.length; i++) {
+      const line = result[i];
+      const message = typeof line === 'string' ? { type: 'output', content: line } : line;
+      
+      if (message.type === 'warning') {
+        // Add empty message first
+        setOutput(prev => [...prev, { type: message.type, content: '' }]);
+        
+        // For warning messages, add glitch effect
+        const glitchDelay = 10; // Faster typing for warnings
+        
+        for (let j = 0; j <= message.content.length; j++) {
+          await new Promise(resolve => setTimeout(resolve, glitchDelay));
+          
+          // Occasionally add glitch characters that get replaced
+          const shouldGlitch = Math.random() < 0.3; // 30% chance of glitch
+          
+          setOutput(prev => {
+            const newOutput = [...prev];
+            const index = newOutput.length - 1;
+            if (newOutput[index]) {
+              let displayContent = message.content.slice(0, j);
+              if (shouldGlitch && j < message.content.length) {
+                displayContent += '█▓▒░';
+              }
+              newOutput[index] = { type: message.type, content: displayContent };
+            }
+            return newOutput;
+          });
+        }
+        
+        // Longer pause after warnings
+        await new Promise(resolve => setTimeout(resolve, 400));
+      } else {
+        setOutput(prev => [...prev, message]);
+      }
+    }
+
+    // Add prompt at the end
+    setOutput(prev => [...prev, { type: 'prompt', content: '>' }]);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
