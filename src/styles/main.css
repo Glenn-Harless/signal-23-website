@@ -17,3 +17,18 @@ html, body {
   height: 100vh;
   width: 100vw;
 }
+
+@keyframes distorted-pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.85;
+  }
+}
+
+.distorted-pulse {
+  animation-name: distorted-pulse;
+  animation-iteration-count: infinite;
+  animation-timing-function: ease-in-out;
+}

@@ -1,8 +1,17 @@
 module.exports = {
-  purge: [
+  content: [
     './src/**/*.{js,jsx,ts,tsx}',
     './public/index.html',
     './src/styles/**/*.css'
+  ],
+  safelist: [
+    'font-neo-brutalist',
+    'font-neo-brute-transparent',
+    'font-neo-brutalist4',
+    'font-neo-brutalist5',
+    'font-neo-brutalist6',
+    'font-neo-brutalist7',
+    'font-neo-brutalist8'
   ],
   darkMode: false,
   theme: {
@@ -15,7 +24,6 @@ module.exports = {
         'neo-brutalist6': ['NeobruteTest6', 'sans-serif'],
         'neo-brutalist7': ['NeobruteTest7', 'sans-serif'],
         'neo-brutalist8': ['NeobruteTest8', 'sans-serif'],
-        'neo-brutalist9': ['NeobruteTest9', 'sans-serif'],
         'ibm-mono': ['IBM Plex Mono', 'monospace'],
         'space-mono': ['Space Mono', 'monospace'],
       },
@@ -44,9 +52,6 @@ module.exports = {
         },
       },
     },
-  },
-  variants: {
-    extend: {}
   },
   plugins: [],
 }
