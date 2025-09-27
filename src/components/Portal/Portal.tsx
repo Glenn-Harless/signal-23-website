@@ -151,7 +151,7 @@ export const Portal: React.FC<PortalProps> = ({ isMobile, onClick }) => {
       <div className="absolute inset-0 z-50">
         <div className="absolute inset-0 w-full h-full flex items-center justify-center">
           <div
-            className="relative cursor-pointer hover:bg-white/[0.03]"
+            className="relative cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white/40"
             role="button"
             tabIndex={0}
             aria-label="Enter terminal"
