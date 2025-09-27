@@ -38,8 +38,9 @@ export class AudioDebugger {
           baseLatency: audioContext.baseLatency,
           maxChannelCount: audioContext.destination.maxChannelCount,
         };
-      } catch (error) {
-        return { error: `Failed to create AudioContext: ${error.message}` };
+      } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : 'Unknown error';
+        return { error: `Failed to create AudioContext: ${message}` };
       }
     }
   

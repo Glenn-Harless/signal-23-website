@@ -16,6 +16,10 @@ export function useAudio() {
   const [audioElement, setAudioElement] = useState<HTMLAudioElement | null>(null);
 
   useEffect(() => {
+    if (typeof window === 'undefined') {
+      return undefined;
+    }
+
     const handler = (event: Event) => {
       if (!(event instanceof CustomEvent)) {
         return;
@@ -31,6 +35,10 @@ export function useAudio() {
   }, []);
 
   useEffect(() => {
+    if (typeof window === 'undefined') {
+      return undefined;
+    }
+
     const readyHandler = (event: Event) => {
       if (!(event instanceof CustomEvent)) {
         return;
@@ -73,6 +81,10 @@ export function useAudio() {
 }
 
 export function registerAudioElement(element: HTMLAudioElement) {
+  if (typeof window === 'undefined') {
+    return () => {};
+  }
+
   const notifyReady = new CustomEvent(AUDIO_READY_EVENT, { detail: element });
   window.dispatchEvent(notifyReady);
 

@@ -178,7 +178,7 @@ export function useTerminal({ isMobile }: UseTerminalOptions): UseTerminalResult
 
     const linkMessages: TerminalMessage[] = [
       { type: 'separator', content: '————————————————————————————' },
-      ...MEDIA_LINKS.map((link) => ({ type: 'link', content: ` ${link.name}` })),
+      ...MEDIA_LINKS.map<TerminalMessage>((link) => ({ type: 'link', content: ` ${link.name}` })),
       { type: 'separator', content: '————————————————————————————' },
     ];
 

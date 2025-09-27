@@ -133,8 +133,9 @@ class AudioStreamer {
             this.isPlaying = true;
             this.debugLog('Playback started', { randomStart });
           })
-          .catch((error) => {
-            throw error;
+          .catch((error: unknown) => {
+            const normalized = error instanceof Error ? error : new Error('Playback failed');
+            options.onError?.(normalized);
           });
       });
 
@@ -159,7 +160,7 @@ class AudioStreamer {
             options.onError?.(new Error(data.details));
         }
       });
-    } catch (error) {
+    } catch (error: unknown) {
       const normalized = error instanceof Error ? error : new Error('Unknown error');
       this.debugLog('Playback error', normalized);
       options.onError?.(normalized);
