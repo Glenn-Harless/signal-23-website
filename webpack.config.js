@@ -2,11 +2,16 @@ const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 
+const isProduction = process.env.NODE_ENV === 'production';
+
 module.exports = {
   entry: './src/index.tsx',  // Changed from index.js to index.tsx
   output: {
     path: path.resolve(__dirname, 'build'),
-    filename: 'bundle.js',
+    filename: isProduction ? 'assets/js/[name].[contenthash].js' : 'assets/js/[name].js',
+    chunkFilename: isProduction ? 'assets/js/[name].[contenthash].chunk.js' : 'assets/js/[name].chunk.js',
+    publicPath: '/',
+    clean: true,
   },
   module: {
     rules: [
@@ -36,15 +41,11 @@ module.exports = {
         use: ['style-loader', 'css-loader', 'postcss-loader'],
       },
       {
-        test: /\.(woff|woff2|eot|ttf|otf)$/,
-        type: 'asset/resource',
-      },
-      {
         test: /\.(mp3|wav)$/,
         type: 'asset/resource',
       },
       {
-        test: /\.(woff|woff2|eot|ttf|otf)$/,
+        test: /\.(woff2?|eot|ttf|otf)$/i,
         type: 'asset/resource',
         generator: {
           filename: 'assets/fonts/[name][ext]'
@@ -69,8 +70,11 @@ module.exports = {
     }),
   ],
   resolve: {
-    extensions: ['.tsx', '.ts', '.js', '.jsx', '.css'],  // Add TypeScript extensions
+    extensions: ['.tsx', '.ts', '.js', '.jsx', '.css'],
     modules: [path.resolve(__dirname, 'src'), 'node_modules'],
+    alias: {
+      '@': path.resolve(__dirname, 'src')
+    }
   },
   devServer: {
     static: {
@@ -80,5 +84,10 @@ module.exports = {
     port: 8080,
     host: '0.0.0.0',
     historyApiFallback: true,
+  },
+  optimization: {
+    splitChunks: {
+      chunks: 'all',
+    },
   },
 };

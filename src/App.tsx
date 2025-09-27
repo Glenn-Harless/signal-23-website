@@ -7,39 +7,27 @@ import { NavigationLink } from './components/Navigation/NavigationLink';
 import { DistortedStack } from './components/TextStack/TextStack';
 import { EnhancedNumberStation } from './components/EnhancedNumberStation/EnhancedNumberStation';
 import { GlitchOverlay } from './components/GlitchOverlay/GlitchOverlay';
+import { useViewportHeight } from './hooks/useViewportHeight';
+import { useAudio } from './hooks/useAudio';
 
 // Home component (previously App content)
-const Home = ({ isMobile, setIsMobile }) => {
-  const [isPlayingAudio, setIsPlayingAudio] = useState(false);
+interface HomeProps {
+  isMobile: boolean;
+}
+
+const Home: React.FC<HomeProps> = ({ isMobile }) => {
   const [showGlitch, setShowGlitch] = useState(false);
-  const [viewportHeight, setViewportHeight] = useState(window.innerHeight);
+  const viewportHeight = useViewportHeight();
   const navigate = useNavigate();
+  const { isPlaying, togglePlayback } = useAudio();
 
   const navLinks = [
     { 
       label: "music@signal23.net",
-      description: "Get in touch" 
+      description: "Get in touch",
+      href: "mailto:music@signal23.net"
     }
   ];
-
-  useEffect(() => {
-    const handleResize = () => {
-      const height = window.visualViewport?.height || window.innerHeight;
-      setViewportHeight(height);
-    };
-
-    window.visualViewport?.addEventListener('resize', handleResize);
-    window.visualViewport?.addEventListener('scroll', handleResize);
-    window.addEventListener('resize', handleResize);
-
-    handleResize();
-
-    return () => {
-      window.visualViewport?.removeEventListener('resize', handleResize);
-      window.visualViewport?.removeEventListener('scroll', handleResize);
-      window.removeEventListener('resize', handleResize);
-    };
-  }, []);
 
   // Handle portal click to navigate to terminal
   const handlePortalClick = () => {
@@ -49,8 +37,7 @@ const Home = ({ isMobile, setIsMobile }) => {
   return (
     <>
       <div 
-        className="relative w-full h-screen overflow-hidden bg-black cursor-pointer" 
-        onClick={handlePortalClick}
+        className="relative w-full h-screen overflow-hidden bg-black"
         style={{
           height: isMobile ? `${viewportHeight}px` : '100vh',
           maxHeight: isMobile ? `${viewportHeight}px` : '100vh'
@@ -60,9 +47,9 @@ const Home = ({ isMobile, setIsMobile }) => {
         
         <div className="relative h-full">
           <div className="absolute inset-0 z-20">
-            <AudioPlayer 
-              isPlaying={isPlayingAudio}
-              onPlayPause={() => setIsPlayingAudio(!isPlayingAudio)}
+          <AudioPlayer 
+              isPlaying={isPlaying}
+              onPlayPause={togglePlayback}
               audioSource="/pieces-website-mp3.mp3"
             />
           </div>
@@ -81,9 +68,9 @@ const Home = ({ isMobile, setIsMobile }) => {
             <div className="col-span-7 xl:col-span-8 relative">
             </div>
 
-            <div className="col-span-5 xl:col-span-4 relative">
+              <div className="col-span-5 xl:col-span-4 relative">
               <div className="h-full">
-                <DistortedStack isPlayingAudio={isPlayingAudio} />
+                <DistortedStack isPlayingAudio={isPlaying} />
               </div>
             </div>
           </div>
@@ -161,7 +148,7 @@ const App = () => {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Home isMobile={isMobile} setIsMobile={setIsMobile} />} />
+        <Route path="/" element={<Home isMobile={isMobile} />} />
         <Route path="/terminal" element={<Terminal isMobile={isMobile} />} />
       </Routes>
     </BrowserRouter>
