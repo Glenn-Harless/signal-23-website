@@ -53,6 +53,8 @@ interface UseTerminalResult {
   terminalRef: React.RefObject<HTMLDivElement>;
   outputRef: React.RefObject<HTMLDivElement>;
   inputRef: React.RefObject<HTMLInputElement>;
+  isScanActive: boolean;
+  currentFrequency: string | null;
 }
 
 interface UseTerminalOptions {
@@ -66,6 +68,7 @@ export function useTerminal({ isMobile }: UseTerminalOptions): UseTerminalResult
   const [isInitialized, setIsInitialized] = useState(false);
   const viewportHeight = useViewportHeight();
   const [currentFrequency, setCurrentFrequency] = useState<string | null>(null);
+  const [isScanActive, setIsScanActive] = useState(false);
   const { audioElement, isPlaying: isHomePlaying } = useAudio();
 
   const terminalRef = useRef<HTMLDivElement>(null);
@@ -162,6 +165,7 @@ export function useTerminal({ isMobile }: UseTerminalOptions): UseTerminalResult
   const stopScan = useCallback(() => {
     audioStreamer.stop();
     setCurrentFrequency(null);
+    setIsScanActive(false);
   }, []);
 
   const executeArchive = useCallback(async (): Promise<TerminalMessage[]> => {
@@ -201,12 +205,15 @@ export function useTerminal({ isMobile }: UseTerminalOptions): UseTerminalResult
 
       const randomFrequency = frequencies[Math.floor(Math.random() * frequencies.length)];
       setCurrentFrequency(randomFrequency.name);
+      setIsScanActive(true);
 
       await audioStreamer.playRandomSegment({
         reuseElement: audioElement ?? undefined,
         onError: (error) => {
           appendMessage({ type: 'error', content: `TRANSMISSION ERROR: ${error.message}` });
           appendPrompt();
+          setIsScanActive(false);
+          setCurrentFrequency(null);
         },
       });
 
@@ -233,6 +240,7 @@ export function useTerminal({ isMobile }: UseTerminalOptions): UseTerminalResult
       ];
     } catch (error) {
       stopScan();
+      setIsScanActive(false);
       return [{ type: 'error', content: `TRANSMISSION ERROR: ${(error as Error).message}` }];
     }
   }, [appendMessage, audioElement, isHomePlaying, isMobile, stopScan, typeMessage]);
@@ -370,5 +378,7 @@ export function useTerminal({ isMobile }: UseTerminalOptions): UseTerminalResult
     terminalRef,
     outputRef: outputContainerRef,
     inputRef,
+    isScanActive,
+    currentFrequency,
   };
 }

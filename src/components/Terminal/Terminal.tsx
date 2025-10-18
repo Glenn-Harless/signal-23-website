@@ -1,6 +1,7 @@
 import React from 'react';
 import { useTerminal } from './useTerminal';
 import { TerminalMessage } from './terminalTypes';
+import { SpectrogramVisualizer } from './SpectrogramVisualizer';
 
 interface TerminalProps {
   isMobile: boolean;
@@ -95,13 +96,19 @@ export const Terminal: React.FC<TerminalProps> = ({ isMobile }) => {
     terminalRef,
     outputRef,
     inputRef,
+    isScanActive,
+    currentFrequency,
   } = useTerminal({ isMobile });
 
   const lastIndex = output.length - 1;
 
+  const outputClasses = `flex-1 overflow-y-auto p-4 flex flex-col ${isMobile ? 'text-sm' : 'text-base'} ${
+    isMobile && isScanActive ? 'pt-48' : ''
+  }`;
+
   return (
     <div
-      className="bg-black text-green-500 font-mono flex flex-col"
+      className="bg-black text-green-500 font-mono flex flex-col relative"
       style={{
         height: isMobile ? `${viewportHeight}px` : '100vh',
         maxHeight: isMobile ? `${viewportHeight}px` : '100vh',
@@ -111,9 +118,13 @@ export const Terminal: React.FC<TerminalProps> = ({ isMobile }) => {
       ref={terminalRef}
       tabIndex={0}
     >
+      <div className="absolute inset-x-4 top-4 sm:inset-auto sm:top-6 sm:right-6 sm:w-72 md:w-72 lg:w-80 z-20">
+        <SpectrogramVisualizer isActive={isScanActive} frequencyLabel={currentFrequency} />
+      </div>
+
       <div
         ref={outputRef}
-        className={`flex-1 overflow-y-auto p-4 flex flex-col ${isMobile ? 'text-sm' : 'text-base'}`}
+        className={outputClasses}
         style={{ minHeight: 0 }}
       >
         <div className="flex-1">

@@ -190,6 +190,10 @@ class AudioStreamer {
   getCurrentTime() {
     return this.audio?.currentTime ?? 0;
   }
+
+  getAudioElement() {
+    return this.audio;
+  }
 }
 
 export const audioStreamer = new AudioStreamer();
