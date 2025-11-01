@@ -4,16 +4,22 @@ import { audioStreamer } from './AudioStreamer';
 interface SpectrogramVisualizerProps {
   isActive: boolean;
   frequencyLabel: string | null;
+  variant?: 'default' | 'compact';
 }
 
 const CANVAS_WIDTH = 280;
-const CANVAS_HEIGHT = 160;
+const CANVAS_HEIGHT_DEFAULT = 160;
+const CANVAS_HEIGHT_COMPACT = 128;
 
 const FALLBACK_MESSAGE = 'AUDIO ANALYSIS UNAVAILABLE';
 
 type AnimationFrameId = number | undefined;
 
-export const SpectrogramVisualizer: React.FC<SpectrogramVisualizerProps> = ({ isActive, frequencyLabel }) => {
+export const SpectrogramVisualizer: React.FC<SpectrogramVisualizerProps> = ({
+  isActive,
+  frequencyLabel,
+  variant = 'default',
+}) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animationFrameRef = useRef<AnimationFrameId>();
   const audioContextRef = useRef<AudioContext | null>(null);
@@ -31,25 +37,53 @@ export const SpectrogramVisualizer: React.FC<SpectrogramVisualizerProps> = ({ is
   }, []);
 
   useEffect(() => {
-    if (!isActive) {
+    let isMounted = true;
+
+    const cleanupAudioGraph = () => {
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current);
         animationFrameRef.current = undefined;
       }
+      try {
+        sourceRef.current?.disconnect();
+      } catch (_error) {
+        // Ignore disconnect errors when tearing down
+      }
+      try {
+        analyserRef.current?.disconnect();
+      } catch (_error) {
+        // Ignore disconnect errors when tearing down
+      }
       historyRef.current = [];
-      return;
-    }
 
-    if (!supportsAudioAnalysis) {
-      return undefined;
+      const existingContext = audioContextRef.current;
+      audioContextRef.current = null;
+      if (existingContext && existingContext.state !== 'closed') {
+        existingContext.close().catch(() => {
+          // Ignore close errors
+        });
+      }
+
+      analyserRef.current = null;
+      sourceRef.current = null;
+      sourceElementRef.current = null;
+    };
+
+    if (!isActive || !supportsAudioAnalysis) {
+      cleanupAudioGraph();
+      return () => {
+        isMounted = false;
+        cleanupAudioGraph();
+      };
     }
 
     const AudioContextConstructor = window.AudioContext || (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
     if (!AudioContextConstructor) {
-      return undefined;
+      return () => {
+        isMounted = false;
+        cleanupAudioGraph();
+      };
     }
-
-    let isMounted = true;
 
     const connectToAudio = async () => {
       let audioContext = audioContextRef.current;
@@ -74,7 +108,7 @@ export const SpectrogramVisualizer: React.FC<SpectrogramVisualizerProps> = ({ is
         return;
       }
 
-      if (sourceElementRef.current !== audioElement) {
+      if (!sourceRef.current || sourceElementRef.current !== audioElement) {
         try {
           sourceRef.current?.disconnect();
         } catch (_error) {
@@ -85,20 +119,19 @@ export const SpectrogramVisualizer: React.FC<SpectrogramVisualizerProps> = ({ is
           sourceRef.current = audioContext.createMediaElementSource(audioElement);
           sourceElementRef.current = audioElement;
         } catch (error) {
-          // This can happen if a source already exists for the element in this context
           if (!sourceRef.current) {
             // eslint-disable-next-line no-console
             console.error('Unable to initialize spectrogram audio source', error);
             return;
           }
         }
+      }
 
-        if (sourceRef.current && analyserRef.current) {
-          try {
-            sourceRef.current.connect(analyserRef.current);
-          } catch (_error) {
-            // Ignore repeated connections for the same source
-          }
+      if (sourceRef.current && analyserRef.current) {
+        try {
+          sourceRef.current.connect(analyserRef.current);
+        } catch (_error) {
+          // Ignore repeated connections
         }
       }
 
@@ -185,11 +218,7 @@ export const SpectrogramVisualizer: React.FC<SpectrogramVisualizerProps> = ({ is
 
     return () => {
       isMounted = false;
-      if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current);
-        animationFrameRef.current = undefined;
-      }
-      historyRef.current = [];
+      cleanupAudioGraph();
     };
   }, [isActive, supportsAudioAnalysis]);
 
@@ -209,17 +238,16 @@ export const SpectrogramVisualizer: React.FC<SpectrogramVisualizerProps> = ({ is
           <canvas
             ref={canvasRef}
             width={CANVAS_WIDTH}
-            height={CANVAS_HEIGHT}
-            className="w-full h-40"
+            height={variant === 'compact' ? CANVAS_HEIGHT_COMPACT : CANVAS_HEIGHT_DEFAULT}
+            className={`w-full ${variant === 'compact' ? 'h-32' : 'h-40'}`}
           />
         ) : (
-          <div className="flex h-40 items-center justify-center text-[0.65rem] tracking-[0.3rem] text-green-200/60">
+          <div
+            className={`flex ${variant === 'compact' ? 'h-32' : 'h-40'} items-center justify-center text-[0.65rem] tracking-[0.3rem] text-green-200/60`}
+          >
             {FALLBACK_MESSAGE}
           </div>
         )}
-        <div className="px-4 py-2 text-[0.65rem] uppercase tracking-[0.3rem] text-green-400/70">
-          {isActive ? 'Hold command to terminate scan' : 'Awaiting frequency scan'}
-        </div>
       </div>
     </div>
   );

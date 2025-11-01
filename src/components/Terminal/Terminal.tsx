@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useTerminal } from './useTerminal';
 import { TerminalMessage } from './terminalTypes';
 import { SpectrogramVisualizer } from './SpectrogramVisualizer';
@@ -102,9 +102,16 @@ export const Terminal: React.FC<TerminalProps> = ({ isMobile }) => {
 
   const lastIndex = output.length - 1;
 
+  const isDesktop = !isMobile;
   const outputClasses = `flex-1 overflow-y-auto p-4 flex flex-col ${isMobile ? 'text-sm' : 'text-base'} ${
-    isMobile && isScanActive ? 'pt-48' : ''
+    isMobile && isScanActive ? 'pt-4' : ''
   }`;
+
+  useEffect(() => {
+    if (!isDesktop && isScanActive && outputRef.current) {
+      outputRef.current.scrollTop = outputRef.current.scrollHeight;
+    }
+  }, [isDesktop, isScanActive, outputRef]);
 
   return (
     <div
@@ -118,9 +125,15 @@ export const Terminal: React.FC<TerminalProps> = ({ isMobile }) => {
       ref={terminalRef}
       tabIndex={0}
     >
-      <div className="absolute inset-x-4 top-4 sm:inset-auto sm:top-6 sm:right-6 sm:w-72 md:w-72 lg:w-80 z-20">
-        <SpectrogramVisualizer isActive={isScanActive} frequencyLabel={currentFrequency} />
-      </div>
+      {isDesktop ? (
+        <div
+          className="absolute inset-x-4 top-4 sm:top-1/2 sm:-translate-y-1/2 sm:inset-x-auto sm:left-1/2 sm:right-6 md:right-12 lg:right-16 xl:right-24 z-20 pointer-events-none flex justify-center"
+        >
+          <div className="w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-xl">
+            <SpectrogramVisualizer isActive={isScanActive} frequencyLabel={currentFrequency} />
+          </div>
+        </div>
+      ) : null}
 
       <div
         ref={outputRef}
@@ -141,6 +154,15 @@ export const Terminal: React.FC<TerminalProps> = ({ isMobile }) => {
               inputRef={inputRef}
             />
           ))}
+          {!isDesktop && isScanActive ? (
+            <div className="mt-4">
+              <SpectrogramVisualizer
+                isActive={isScanActive}
+                frequencyLabel={currentFrequency}
+                variant="compact"
+              />
+            </div>
+          ) : null}
         </div>
       </div>
 
