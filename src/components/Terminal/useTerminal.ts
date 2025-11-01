@@ -26,6 +26,7 @@ const MEDIA_LINKS: TerminalMediaLink[] = [
   { name: 'SOUNDCLOUD', url: 'https://soundcloud.com/signal-23' },
   { name: 'BANDCAMP', url: 'https://signal-23.bandcamp.com/' },
   { name: 'INSTAGRAM', url: 'https://www.instagram.com/signal23music/' },
+  { name: 'HYPERFOLLOW // PIECES', url: 'https://distrokid.com/hyperfollow/signal23/pieces' },
 ];
 
 const MENU_ITEMS: TerminalMenuItem[] = [
@@ -256,6 +257,9 @@ export function useTerminal({ isMobile }: UseTerminalOptions): UseTerminalResult
         { type: 'warning', content: 'PHYSICAL ACCESS KEY NOT DETECTED' },
         { type: 'warning', content: 'OPERATOR CREDENTIALS NOT FOUND' },
         { type: 'warning', content: 'SOME PERMISSIONS RESTRICTED' },
+        { type: 'separator', content: '---------------------------' },
+        { type: 'system', content: 'AUX RELAY UNLOCKED: PIECES SIGNAL' },
+        { type: 'link', content: ' HYPERFOLLOW // PIECES' },
       ],
       clear: async () => {
         stopScan();
