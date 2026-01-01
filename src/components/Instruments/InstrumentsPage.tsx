@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import '../../styles/instruments.css';
+import { PricePoint } from './PricePoint';
 
 interface AbletonPack {
     id: string;
@@ -80,11 +81,46 @@ const WaveformDisplay: React.FC = () => {
 export const InstrumentsPage: React.FC = () => {
     const [selectedPack, setSelectedPack] = useState<AbletonPack>(MOCK_PACKS[0]);
     const [flicker, setFlicker] = useState(false);
+    const [checkoutState, setCheckoutState] = useState<'IDLE' | 'LOADING' | 'SUCCESS'>('IDLE');
+    const acquisitionRef = useRef<HTMLDivElement>(null);
+
+    // Ensure body is scrollable on this page
+    useEffect(() => {
+        document.body.style.overflow = 'auto';
+        document.documentElement.style.overflow = 'auto';
+        // Remove any common scroll lock classes if they exist
+        document.body.classList.remove('antigravity-scroll-lock');
+        return () => {
+            document.body.style.overflow = '';
+            document.documentElement.style.overflow = '';
+        };
+    }, []);
 
     const handlePackSelect = (pack: AbletonPack) => {
+        setCheckoutState('IDLE');
         setFlicker(true);
         setSelectedPack(pack);
         setTimeout(() => setFlicker(false), 200);
+
+        // Scroll to acquisition panel on mobile
+        if (window.innerWidth <= 1024) {
+            setTimeout(() => {
+                acquisitionRef.current?.scrollIntoView({ behavior: 'smooth' });
+            }, 100);
+        }
+    };
+
+    const handleInitiateCheckout = async (amount: number) => {
+        setCheckoutState('LOADING');
+        console.log(`Initializing checkout for ${selectedPack.title} at $${amount}`);
+
+        // Simulate network delay for Stripe session creation
+        await new Promise(resolve => setTimeout(resolve, 2000));
+
+        // In a real implementation, we would redirect here:
+        // window.location.href = checkoutUrl;
+
+        setCheckoutState('SUCCESS');
     };
 
     return (
@@ -143,23 +179,45 @@ export const InstrumentsPage: React.FC = () => {
                     </div>
 
                     {/* Panel 3: Acquisition */}
-                    <div className="ledger-panel">
+                    <div className="ledger-panel" ref={acquisitionRef}>
                         <span className="ledger-label">MARKETPLACE & ACQUISITIONS</span>
-                        <div className="bg-white/5 p-4 border border-white/10">
-                            <div className="text-lg mb-4 text-white font-neo-brutalist tracking-widest uppercase">
-                                {selectedPack.title}
+
+                        {checkoutState === 'IDLE' && (
+                            <PricePoint
+                                key={selectedPack.id}
+                                initialPrice={selectedPack.price}
+                                onInitiateCheckout={handleInitiateCheckout}
+                            />
+                        )}
+
+                        {checkoutState === 'LOADING' && (
+                            <div className="bg-white/5 p-8 border border-white/10 flex flex-col items-center justify-center animate-pulse">
+                                <div className="text-red-500 font-mono text-sm mb-4">TRANSMITTING DATA...</div>
+                                <div className="w-12 h-12 border-2 border-red-500 border-t-transparent rounded-full animate-spin" />
                             </div>
-                            <div className="flex justify-between items-end mb-6">
-                                <span className="ledger-label p-0 m-0">ACQUISITION PRICE:</span>
-                                <span className="text-2xl text-red-500 font-bold">{selectedPack.id === 'S23-01' ? '$49.00' : selectedPack.id === 'D90-05' ? '$29.00' : '$19.00'}</span>
+                        )}
+
+                        {checkoutState === 'SUCCESS' && (
+                            <div className="bg-red-500/10 p-6 border border-red-500 flex flex-col items-center text-center">
+                                <div className="text-red-500 font-neo-brutalist text-xl mb-4 tracking-widest">DATA PACKET DECODED</div>
+                                <div className="text-xs opacity-70 mb-6 font-mono">
+                                    VERIFICATION COMPLETE. DOWNLOAD LINK GENERATED FOR:<br />
+                                    {selectedPack.title}
+                                </div>
+                                <button
+                                    className="w-full py-3 bg-red-500 text-white font-bold uppercase tracking-widest text-sm hover:bg-red-600 transition-colors"
+                                    onClick={() => alert(`Simulated Download of ${selectedPack.id}`)}
+                                >
+                                    GET ARCHIVE
+                                </button>
+                                <button
+                                    className="mt-4 text-[10px] uppercase underline opacity-40 hover:opacity-100"
+                                    onClick={() => setCheckoutState('IDLE')}
+                                >
+                                    RETURN TO MARKETPLACE
+                                </button>
                             </div>
-                            <button className="w-full py-3 border border-red-500 text-red-500 hover:bg-red-500 hover:text-white transition-colors uppercase tracking-widest text-sm font-bold">
-                                INITIATE DOWNLOAD
-                            </button>
-                            <div className="mt-4 text-[10px] opacity-40 leading-tight">
-                                BY INITIATING DOWNLOAD, YOU AGREE TO THE SIGNAL-23 TERMS OF SERVICE. ALL DATA IS VERIFIED FOR INTEGRITY BEFORE TRANSMISSION.
-                            </div>
-                        </div>
+                        )}
 
                         <div className="mt-8">
                             <span className="ledger-label">LOCATION DATA</span>
