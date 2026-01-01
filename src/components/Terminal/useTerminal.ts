@@ -32,6 +32,7 @@ const MEDIA_LINKS: TerminalMediaLink[] = [
 const MENU_ITEMS: TerminalMenuItem[] = [
   { command: 'commands', label: 'View Commands' },
   { command: 'archives', label: 'Access Archives' },
+  { command: 'racks', label: 'Instrument Racks' },
   { command: 'scan', label: 'Scan Frequencies' },
   { command: 'broadcast', label: 'Operator Broadcast' },
   { command: 'clear', label: 'Clear Terminal' },
@@ -225,11 +226,11 @@ export function useTerminal({ isMobile }: UseTerminalOptions): UseTerminalResult
         { type: 'output', content: isMobile ? 'PRESS SCAN TO STOP' : '[CTRL+C TO TERMINATE]' },
         ...(isHomePlaying
           ? [
-              {
-                type: 'warning',
-                content: 'HOME AUDIO SUPPRESSED DURING SCAN',
-              } as TerminalMessage,
-            ]
+            {
+              type: 'warning',
+              content: 'HOME AUDIO SUPPRESSED DURING SCAN',
+            } as TerminalMessage,
+          ]
           : []),
       ];
     } catch (error) {
@@ -245,6 +246,7 @@ export function useTerminal({ isMobile }: UseTerminalOptions): UseTerminalResult
         { type: 'separator', content: '————————————————————————————' },
         { type: 'output', content: 'COMMANDS      - Display this directory' },
         { type: 'output', content: 'ARCHIVES      - Access media archives' },
+        { type: 'output', content: 'RACKS         - List available instrument racks' },
         { type: 'output', content: 'SCAN          - Scan frequencies' },
         { type: 'output', content: 'BROADCAST     - Operator broadcast' },
         { type: 'output', content: 'CLEAR         - Clear terminal buffer' },
@@ -252,6 +254,18 @@ export function useTerminal({ isMobile }: UseTerminalOptions): UseTerminalResult
         { type: 'separator', content: '————————————————————————————' },
       ],
       archives: () => executeArchive(),
+      racks: async () => [
+        { type: 'output', content: 'RETRIEVING INSTRUMENT RACK DATA...' },
+        { type: 'separator', content: '————————————————————————————' },
+        { type: 'output', content: 'ID: S23-01 | VINTAGE SYNTHESIZER ARRAY' },
+        { type: 'output', content: '   [SIZE: 142MB | MACROS: 8 | TAG: /STUDIO/SYNTHS]' },
+        { type: 'output', content: 'ID: D90-05 | MODULAR DRUM MACHINES' },
+        { type: 'output', content: '   [SIZE: 320MB | MACROS: 16 | TAG: /STUDIO/DRUMS]' },
+        { type: 'output', content: 'ID: E45-02 | EXPERIMENTAL TEXTURES' },
+        { type: 'output', content: '   [SIZE: 210MB | MACROS: 12 | TAG: /STUDIO/FX]' },
+        { type: 'separator', content: '————————————————————————————' },
+        { type: 'link', content: ' ACCESS LEDGER' },
+      ],
       scan: () => executeScan(),
       broadcast: async () => [
         { type: 'warning', content: 'PHYSICAL ACCESS KEY NOT DETECTED' },

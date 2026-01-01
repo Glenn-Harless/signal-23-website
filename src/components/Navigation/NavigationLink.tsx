@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { ExternalLink } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 interface Platform {
   name: string;
@@ -22,7 +23,15 @@ export const NavigationLink: React.FC<NavigationLinkProps> = ({
   platforms
 }) => {
   const [isHovered, setIsHovered] = useState(false);
-  const timeoutRef = useRef<NodeJS.Timeout>();
+  const timeoutRef = useRef<ReturnType<typeof setTimeout>>();
+  const navigate = useNavigate();
+
+  const handleLinkClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    if (href.startsWith('/')) {
+      e.preventDefault();
+      navigate(href);
+    }
+  };
 
   const handleMouseEnter = () => {
     if (timeoutRef.current) {
@@ -38,21 +47,22 @@ export const NavigationLink: React.FC<NavigationLinkProps> = ({
   };
 
   return (
-    <div 
+    <div
       className="relative"
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
       <a
         href={href}
+        onClick={handleLinkClick}
         className="flex items-center space-x-2 text-white hover:text-gray-300 transition-colors"
       >
         {icon}
         <span className="text-sm font-medium">{label}</span>
       </a>
-      
+
       {platforms && isHovered && (
-        <div 
+        <div
           className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 w-48 rounded-md shadow-lg bg-white/10 backdrop-blur-sm"
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}

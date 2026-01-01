@@ -9,6 +9,7 @@ import { EnhancedNumberStation } from './components/EnhancedNumberStation/Enhanc
 import { GlitchOverlay } from './components/GlitchOverlay/GlitchOverlay';
 import { useViewportHeight } from './hooks/useViewportHeight';
 import { useAudio } from './hooks/useAudio';
+import { InstrumentsPage } from './components/Instruments/InstrumentsPage';
 
 // Home component (previously App content)
 interface HomeProps {
@@ -22,10 +23,15 @@ const Home: React.FC<HomeProps> = ({ isMobile }) => {
   const { isPlaying, togglePlayback } = useAudio();
 
   const navLinks = [
-    { 
+    {
       label: "music@signal23.net",
       description: "Get in touch",
       href: "mailto:music@signal23.net"
+    },
+    {
+      label: "Instrument Racks",
+      description: "Ableton Packs",
+      href: "/instruments"
     }
   ];
 
@@ -36,7 +42,7 @@ const Home: React.FC<HomeProps> = ({ isMobile }) => {
 
   return (
     <>
-      <div 
+      <div
         className="relative w-full h-screen overflow-hidden bg-black"
         style={{
           height: isMobile ? `${viewportHeight}px` : '100vh',
@@ -44,22 +50,22 @@ const Home: React.FC<HomeProps> = ({ isMobile }) => {
         }}
       >
         <div className="fixed inset-0 bg-black -z-10" />
-        
+
         <div className="relative h-full">
           <div className="absolute inset-0 z-20">
-          <AudioPlayer 
+            <AudioPlayer
               isPlaying={isPlaying}
               onPlayPause={togglePlayback}
               audioSource="/pieces-website-mp3.mp3"
             />
           </div>
 
-          <Portal 
-            isMobile={isMobile} 
+          <Portal
+            isMobile={isMobile}
             onClick={handlePortalClick}
           />
 
-          <EnhancedNumberStation 
+          <EnhancedNumberStation
             isMobile={isMobile}
             onGlitchChange={setShowGlitch}
           />
@@ -68,7 +74,7 @@ const Home: React.FC<HomeProps> = ({ isMobile }) => {
             <div className="col-span-7 xl:col-span-8 relative">
             </div>
 
-              <div className="col-span-5 xl:col-span-4 relative">
+            <div className="col-span-5 xl:col-span-4 relative">
               <div className="h-full">
                 <DistortedStack isPlayingAudio={isPlaying} />
               </div>
@@ -81,7 +87,7 @@ const Home: React.FC<HomeProps> = ({ isMobile }) => {
             </h1>
           </div>
 
-          <nav 
+          <nav
             className="absolute bottom-0 left-0 right-0 z-20 p-6"
             style={{
               paddingBottom: isMobile ? 'calc(env(safe-area-inset-bottom) + 1.5rem)' : '1.5rem'
@@ -98,8 +104,8 @@ const Home: React.FC<HomeProps> = ({ isMobile }) => {
         <svg className="hidden">
           <defs>
             <filter id="eroded-blur">
-              <feTurbulence 
-                type="fractalNoise" 
+              <feTurbulence
+                type="fractalNoise"
                 baseFrequency="1.2"
                 numOctaves="5"
               />
@@ -107,13 +113,13 @@ const Home: React.FC<HomeProps> = ({ isMobile }) => {
                 in="SourceGraphic"
                 scale="12"
               />
-              <feGaussianBlur stdDeviation=".3"/>
+              <feGaussianBlur stdDeviation=".3" />
               <feComponentTransfer>
-                <feFuncR type="linear" slope="1.8" intercept="-0.2"/>
-                <feFuncG type="linear" slope="1.8" intercept="-0.2"/>
-                <feFuncB type="linear" slope="1.8" intercept="-0.2"/>
+                <feFuncR type="linear" slope="1.8" intercept="-0.2" />
+                <feFuncG type="linear" slope="1.8" intercept="-0.2" />
+                <feFuncB type="linear" slope="1.8" intercept="-0.2" />
               </feComponentTransfer>
-              <feComposite operator="in" in2="SourceGraphic"/>
+              <feComposite operator="in" in2="SourceGraphic" />
             </filter>
           </defs>
         </svg>
@@ -150,6 +156,7 @@ const App = () => {
       <Routes>
         <Route path="/" element={<Home isMobile={isMobile} />} />
         <Route path="/terminal" element={<Terminal isMobile={isMobile} />} />
+        <Route path="/instruments" element={<InstrumentsPage />} />
       </Routes>
     </BrowserRouter>
   );

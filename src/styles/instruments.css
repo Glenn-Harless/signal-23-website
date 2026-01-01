@@ -1,0 +1,160 @@
+/* Archival Ledger Specific Styles */
+
+:root {
+  --ledger-border: rgba(255, 255, 255, 0.2);
+  --ledger-data-red: #EF4444;
+  --ledger-bg: #000000;
+  --ledger-text: #FFFFFF;
+}
+
+.archival-ledger-container {
+  background-color: var(--ledger-bg);
+  color: var(--ledger-text);
+  min-height: 100vh;
+  padding: 2rem;
+  font-family: 'IBM Plex Mono', monospace;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* Rhythmic Navigation */
+.rhythmic-nav {
+  position: fixed;
+  left: 0;
+  right: 0;
+  padding: 1rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  font-family: 'Neo Brutalist', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.5em;
+  font-size: 0.75rem;
+  opacity: 0.6;
+  pointer-events: none;
+  z-index: 50;
+}
+
+.rhythmic-nav.top { top: 0; }
+.rhythmic-nav.bottom { bottom: 0; }
+
+/* Grid System */
+.ledger-grid {
+  display: grid;
+  grid-template-columns: 350px 1fr 300px;
+  grid-template-rows: auto 1fr auto;
+  gap: 1.5rem;
+  height: calc(100vh - 8rem);
+  margin: 2rem 0;
+  border-top: 0.5px solid var(--ledger-border);
+  border-bottom: 0.5px solid var(--ledger-border);
+  padding: 2rem 0;
+}
+
+.ledger-panel {
+  border: 0.5px solid var(--ledger-border);
+  padding: 1.5rem;
+  overflow-y: auto;
+  position: relative;
+}
+
+.ledger-panel::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--ledger-border),
+    var(--ledger-border) 1px,
+    transparent 1px,
+    transparent 4px
+  );
+}
+
+/* Typography */
+.ledger-h1 {
+  font-family: 'Neo Brutalist', sans-serif;
+  font-size: 2.5rem;
+  font-weight: normal;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  margin-bottom: 2rem;
+  border-bottom: 1px solid var(--ledger-border);
+  padding-bottom: 1rem;
+}
+
+.ledger-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  color: var(--ledger-data-red);
+  letter-spacing: 0.1em;
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+.ledger-metadata {
+  font-size: 0.75rem;
+  opacity: 0.5;
+  line-height: 1.6;
+}
+
+/* Entry Styling */
+.ledger-entry {
+  padding: 1rem;
+  border-bottom: 0.5px solid var(--ledger-border);
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.ledger-entry:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.ledger-entry.active {
+  border-left: 2px solid var(--ledger-data-red);
+  background: rgba(239, 68, 68, 0.05);
+}
+
+/* Waveform Display */
+.waveform-dots {
+  width: 100%;
+  height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+}
+
+.waveform-dot {
+  width: 2px;
+  background: var(--ledger-text);
+  opacity: 0.3;
+  transition: height 0.1s, opacity 0.1s;
+}
+
+/* Decorative Background */
+.data-mesh-bg {
+  position: fixed;
+  inset: 0;
+  opacity: 0.03;
+  pointer-events: none;
+  font-size: 8px;
+  line-height: 12px;
+  z-index: -1;
+  overflow: hidden;
+  user-select: none;
+}
+
+/* Animations */
+@keyframes ledger-flicker {
+  0% { opacity: 0.9; }
+  5% { opacity: 0.8; }
+  10% { opacity: 1; }
+  100% { opacity: 1; }
+}
+
+.ledger-flicker-active {
+  animation: ledger-flicker 0.2s infinite;
+}
