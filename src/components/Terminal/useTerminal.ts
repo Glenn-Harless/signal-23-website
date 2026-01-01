@@ -359,11 +359,15 @@ export function useTerminal({ isMobile }: UseTerminalOptions): UseTerminalResult
   );
 
   const handleLinkClick = useCallback((content: string) => {
+    if (content === ' ACCESS LEDGER') {
+      navigate('/instruments');
+      return;
+    }
     const link = MEDIA_LINKS.find((item) => ` ${item.name}` === content);
     if (link) {
       window.open(link.url, '_blank');
     }
-  }, []);
+  }, [navigate]);
 
   const handleKeyDown = useCallback(
     (event: React.KeyboardEvent<HTMLDivElement>) => {

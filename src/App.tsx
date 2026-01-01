@@ -88,7 +88,7 @@ const Home: React.FC<HomeProps> = ({ isMobile }) => {
           </div>
 
           <nav
-            className="absolute bottom-0 left-0 right-0 z-20 p-6"
+            className="absolute bottom-0 left-0 right-0 z-[60] p-6"
             style={{
               paddingBottom: isMobile ? 'calc(env(safe-area-inset-bottom) + 1.5rem)' : '1.5rem'
             }}
