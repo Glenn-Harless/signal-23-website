@@ -44,11 +44,7 @@ const Home: React.FC<HomeProps> = ({ isMobile }) => {
   return (
     <>
       <div
-        className="relative w-full h-screen overflow-hidden bg-black"
-        style={{
-          height: isMobile ? `${viewportHeight}px` : '100vh',
-          maxHeight: isMobile ? `${viewportHeight}px` : '100vh'
-        }}
+        className="relative w-full h-full overflow-hidden bg-black"
       >
         <div className="fixed inset-0 bg-black -z-10" />
 

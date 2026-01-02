@@ -95,7 +95,7 @@ export const WorkstationShell: React.FC<WorkstationShellProps> = ({ children, is
                 </footer>
             </div>
 
-            <main className="ws-main-content">
+            <main className={`ws-main-content ${location.pathname === '/' ? 'no-padding' : ''}`}>
                 {children}
             </main>
         </div>
