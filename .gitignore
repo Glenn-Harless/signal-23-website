@@ -30,3 +30,5 @@ npm-debug.log*
 # Optional: local testing
 .env.development
 .env.production
+
+# push for netlift
