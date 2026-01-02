@@ -10,6 +10,7 @@ import { GlitchOverlay } from './components/GlitchOverlay/GlitchOverlay';
 import { useViewportHeight } from './hooks/useViewportHeight';
 import { useAudio } from './hooks/useAudio';
 import { InstrumentsPage } from './components/Instruments/InstrumentsPage';
+import { SuccessPage } from './components/Instruments/SuccessPage';
 import { WorkstationShell } from './components/WorkstationShell/WorkstationShell';
 
 // Home component (previously App content)
@@ -142,6 +143,7 @@ const App = () => {
           <Route path="/" element={<Home isMobile={isMobile} />} />
           <Route path="/terminal" element={<Terminal isMobile={isMobile} />} />
           <Route path="/instruments" element={<InstrumentsPage />} />
+          <Route path="/instruments/success" element={<SuccessPage />} />
         </Routes>
       </WorkstationShell>
     </BrowserRouter>
