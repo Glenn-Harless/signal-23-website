@@ -23,6 +23,7 @@ export const PACK_FILES: Record<string, string> = {
   'arps': 'Arps.zip',
   'audio-fx': 'Audio Effect Rack.zip',
   'bass': 'Bass.zip',
+  'keys': 'Keys.zip',
 };
 
 interface SignedUrlResult {

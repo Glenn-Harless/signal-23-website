@@ -52,6 +52,17 @@ const PACKS: AbletonPack[] = [
         price: '$0.00',
         description: 'Digital and grit bass racks for deep low-end synthesis and aggressive bass tones.',
         specs: { latency: '<1ms', bitDepth: '32-BIT FLOAT', sampleRate: '48kHz', status: 'ENCRYPTED' }
+    },
+    {
+        id: 'keys',
+        title: 'KEYS INSTRUMENT RACKS',
+        tag: '/STUDIO/INSTRUMENTS/KEYS',
+        size: '~4MB',
+        macros: 8,
+        samples: 0,
+        price: '$0.00',
+        description: 'Entropy Keys with lo-fi tape warble textures and Berlin Pluck for warm melodic techno leads.',
+        specs: { latency: '<1ms', bitDepth: '32-BIT FLOAT', sampleRate: '48kHz', status: 'LOGGED' }
     }
 ];
 
