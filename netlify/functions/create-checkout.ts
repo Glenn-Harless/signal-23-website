@@ -9,14 +9,6 @@ interface CreateCheckoutRequest {
 }
 
 const handler: Handler = async (event: HandlerEvent, context: HandlerContext) => {
-  // Only allow POST
-  if (event.httpMethod !== 'POST') {
-    return {
-      statusCode: 405,
-      body: JSON.stringify({ error: 'Method not allowed' }),
-    };
-  }
-
   // CORS headers
   const headers = {
     'Access-Control-Allow-Origin': '*',
@@ -27,6 +19,14 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
   // Handle preflight
   if (event.httpMethod === 'OPTIONS') {
     return { statusCode: 204, headers, body: '' };
+  }
+
+  // Only allow POST
+  if (event.httpMethod !== 'POST') {
+    return {
+      statusCode: 405,
+      body: JSON.stringify({ error: 'Method not allowed' }),
+    };
   }
 
   try {
@@ -71,9 +71,10 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
     }
 
     // Get the site URL for redirects
-    // DEPLOY_PRIME_URL is the branch deploy URL, DEPLOY_URL is the unique deploy URL
-    // URL is the production URL - we want branch deploys to redirect to themselves
-    const siteUrl = process.env.DEPLOY_PRIME_URL || process.env.DEPLOY_URL || process.env.URL || 'http://localhost:8888';
+    // Use headers to determine the origin, which works for branch deploys, local dev, and production
+    const protocol = event.headers['x-forwarded-proto'] || 'https';
+    const host = event.headers.host;
+    const siteUrl = `${protocol}://${host}`;
     const successUrl = `${siteUrl}/instruments/success?session_id={CHECKOUT_SESSION_ID}`;
     const cancelUrl = `${siteUrl}/instruments`;
 
