@@ -131,14 +131,7 @@ export const InstrumentsPage: React.FC = () => {
                 ))}
             </div>
 
-            <div className="rhythmic-nav top">
-                <span>ARCHIVE</span>
-                <span>INSTRUMENTS</span>
-                <span>SIGNAL-23</span>
-                <span>LOG-001</span>
-            </div>
-
-            <div className="mt-8">
+            <div className="mt-4">
                 <h1 className="ledger-h1">ARCHIVAL MUSIC DATA LEDGER - v.2.4</h1>
 
                 <div className="ledger-grid">
@@ -232,12 +225,6 @@ export const InstrumentsPage: React.FC = () => {
                 </div>
             </div>
 
-            <div className="rhythmic-nav bottom">
-                <span>ARCHIVE</span>
-                <span>SUPPORT</span>
-                <span>NEWSLETTER</span>
-                <span>LEGAL</span>
-            </div>
         </div>
     );
 };

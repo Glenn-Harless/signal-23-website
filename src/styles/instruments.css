@@ -8,38 +8,13 @@
 }
 
 .archival-ledger-container {
-  background-color: var(--ledger-bg);
   color: var(--ledger-text);
-  min-height: 100vh;
-  padding: 2rem;
-  font-family: 'IBM Plex Mono', monospace;
   position: relative;
-  overflow-x: hidden;
 }
 
-/* Rhythmic Navigation */
+/* Rhythmic Navigation - Removed in favor of WorkstationShell HUD */
 .rhythmic-nav {
-  position: fixed;
-  left: 0;
-  right: 0;
-  padding: 1rem 2rem;
-  display: flex;
-  justify-content: space-between;
-  font-family: 'Neo Brutalist', sans-serif;
-  text-transform: uppercase;
-  letter-spacing: 0.5em;
-  font-size: 0.75rem;
-  opacity: 0.6;
-  pointer-events: none;
-  z-index: 50;
-}
-
-.rhythmic-nav.top {
-  top: 0;
-}
-
-.rhythmic-nav.bottom {
-  bottom: 0;
+  display: none;
 }
 
 /* Grid System */
@@ -48,11 +23,10 @@
   grid-template-columns: 350px 1fr 300px;
   grid-template-rows: auto 1fr auto;
   gap: 1.5rem;
-  height: calc(100vh - 8rem);
-  margin: 2rem 0;
+  margin: 1rem 0;
   border-top: 0.5px solid var(--ledger-border);
   border-bottom: 0.5px solid var(--ledger-border);
-  padding: 2rem 0;
+  padding: 1.5rem 0;
 }
 
 .ledger-panel {
@@ -245,6 +219,8 @@
   }
 
   .ledger-h1 {
-    font-size: 1.2rem;
+    font-size: 1.1rem;
+    line-height: 1.4;
+    letter-spacing: 0.1em;
   }
 }

@@ -73,6 +73,7 @@ export function useTerminal({ isMobile }: UseTerminalOptions): UseTerminalResult
   const terminalRef = useRef<HTMLDivElement>(null);
   const outputContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const hasInitialized = useRef(false);
 
   const appendMessage = useCallback((message: TerminalMessage) => {
     setOutput((prev) => [...prev, message]);
@@ -316,6 +317,11 @@ export function useTerminal({ isMobile }: UseTerminalOptions): UseTerminalResult
   );
 
   const initializeOutput = useCallback(async () => {
+    if (hasInitialized.current) {
+      return;
+    }
+    hasInitialized.current = true;
+
     for (const message of INITIAL_MESSAGES) {
       // eslint-disable-next-line no-await-in-loop
       await typeMessage(message);

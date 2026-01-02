@@ -10,6 +10,7 @@ import { GlitchOverlay } from './components/GlitchOverlay/GlitchOverlay';
 import { useViewportHeight } from './hooks/useViewportHeight';
 import { useAudio } from './hooks/useAudio';
 import { InstrumentsPage } from './components/Instruments/InstrumentsPage';
+import { WorkstationShell } from './components/WorkstationShell/WorkstationShell';
 
 // Home component (previously App content)
 interface HomeProps {
@@ -83,22 +84,9 @@ const Home: React.FC<HomeProps> = ({ isMobile }) => {
 
           <div className="md:hidden flex flex-col items-center h-full relative z-10">
             <h1 className="text-4xl sm:text-5xl font-bold text-white font-neo-brute-transparent mt-12">
-              SIGNAL-3
+              SIGNAL-23
             </h1>
           </div>
-
-          <nav
-            className="absolute bottom-0 left-0 right-0 z-[60] p-6"
-            style={{
-              paddingBottom: isMobile ? 'calc(env(safe-area-inset-bottom) + 1.5rem)' : '1.5rem'
-            }}
-          >
-            <div className="flex justify-center space-x-8 opacity-60 font-ibm-mono">
-              {navLinks.map((link, index) => (
-                <NavigationLink key={index} {...link} />
-              ))}
-            </div>
-          </nav>
         </div>
 
         <svg className="hidden">
@@ -153,11 +141,13 @@ const App = () => {
 
   return (
     <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Home isMobile={isMobile} />} />
-        <Route path="/terminal" element={<Terminal isMobile={isMobile} />} />
-        <Route path="/instruments" element={<InstrumentsPage />} />
-      </Routes>
+      <WorkstationShell isMobile={isMobile}>
+        <Routes>
+          <Route path="/" element={<Home isMobile={isMobile} />} />
+          <Route path="/terminal" element={<Terminal isMobile={isMobile} />} />
+          <Route path="/instruments" element={<InstrumentsPage />} />
+        </Routes>
+      </WorkstationShell>
     </BrowserRouter>
   );
 };

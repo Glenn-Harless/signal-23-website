@@ -101,11 +101,7 @@ export const Terminal: React.FC<TerminalProps> = ({ isMobile }) => {
 
   return (
     <div
-      className="bg-black text-green-500 font-mono flex flex-col"
-      style={{
-        height: isMobile ? `${viewportHeight}px` : '100vh',
-        maxHeight: isMobile ? `${viewportHeight}px` : '100vh',
-      }}
+      className="text-green-500 font-mono flex flex-col h-full"
       onClick={() => !isMobile && inputRef.current?.focus()}
       onKeyDown={handleKeyDown}
       ref={terminalRef}
