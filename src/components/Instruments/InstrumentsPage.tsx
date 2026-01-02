@@ -19,38 +19,38 @@ interface AbletonPack {
     };
 }
 
-const MOCK_PACKS: AbletonPack[] = [
+const PACKS: AbletonPack[] = [
     {
-        id: 'S23-01',
-        title: 'VINTAGE SYNTHESIZER ARRAY',
-        tag: '/STUDIO/SYNTHS/S23',
-        size: '142MB',
+        id: 'arps',
+        title: 'ARPEGGIATOR COLLECTION',
+        tag: '/STUDIO/INSTRUMENTS/ARPS',
+        size: '~5MB',
         macros: 8,
-        samples: 12,
-        price: '$49.00',
-        description: 'A collection of vintage synthesizer patches processed through custom tape saturation chains.',
-        specs: { latency: '<1ms', bitDepth: '24-BIT', sampleRate: '96kHz', status: 'LOGGED' }
-    },
-    {
-        id: 'D90-05',
-        title: 'MODULAR DRUM MACHINES',
-        tag: '/STUDIO/DRUMS/D90',
-        size: '320MB',
-        macros: 16,
-        samples: 124,
-        price: '$29.00',
-        description: 'Raw, aggressive modular drum hits and processed sequences.',
-        specs: { latency: '2.4ms', bitDepth: '24-BIT', sampleRate: '44.1kHz', status: 'VERIFIED' }
-    },
-    {
-        id: 'E45-02',
-        title: 'EXPERIMENTAL TEXTURES',
-        tag: '/STUDIO/FX/E45',
-        size: '210MB',
-        macros: 12,
         samples: 0,
-        price: '$19.00',
-        description: 'Abstract granular textures and evolving drones for atmospheric sound design.',
+        price: '$0.00',
+        description: 'Dark, experimental, and percussive arpeggiator racks for melodic sequencing and rhythmic patterns.',
+        specs: { latency: '<1ms', bitDepth: '32-BIT FLOAT', sampleRate: '48kHz', status: 'VERIFIED' }
+    },
+    {
+        id: 'audio-fx',
+        title: 'AUDIO EFFECT RACKS',
+        tag: '/STUDIO/FX/AUDIO',
+        size: '~2MB',
+        macros: 8,
+        samples: 0,
+        price: '$0.00',
+        description: 'Crystal gates, dust bloom, glass textures, and shadow pulse effects for creative sound design.',
+        specs: { latency: '<1ms', bitDepth: '32-BIT FLOAT', sampleRate: '48kHz', status: 'LOGGED' }
+    },
+    {
+        id: 'bass',
+        title: 'BASS INSTRUMENT RACKS',
+        tag: '/STUDIO/INSTRUMENTS/BASS',
+        size: '~3MB',
+        macros: 8,
+        samples: 0,
+        price: '$0.00',
+        description: 'Digital and grit bass racks for deep low-end synthesis and aggressive bass tones.',
         specs: { latency: '<1ms', bitDepth: '32-BIT FLOAT', sampleRate: '48kHz', status: 'ENCRYPTED' }
     }
 ];
@@ -79,9 +79,11 @@ const WaveformDisplay: React.FC = () => {
 };
 
 export const InstrumentsPage: React.FC = () => {
-    const [selectedPack, setSelectedPack] = useState<AbletonPack>(MOCK_PACKS[0]);
+    const [selectedPack, setSelectedPack] = useState<AbletonPack>(PACKS[0]);
     const [flicker, setFlicker] = useState(false);
-    const [checkoutState, setCheckoutState] = useState<'IDLE' | 'LOADING' | 'SUCCESS'>('IDLE');
+    const [checkoutState, setCheckoutState] = useState<'IDLE' | 'LOADING' | 'SUCCESS' | 'ERROR'>('IDLE');
+    const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const acquisitionRef = useRef<HTMLDivElement>(null);
 
     // Ensure body is scrollable on this page
@@ -112,15 +114,52 @@ export const InstrumentsPage: React.FC = () => {
 
     const handleInitiateCheckout = async (amount: number) => {
         setCheckoutState('LOADING');
+        setErrorMessage(null);
         console.log(`Initializing checkout for ${selectedPack.title} at $${amount}`);
 
-        // Simulate network delay for Stripe session creation
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        try {
+            // $0 = free download, skip Stripe
+            if (amount === 0) {
+                const response = await fetch('/.netlify/functions/free-download', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ packId: selectedPack.id }),
+                });
 
-        // In a real implementation, we would redirect here:
-        // window.location.href = checkoutUrl;
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Download failed');
+                }
 
-        setCheckoutState('SUCCESS');
+                const data = await response.json();
+                setDownloadUrl(data.downloadUrl);
+                setCheckoutState('SUCCESS');
+            } else {
+                // $1+ = Stripe checkout
+                const response = await fetch('/.netlify/functions/create-checkout', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        packId: selectedPack.id,
+                        packTitle: selectedPack.title,
+                        amount: amount,
+                    }),
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Checkout failed');
+                }
+
+                const data = await response.json();
+                // Redirect to Stripe Checkout
+                window.location.href = data.checkoutUrl;
+            }
+        } catch (error) {
+            console.error('Checkout error:', error);
+            setErrorMessage(error instanceof Error ? error.message : 'An error occurred');
+            setCheckoutState('ERROR');
+        }
     };
 
     return (
@@ -138,7 +177,7 @@ export const InstrumentsPage: React.FC = () => {
                     {/* Panel 1: Catalog */}
                     <div className="ledger-panel">
                         <span className="ledger-label">INSTRUMENT RACKS / ABLETON PACKS</span>
-                        {MOCK_PACKS.map(pack => (
+                        {PACKS.map(pack => (
                             <div
                                 key={pack.id}
                                 className={`ledger-entry ${selectedPack.id === pack.id ? 'active' : ''}`}
@@ -190,24 +229,49 @@ export const InstrumentsPage: React.FC = () => {
                             </div>
                         )}
 
-                        {checkoutState === 'SUCCESS' && (
+                        {checkoutState === 'SUCCESS' && downloadUrl && (
                             <div className="bg-red-500/10 p-6 border border-red-500 flex flex-col items-center text-center">
                                 <div className="text-red-500 font-neo-brutalist text-xl mb-4 tracking-widest">DATA PACKET DECODED</div>
                                 <div className="text-xs opacity-70 mb-6 font-mono">
                                     VERIFICATION COMPLETE. DOWNLOAD LINK GENERATED FOR:<br />
                                     {selectedPack.title}
                                 </div>
-                                <button
-                                    className="w-full py-3 bg-red-500 text-white font-bold uppercase tracking-widest text-sm hover:bg-red-600 transition-colors"
-                                    onClick={() => alert(`Simulated Download of ${selectedPack.id}`)}
+                                <a
+                                    href={downloadUrl}
+                                    download
+                                    className="w-full py-3 bg-red-500 text-white font-bold uppercase tracking-widest text-sm hover:bg-red-600 transition-colors text-center block"
                                 >
-                                    GET ARCHIVE
-                                </button>
+                                    DOWNLOAD ARCHIVE
+                                </a>
+                                <div className="mt-2 text-[10px] opacity-40">
+                                    Link expires in 30 minutes
+                                </div>
                                 <button
                                     className="mt-4 text-[10px] uppercase underline opacity-40 hover:opacity-100"
-                                    onClick={() => setCheckoutState('IDLE')}
+                                    onClick={() => {
+                                        setCheckoutState('IDLE');
+                                        setDownloadUrl(null);
+                                    }}
                                 >
                                     RETURN TO MARKETPLACE
+                                </button>
+                            </div>
+                        )}
+
+                        {checkoutState === 'ERROR' && (
+                            <div className="bg-red-900/20 p-6 border border-red-900 flex flex-col items-center text-center">
+                                <div className="text-red-500 font-neo-brutalist text-xl mb-4 tracking-widest">TRANSMISSION ERROR</div>
+                                <div className="text-xs opacity-70 mb-6 font-mono">
+                                    {errorMessage || 'An unknown error occurred'}
+                                </div>
+                                <button
+                                    className="w-full py-3 border border-red-500 text-red-500 hover:bg-red-500 hover:text-white font-bold uppercase tracking-widest text-sm transition-colors"
+                                    onClick={() => {
+                                        setCheckoutState('IDLE');
+                                        setErrorMessage(null);
+                                    }}
+                                >
+                                    RETRY
                                 </button>
                             </div>
                         )}

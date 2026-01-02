@@ -51,7 +51,7 @@ export const WorkstationShell: React.FC<WorkstationShellProps> = ({ children, is
                 <header className="ws-telemetry-bar top">
                     <div className="ws-status-item">
                         <span className="ws-status-label">SYS_AUTH:</span>
-                        <span className="ws-status-value">SIGNAL-23_B.A.N.I.S</span>
+                        <span className="ws-status-value">SIGNAL-23</span>
                     </div>
 
                     <nav className="ws-nav">
