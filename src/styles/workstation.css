@@ -36,6 +36,7 @@
 .ws-telemetry-bar {
     display: flex;
     justify-content: space-between;
+    align-items: center;
     padding: 0.5rem 1rem;
     font-size: 10px;
     background: black;
@@ -50,10 +51,31 @@
     border-top: 1px solid var(--ws-border);
 }
 
+.ws-telemetry-frame.minimal {
+    border-color: transparent;
+    background: transparent;
+    pointer-events: none;
+}
+
+.ws-telemetry-frame.minimal .ws-telemetry-bar.top {
+    border-bottom-color: transparent;
+    background: transparent;
+}
+
+.ws-telemetry-frame.minimal .ws-status-item,
+.ws-telemetry-frame.minimal .ws-nav {
+    pointer-events: auto;
+}
+
 .ws-status-item {
     display: flex;
     gap: 1rem;
     align-items: center;
+    flex: 1;
+}
+
+.ws-status-item.extra {
+    justify-content: flex-end;
 }
 
 .ws-status-label {
@@ -175,6 +197,10 @@
 
 /* Mobile Adjustments for Shell */
 @media (max-width: 768px) {
+    .ws-telemetry-bar.top.justify-end {
+        justify-content: flex-end;
+    }
+
     .ws-telemetry-frame {
         inset: 0.5rem;
     }

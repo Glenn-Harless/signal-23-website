@@ -79,11 +79,7 @@ const Home: React.FC<HomeProps> = ({ isMobile }) => {
             </div>
           </div>
 
-          <div className="md:hidden flex flex-col items-center h-full relative z-10">
-            <h1 className="text-4xl sm:text-5xl font-bold text-white font-neo-brute-transparent mt-12">
-              SIGNAL-23
-            </h1>
-          </div>
+          {/* No redundant mobile header to avoid overlap */}
         </div>
 
         <svg className="hidden">

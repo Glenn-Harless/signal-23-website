@@ -23,6 +23,7 @@ const INITIAL_MESSAGES: TerminalMessage[] = [
 
 const MEDIA_LINKS: TerminalMediaLink[] = [
   { name: 'YOUTUBE', url: 'https://youtube.com/@signal-23-music' },
+  { name: 'SPOTIFY', url: 'https://open.spotify.com/artist/3ZKXfUCXvaZbEdCRx9sWD6' },
   { name: 'SOUNDCLOUD', url: 'https://soundcloud.com/signal-23' },
   { name: 'BANDCAMP', url: 'https://signal-23.bandcamp.com/' },
   { name: 'INSTAGRAM', url: 'https://www.instagram.com/signal23music/' },
@@ -36,7 +37,6 @@ const MENU_ITEMS: TerminalMenuItem[] = [
   { command: 'scan', label: 'Scan Frequencies' },
   { command: 'broadcast', label: 'Operator Broadcast' },
   { command: 'clear', label: 'Clear Terminal' },
-  { command: 'exit', label: 'Exit Terminal' },
 ];
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -280,10 +280,6 @@ export function useTerminal({ isMobile }: UseTerminalOptions): UseTerminalResult
         stopScan();
         resetTerminal();
         return [];
-      },
-      exit: async () => {
-        exitTerminal();
-        return [{ type: 'output', content: 'TERMINATING SECURE CONNECTION...' }];
       },
     }),
     [executeArchive, executeScan, exitTerminal, resetTerminal, stopScan],
