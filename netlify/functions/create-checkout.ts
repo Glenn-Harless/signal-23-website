@@ -71,7 +71,9 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
     }
 
     // Get the site URL for redirects
-    const siteUrl = process.env.URL || 'http://localhost:8888';
+    // DEPLOY_PRIME_URL is the branch deploy URL, DEPLOY_URL is the unique deploy URL
+    // URL is the production URL - we want branch deploys to redirect to themselves
+    const siteUrl = process.env.DEPLOY_PRIME_URL || process.env.DEPLOY_URL || process.env.URL || 'http://localhost:8888';
     const successUrl = `${siteUrl}/instruments/success?session_id={CHECKOUT_SESSION_ID}`;
     const cancelUrl = `${siteUrl}/instruments`;
 
