@@ -36,71 +36,107 @@ export const TestLandingPage: React.FC = () => {
         renderer.setPixelRatio(window.devicePixelRatio);
         mountRef.current.appendChild(renderer.domElement);
 
-        // Vector Space Grid Geometry (Large scale for fly-through)
-        const gridHelper = new THREE.GridHelper(200, 40, 0x444444, 0x222222);
-        gridHelper.rotation.x = Math.PI / 2;
-        scene.add(gridHelper);
+        // Hyperbolic Surface Parameters
+        const hyperbolicZ = (r: number, theta: number, time: number) => {
+            const amplitude = 8;
+            const frequency = 2.5;
+            const scale = 15;
+            return Math.sinh(r / scale) * amplitude * Math.sin(theta * frequency + time * 0.5);
+        };
 
-        const gridHelper2 = new THREE.GridHelper(200, 40, 0x444444, 0x222222);
-        gridHelper2.position.z = -50;
-        gridHelper2.rotation.x = Math.PI / 2;
-        scene.add(gridHelper2);
-
-        // Data Points (aligned to grid with jitter)
-        const points: THREE.Vector3[] = [];
-        const gridSize = 12;
-        const spacing = 4;
-        for (let x = -gridSize; x <= gridSize; x++) {
-            for (let y = -gridSize; y <= gridSize; y++) {
-                if (Math.random() > 0.6) { // Increased density
-                    const jitter = (Math.random() - 0.5) * 2;
-                    points.push(new THREE.Vector3(
-                        (x * spacing) + jitter,
-                        (y * spacing) + jitter,
-                        (Math.random() - 0.5) * 15
-                    ));
-                }
-            }
-        }
-
-        const geometry = new THREE.BufferGeometry().setFromPoints(points);
-        const material = new THREE.PointsMaterial({
-            color: 0xffffff,
-            size: 0.2,
-            transparent: true,
-            opacity: 0.8
-        });
-        const nodes = new THREE.Points(geometry, material);
-        scene.add(nodes);
-
-        // Vector Lines (connecting data points)
-        const lineMaterial = new THREE.LineBasicMaterial({
-            color: 0xffffff,
-            transparent: true,
-            opacity: 0.1
-        });
-        const linesGroup = new THREE.Group();
-        scene.add(linesGroup);
-
-        const createSynapses = () => {
-            linesGroup.clear();
-            for (let i = 0; i < points.length; i++) {
-                // Connect to a few nearest neighbors for a cleaner graph
-                let connections = 0;
-                for (let j = i + 1; j < points.length && connections < 4; j++) {
-                    const dist = points[i].distanceTo(points[j]);
-                    if (dist < 9) { // Increased radius
-                        const lineGeometry = new THREE.BufferGeometry().setFromPoints([points[i], points[j]]);
-                        const line = new THREE.Line(lineGeometry, lineMaterial);
-                        linesGroup.add(line);
-                        connections++;
-                    }
+        // Disposal Helper
+        const disposeObject = (obj: any) => {
+            if (obj.geometry) obj.geometry.dispose();
+            if (obj.material) {
+                if (Array.isArray(obj.material)) {
+                    obj.material.forEach((m: any) => m.dispose());
+                } else {
+                    obj.material.dispose();
                 }
             }
         };
-        createSynapses();
 
-        // Resize handler using ResizeObserver for better containment
+        // --- Persistent Grid Structures ---
+        const gridGroup = new THREE.Group();
+        scene.add(gridGroup);
+        const gridMaterial = new THREE.LineBasicMaterial({ color: 0x333333, transparent: true, opacity: 0.3 });
+
+        const rings = 8;
+        const segments = 64;
+        const maxRadius = 60;
+        const ringObjects: THREE.Line[] = [];
+        const spokeObjects: THREE.Line[] = [];
+
+        // Pre-initialize Rings
+        for (let i = 1; i <= rings; i++) {
+            const geo = new THREE.BufferGeometry();
+            geo.setAttribute('position', new THREE.BufferAttribute(new Float32Array((segments + 1) * 3), 3));
+            const ring = new THREE.Line(geo, gridMaterial);
+            gridGroup.add(ring);
+            ringObjects.push(ring);
+        }
+
+        // Pre-initialize Spokes
+        const spokes = 12;
+        const spokeSteps = 12;
+        for (let i = 0; i < spokes; i++) {
+            const geo = new THREE.BufferGeometry();
+            geo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(spokeSteps * 3), 3));
+            const spoke = new THREE.Line(geo, gridMaterial);
+            gridGroup.add(spoke);
+            spokeObjects.push(spoke);
+        }
+
+        const updateGrid = (time: number) => {
+            ringObjects.forEach((ring, i) => {
+                const r = ((i + 1) / rings) * maxRadius;
+                const positions = ring.geometry.attributes.position.array as Float32Array;
+                for (let j = 0; j <= segments; j++) {
+                    const theta = (j / segments) * Math.PI * 2;
+                    positions[j * 3] = r * Math.cos(theta);
+                    positions[j * 3 + 1] = r * Math.sin(theta);
+                    positions[j * 3 + 2] = hyperbolicZ(r, theta, time);
+                }
+                ring.geometry.attributes.position.needsUpdate = true;
+            });
+
+            spokeObjects.forEach((spoke, i) => {
+                const theta = (i / spokes) * Math.PI * 2;
+                const positions = spoke.geometry.attributes.position.array as Float32Array;
+                for (let step = 0; step < spokeSteps; step++) {
+                    const r = (step / (spokeSteps - 1)) * maxRadius;
+                    positions[step * 3] = r * Math.cos(theta);
+                    positions[step * 3 + 1] = r * Math.sin(theta);
+                    positions[step * 3 + 2] = hyperbolicZ(r, theta, time);
+                }
+                spoke.geometry.attributes.position.needsUpdate = true;
+            });
+        };
+
+        // --- Persistent Point Cloud ---
+        const numPoints = 150;
+        const pointsData = Array.from({ length: numPoints }, () => ({
+            r: Math.random() * 60,
+            theta: Math.random() * Math.PI * 2,
+            jitter: (Math.random() - 0.5) * 1.5,
+            zOffset: (Math.random() - 0.5) * 2
+        }));
+
+        const pointGeom = new THREE.BufferGeometry();
+        pointGeom.setAttribute('position', new THREE.BufferAttribute(new Float32Array(numPoints * 3), 3));
+        const pointMaterial = new THREE.PointsMaterial({ color: 0xffffff, size: 0.25, transparent: true, opacity: 0.8 });
+        const nodes = new THREE.Points(pointGeom, pointMaterial);
+        scene.add(nodes);
+
+        // --- Consolidated Synapses ---
+        const maxSynapses = 400;
+        const lineGeom = new THREE.BufferGeometry();
+        lineGeom.setAttribute('position', new THREE.BufferAttribute(new Float32Array(maxSynapses * 2 * 3), 3));
+        const lineMaterial = new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.15 });
+        const synapses = new THREE.LineSegments(lineGeom, lineMaterial);
+        scene.add(synapses);
+
+        // Resize handler
         const resizeObserver = new ResizeObserver((entries) => {
             for (let entry of entries) {
                 const { width, height } = entry.contentRect;
@@ -110,41 +146,63 @@ export const TestLandingPage: React.FC = () => {
             }
         });
 
-        if (mountRef.current) {
-            resizeObserver.observe(mountRef.current);
-        }
+        if (mountRef.current) resizeObserver.observe(mountRef.current);
 
         // Animation
         const animate = () => {
-            requestAnimationFrame(animate);
-
+            const frameId = requestAnimationFrame(animate);
             const time = Date.now() * 0.001;
 
-            // Dynamic "Fly-Through" Camera Logic
-            // Moves camera forward, then resets to create loop effect
+            updateGrid(time);
+
+            // Update Points
+            const positions = pointGeom.attributes.position.array as Float32Array;
+            const currentVecs: THREE.Vector3[] = [];
+            for (let i = 0; i < numPoints; i++) {
+                const p = pointsData[i];
+                const x = p.r * Math.cos(p.theta) + p.jitter;
+                const y = p.r * Math.sin(p.theta) + p.jitter;
+                const z = hyperbolicZ(p.r, p.theta, time) + p.zOffset;
+                positions[i * 3] = x;
+                positions[i * 3 + 1] = y;
+                positions[i * 3 + 2] = z;
+                currentVecs.push(new THREE.Vector3(x, y, z));
+            }
+            pointGeom.attributes.position.needsUpdate = true;
+
+            // Update Synapses
+            const linePositions = lineGeom.attributes.position.array as Float32Array;
+            let lineIdx = 0;
+            for (let i = 0; i < numPoints && lineIdx < maxSynapses; i++) {
+                let connections = 0;
+                for (let j = i + 1; j < numPoints && connections < 2 && lineIdx < maxSynapses; j++) {
+                    const distSq = currentVecs[i].distanceToSquared(currentVecs[j]);
+                    if (distSq < 100) {
+                        linePositions[lineIdx * 6] = currentVecs[i].x;
+                        linePositions[lineIdx * 6 + 1] = currentVecs[i].y;
+                        linePositions[lineIdx * 6 + 2] = currentVecs[i].z;
+                        linePositions[lineIdx * 6 + 3] = currentVecs[j].x;
+                        linePositions[lineIdx * 6 + 4] = currentVecs[j].y;
+                        linePositions[lineIdx * 6 + 5] = currentVecs[j].z;
+                        lineIdx++;
+                        connections++;
+                    }
+                }
+            }
+            for (let k = lineIdx; k < maxSynapses; k++) {
+                linePositions[k * 6] = linePositions[k * 6 + 1] = linePositions[k * 6 + 2] = 0;
+                linePositions[k * 6 + 3] = linePositions[k * 6 + 4] = linePositions[k * 6 + 5] = 0;
+            }
+            lineGeom.attributes.position.needsUpdate = true;
+
             const isMobile = window.innerWidth < 768;
-            camera.position.z = (isMobile ? 40 : 30) - (Math.sin(time * 0.2) * 10);
+            camera.position.x = Math.sin(time * 0.15) * 45 * (isMobile ? 1.5 : 1.0);
+            camera.position.y = Math.cos(time * 0.1) * 35 * (isMobile ? 1.5 : 1.0);
+            camera.position.z = 50 + Math.sin(time * 0.2) * 15;
+            camera.lookAt(0, 0, 0);
 
-            // Complex multi-axis rotation with velocity variation
-            const rotSpeedX = Math.sin(time * 0.1) * 0.1;
-            const rotSpeedY = Math.cos(time * 0.15) * 0.1;
-            const rotSpeedZ = Math.sin(time * 0.05) * 0.05;
-
-            gridHelper.rotation.z = rotSpeedZ;
-            gridHelper2.rotation.z = rotSpeedZ;
-            nodes.rotation.x += 0.0005 + Math.abs(rotSpeedX * 0.01);
-            nodes.rotation.y += 0.001 + Math.abs(rotSpeedY * 0.01);
-            linesGroup.rotation.x += 0.0005 + Math.abs(rotSpeedX * 0.01);
-            linesGroup.rotation.y += 0.001 + Math.abs(rotSpeedY * 0.01);
-
-            // Reactive camera drift
-            camera.position.x = Math.sin(time * 0.3) * 3;
-            camera.position.y = Math.cos(time * 0.4) * 3;
-            camera.lookAt(0, 0, -20); // Look "into" the distance
-
-            // Pulsing effect - more prominent lines
-            material.opacity = 0.5 + Math.sin(time) * 0.2;
-            lineMaterial.opacity = 0.15 + Math.sin(time * 0.7) * 0.1;
+            pointMaterial.opacity = 0.6 + Math.sin(time * 1.5) * 0.2;
+            lineMaterial.opacity = 0.1 + Math.sin(time * 0.8) * 0.05;
 
             renderer.render(scene, camera);
         };
@@ -152,9 +210,14 @@ export const TestLandingPage: React.FC = () => {
 
         return () => {
             resizeObserver.disconnect();
-            if (mountRef.current) {
-                mountRef.current.removeChild(renderer.domElement);
-            }
+            if (mountRef.current) mountRef.current.removeChild(renderer.domElement);
+
+            scene.traverse((child) => {
+                if (child instanceof THREE.Mesh || child instanceof THREE.Points || child instanceof THREE.Line || child instanceof THREE.LineSegments) {
+                    disposeObject(child);
+                }
+            });
+            renderer.dispose();
         };
     }, []);
 
@@ -185,18 +248,12 @@ export const TestLandingPage: React.FC = () => {
             <div ref={mountRef} className="nn-canvas" />
 
             <div className="test-hud">
-                <div className="test-hud-top">
-                    <div className="test-titles">
-                        <h1 className="test-main-title">SIGNAL-23</h1>
-                        {/* <div className="test-sub-status">NEURAL_ARRAY_ACTIVE // SYSTEM_LEARNING</div> */}
-                    </div>
-                    {/* <div className="test-stats font-mono text-[10px] opacity-40 text-right">
-                        LATENCY: 12MS<br />
-                        SOURCE: SIGNAL_23<br />
-                        COORD: 34.7064 N, 137.5022 E
-                    </div> */}
+                {/* Right Edge Side Title */}
+                <div className="hud-side-title">
+                    <h1 className="test-main-title">SIGNAL-23</h1>
                 </div>
 
+                {/* Bottom-Right Logs */}
                 <div className="test-hud-bottom">
                     <div className="learning-logs" ref={logContainerRef}>
                         {logs.map((log, i) => (
@@ -207,10 +264,9 @@ export const TestLandingPage: React.FC = () => {
             </div>
 
             <div className="nature-overlay">
-                {/* Conceptual nature element - could be an SVG branch or leaf in background */}
                 <svg width="400" height="400" viewBox="0 0 100 100">
                     <path d="M50,100 Q50,50 80,20 M50,100 Q50,60 20,30 M50,100 Q50,70 50,40"
-                        stroke="white" strokeWidth="0.1" fill="none" opacity="0.5" />
+                        stroke="white" strokeWidth="0.1" fill="none" opacity="0.3" />
                 </svg>
             </div>
         </div>

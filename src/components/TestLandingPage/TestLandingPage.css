@@ -28,121 +28,127 @@
     z-index: 10;
     pointer-events: none;
     display: flex;
-    flex-direction: column;
     justify-content: space-between;
-    padding: 2rem;
+    padding: 2.5rem;
+    box-sizing: border-box;
 }
 
-.test-hud-top {
+/* --- Vertical Side Title --- */
+.hud-side-title {
+    position: absolute;
+    right: 2.5rem;
+    top: 50%;
+    transform: translateY(-50%);
     display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
 }
 
 .test-main-title {
-    font-size: clamp(3rem, 15vw, 12rem);
+    font-size: clamp(2rem, 8vh, 6rem);
     font-weight: 900;
     margin: 0;
     color: #fff;
-    line-height: 0.85;
-    letter-spacing: -0.05em;
+    line-height: 1;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
-    /* Use the Neo Brutalist font - matching the site branding */
     font-family: 'Neobrutetest', sans-serif;
-    opacity: 0.95;
-    mix-blend-mode: screen;
+    opacity: 0.15;
+    /* Watermark feel */
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    mix-blend-mode: overlay;
+    transition: opacity 0.5s ease;
 }
 
-.test-sub-status {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.75rem;
-    letter-spacing: 0.2em;
-    opacity: 0.6;
+.hud-side-title:hover .test-main-title {
+    opacity: 0.4;
 }
 
+/* --- Bottom-Right Logs --- */
 .test-hud-bottom {
+    position: absolute;
+    bottom: 2.5rem;
+    right: 2.5rem;
     display: flex;
-    justify-content: flex-end;
+    flex-direction: column;
     align-items: flex-end;
 }
 
 .learning-logs {
-    width: 300px;
-    max-height: 400px;
+    width: 260px;
+    max-height: 200px;
     overflow: hidden;
     font-family: 'IBM Plex Mono', monospace;
-    font-size: 10px;
+    font-size: 9px;
     color: #fff;
-    opacity: 0.4;
+    opacity: 0.35;
     text-align: right;
     pointer-events: auto;
-    mask-image: linear-gradient(to bottom, transparent, black 20%);
+    mask-image: linear-gradient(to bottom, transparent, black 25%);
 }
 
-.log-entry {
-    margin-bottom: 2px;
-    white-space: nowrap;
+/* --- Animations --- */
+@keyframes flicker {
+
+    0%,
+    19.999%,
+    22%,
+    62.999%,
+    64%,
+    64.999%,
+    70%,
+    100% {
+        opacity: 0.8;
+    }
+
+    20%,
+    21.999%,
+    63%,
+    63.999%,
+    65%,
+    69.999% {
+        opacity: 0.4;
+    }
 }
 
-.nature-overlay {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    z-index: 2;
-    opacity: 0.1;
-    pointer-events: none;
+.anim-flicker {
+    animation: flicker 4s linear infinite;
 }
 
 @media (max-width: 768px) {
     .test-hud {
-        padding: 1rem;
-        padding-top: 5.5rem;
-        /* Increased top padding to avoid header */
-        padding-bottom: 5.5rem;
-        /* Increased bottom padding to avoid footer */
-        box-sizing: border-box;
-        overflow: hidden;
-        /* Ensure content doesn't bleed */
+        padding: 1.5rem;
+        padding-top: 5rem;
+        flex-direction: column;
+        justify-content: flex-start;
+        gap: 2rem;
     }
 
-    .test-landing-container {
-        /* Match mobile shell telemetry frame boundaries */
-        inset: 0.5rem;
+    .hud-side-title {
+        position: static;
+        transform: none;
+        flex-direction: row;
+        align-items: baseline;
+        gap: 1rem;
     }
 
     .test-main-title {
-        line-height: 0.95;
+        writing-mode: horizontal-tb;
+        font-size: 2.5rem;
+        opacity: 0.6;
     }
 
-    .test-sub-status {
-        font-size: 0.65rem;
-        letter-spacing: 0.1em;
+    .test-hud-bottom {
+        position: static;
+        width: 100%;
+        margin-top: auto;
     }
 
     .learning-logs {
         width: 100%;
-        max-width: 260px;
-        max-height: 100px;
-        /* Further reduced height to ensure no scroll */
-        font-size: 10px;
-        margin-bottom: 0.5rem;
-        pointer-events: none;
-        /* Pre-emptively disable scroll interaction */
-    }
-
-    .test-stats {
-        font-size: 9px !important;
-        margin-top: 0.1rem;
-    }
-
-    .test-hud-top {
-        flex-direction: column;
-        gap: 0.4rem;
-    }
-
-    .test-stats {
-        text-align: left;
+        max-width: none;
     }
 }
 
