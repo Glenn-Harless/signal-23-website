@@ -35,11 +35,13 @@ export const WorkstationShell: React.FC<WorkstationShellProps> = ({ children, is
     }, [location.pathname]);
 
     const navLinks = isMobile ? [
-        { label: '/', path: '/' },
+        { label: 'test-a', path: '/' },
+        { label: 'test-b', path: '/testblandingpage' },
         { label: 'CMD', path: '/terminal' },
         { label: 'DATA', path: '/instruments' },
     ] : [
-        { label: '/', path: '/' },
+        { label: 'test-a', path: '/' },
+        { label: 'test-b', path: '/testblandingpage' },
         { label: 'CMD', path: '/terminal' },
         { label: 'DATA', path: '/instruments' },
     ];

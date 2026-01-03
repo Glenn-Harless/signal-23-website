@@ -250,7 +250,7 @@ export const TestLandingPage: React.FC = () => {
             <div className="test-hud">
                 {/* Right Edge Side Title */}
                 <div className="hud-side-title">
-                    <h1 className="test-main-title">SIGNAL-23</h1>
+                    <h1 className="test-main-title">SIGNAL-3</h1>
                 </div>
 
                 {/* Bottom-Right Logs */}
@@ -263,12 +263,6 @@ export const TestLandingPage: React.FC = () => {
                 </div>
             </div>
 
-            <div className="nature-overlay">
-                <svg width="400" height="400" viewBox="0 0 100 100">
-                    <path d="M50,100 Q50,50 80,20 M50,100 Q50,60 20,30 M50,100 Q50,70 50,40"
-                        stroke="white" strokeWidth="0.1" fill="none" opacity="0.3" />
-                </svg>
-            </div>
         </div>
     );
 };
