@@ -12,6 +12,7 @@ import { useAudio } from './hooks/useAudio';
 import { InstrumentsPage } from './components/Instruments/InstrumentsPage';
 import { SuccessPage } from './components/Instruments/SuccessPage';
 import { WorkstationShell } from './components/WorkstationShell/WorkstationShell';
+import { TestLandingPage } from './components/TestLandingPage/TestLandingPage';
 
 // Home component (previously App content)
 interface HomeProps {
@@ -79,7 +80,12 @@ const Home: React.FC<HomeProps> = ({ isMobile }) => {
             </div>
           </div>
 
-          {/* No redundant mobile header to avoid overlap */}
+          <div className="md:hidden flex flex-col items-center h-full relative z-10">
+            {/* Font renders "-" as "-2", so "SIGNAL-3" displays as "SIGNAL-23" */}
+            <h1 className="text-4xl sm:text-5xl font-bold text-white font-neo-brute-transparent mt-12">
+              SIGNAL-3
+            </h1>
+          </div>
         </div>
 
         <svg className="hidden">
@@ -140,6 +146,7 @@ const App = () => {
           <Route path="/terminal" element={<Terminal isMobile={isMobile} />} />
           <Route path="/instruments" element={<InstrumentsPage />} />
           <Route path="/instruments/success" element={<SuccessPage />} />
+          <Route path="/testblandingpage" element={<TestLandingPage />} />
         </Routes>
       </WorkstationShell>
     </BrowserRouter>

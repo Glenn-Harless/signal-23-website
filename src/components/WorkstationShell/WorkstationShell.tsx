@@ -14,6 +14,9 @@ export const WorkstationShell: React.FC<WorkstationShellProps> = ({ children, is
     const [timestamp, setTimestamp] = useState('');
     const [hexData, setHexData] = useState('0x0000');
 
+    // Add page-specific detection for layout containment
+    const isLanding = location.pathname === '/' || location.pathname === '/testblandingpage';
+
     // Update telemetry data
     useEffect(() => {
         const timer = setInterval(() => {
@@ -47,7 +50,7 @@ export const WorkstationShell: React.FC<WorkstationShellProps> = ({ children, is
             <div className="ws-noise" />
 
             {/* Persistent Telemetry HUD */}
-            <div className={`ws-telemetry-frame ${location.pathname === '/' ? 'minimal' : ''}`}>
+            <div className={`ws-telemetry-frame ${isLanding && location.pathname === '/' ? 'minimal' : ''}`}>
                 <header className="ws-telemetry-bar top">
                     <div className="ws-status-item" style={location.pathname === '/' ? { visibility: 'hidden' } : {}}>
                         <span className="ws-status-label">SYS_AUTH:</span>
@@ -97,7 +100,7 @@ export const WorkstationShell: React.FC<WorkstationShellProps> = ({ children, is
                 )}
             </div>
 
-            <main className={`ws-main-content ${location.pathname === '/' ? 'no-padding' : ''}`}>
+            <main className={`ws-main-content ${isLanding ? 'no-padding' : ''}`}>
                 {children}
             </main>
         </div>

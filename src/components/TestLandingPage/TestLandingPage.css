@@ -1,0 +1,162 @@
+.test-landing-container {
+    box-sizing: border-box;
+    background: #000;
+    color: #fff;
+    position: absolute;
+    /* Respect the shell's telemetry frame boundaries (inset: 0.75rem) */
+    inset: 0.75rem;
+    overflow: hidden;
+    overscroll-behavior: none;
+    /* Block overscroll/pull-to-refresh */
+    font-family: 'IBM Plex Mono', monospace;
+}
+
+.nn-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
+    display: block;
+}
+
+.test-hud {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 10;
+    pointer-events: none;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 2rem;
+}
+
+.test-hud-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.test-main-title {
+    font-size: clamp(3rem, 15vw, 12rem);
+    font-weight: 900;
+    margin: 0;
+    color: #fff;
+    line-height: 0.85;
+    letter-spacing: -0.05em;
+    text-transform: uppercase;
+    /* Use the Neo Brutalist font - matching the site branding */
+    font-family: 'Neobrutetest', sans-serif;
+    opacity: 0.95;
+    mix-blend-mode: screen;
+}
+
+.test-sub-status {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.2em;
+    opacity: 0.6;
+}
+
+.test-hud-bottom {
+    display: flex;
+    justify-content: flex-end;
+    align-items: flex-end;
+}
+
+.learning-logs {
+    width: 300px;
+    max-height: 400px;
+    overflow: hidden;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: #fff;
+    opacity: 0.4;
+    text-align: right;
+    pointer-events: auto;
+    mask-image: linear-gradient(to bottom, transparent, black 20%);
+}
+
+.log-entry {
+    margin-bottom: 2px;
+    white-space: nowrap;
+}
+
+.nature-overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 2;
+    opacity: 0.1;
+    pointer-events: none;
+}
+
+@media (max-width: 768px) {
+    .test-hud {
+        padding: 1rem;
+        padding-top: 5.5rem;
+        /* Increased top padding to avoid header */
+        padding-bottom: 5.5rem;
+        /* Increased bottom padding to avoid footer */
+        box-sizing: border-box;
+        overflow: hidden;
+        /* Ensure content doesn't bleed */
+    }
+
+    .test-landing-container {
+        /* Match mobile shell telemetry frame boundaries */
+        inset: 0.5rem;
+    }
+
+    .test-main-title {
+        line-height: 0.95;
+    }
+
+    .test-sub-status {
+        font-size: 0.65rem;
+        letter-spacing: 0.1em;
+    }
+
+    .learning-logs {
+        width: 100%;
+        max-width: 260px;
+        max-height: 100px;
+        /* Further reduced height to ensure no scroll */
+        font-size: 10px;
+        margin-bottom: 0.5rem;
+        pointer-events: none;
+        /* Pre-emptively disable scroll interaction */
+    }
+
+    .test-stats {
+        font-size: 9px !important;
+        margin-top: 0.1rem;
+    }
+
+    .test-hud-top {
+        flex-direction: column;
+        gap: 0.4rem;
+    }
+
+    .test-stats {
+        text-align: left;
+    }
+}
+
+@media (max-width: 480px) {
+    .test-main-title {
+        font-size: 2.8rem;
+    }
+
+    .learning-logs {
+        max-width: 180px;
+    }
+}
+
+/* Enhancing touch targets for the global shell nav when on this page */
+:global(.ws-nav-item) {
+    padding: 0.5rem 0.2rem;
+}
