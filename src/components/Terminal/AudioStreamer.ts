@@ -13,7 +13,9 @@ class AudioStreamer {
   private audio: HTMLAudioElement | null = null;
 
   private hls: Hls | null = null;
-
+  private audioContext: AudioContext | null = null;
+  private analyser: AnalyserNode | null = null;
+  private source: MediaElementAudioSourceNode | null = null;
   private isPlaying = false;
 
   private debugMode = true;
@@ -60,7 +62,38 @@ class AudioStreamer {
       this.audio.crossOrigin = 'anonymous';
     }
 
-    return this.audio;
+    // Initialize Audio Context and Analyser
+    if (!this.audioContext && typeof window !== 'undefined') {
+      const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+      if (AudioCtx) {
+        this.audioContext = new AudioCtx();
+        this.analyser = this.audioContext.createAnalyser();
+        this.analyser.fftSize = 64;
+      }
+    }
+
+    // Connect audio element to context, or re-connect if the element has changed
+    if (this.audioContext && this.analyser) {
+      if (!this.source || (this.audio && this.source.mediaElement !== this.audio)) {
+        try {
+          if (this.source) {
+            this.source.disconnect();
+          }
+          this.source = this.audioContext.createMediaElementSource(this.audio!);
+          this.source.connect(this.analyser);
+          this.analyser.connect(this.audioContext.destination);
+          this.debugLog('Connected audio source to context');
+
+          if (this.audioContext.state === 'suspended') {
+            this.audioContext.resume();
+          }
+        } catch (e) {
+          this.debugLog('Failed to connect audio source', e);
+        }
+      }
+    }
+
+    return this.audio!;
   }
 
   private getDropboxDirectUrl(url: string) {
@@ -130,6 +163,9 @@ class AudioStreamer {
         audio
           .play()
           .then(() => {
+            if (this.audioContext?.state === 'suspended') {
+              this.audioContext.resume();
+            }
             this.isPlaying = true;
             this.debugLog('Playback started', { randomStart });
           })
@@ -183,6 +219,17 @@ class AudioStreamer {
     }
   }
 
+  async resumeContext() {
+    try {
+      if (this.audioContext && this.audioContext.state === 'suspended') {
+        await this.audioContext.resume();
+        this.debugLog('AudioContext resumed via interaction');
+      }
+    } catch (e) {
+      this.debugLog('Error resuming AudioContext', e);
+    }
+  }
+
   getIsPlaying() {
     return this.isPlaying;
   }
@@ -190,6 +237,26 @@ class AudioStreamer {
   getCurrentTime() {
     return this.audio?.currentTime ?? 0;
   }
+
+  getFrequencyData(): number[] {
+    if (!this.analyser) return new Array(32).fill(0);
+
+    const bufferLength = this.analyser.frequencyBinCount;
+    const dataArray = new Uint8Array(bufferLength);
+    this.analyser.getByteFrequencyData(dataArray);
+
+    // Convert to normalized 0-100 values
+    const result: number[] = [];
+    const step = Math.floor(bufferLength / 32);
+    for (let i = 0; i < 32; i++) {
+      const val = dataArray[i * step];
+      result.push((val / 255) * 100);
+    }
+    return result;
+  }
 }
 
 export const audioStreamer = new AudioStreamer();
+if (typeof window !== 'undefined') {
+  (window as any)._audioStreamer = audioStreamer;
+}

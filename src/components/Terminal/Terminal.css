@@ -1,0 +1,222 @@
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&display=swap');
+
+.terminal-container {
+    background: rgba(0, 5, 0, 0.95);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(0, 255, 0, 0.2);
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: inset 0 0 100px rgba(0, 30, 0, 0.9);
+}
+
+/* Cyberdeck Corner Accents */
+.terminal-container::before,
+.terminal-container::after {
+    content: '';
+    position: absolute;
+    width: 30px;
+    height: 30px;
+    border: 2px solid #00ff00;
+    pointer-events: none;
+    z-index: 10;
+    filter: drop-shadow(0 0 5px rgba(0, 255, 0, 0.5));
+}
+
+.terminal-container::before {
+    top: 5px;
+    left: 5px;
+    border-right: none;
+    border-bottom: none;
+}
+
+.terminal-container::after {
+    bottom: 5px;
+    right: 5px;
+    border-left: none;
+    border-top: none;
+}
+
+/* Scanning Overlay */
+.terminal-scanlines {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(rgba(18, 16, 16, 0) 50%,
+            rgba(0, 255, 0, 0.05) 50%);
+    background-size: 100% 4px;
+    z-index: 5;
+    pointer-events: none;
+    animation: scanline_scroll 8s linear infinite;
+    opacity: 0.3;
+}
+
+@keyframes scanline_scroll {
+    from {
+        background-position: 0 0;
+    }
+
+    to {
+        background-position: 0 100%;
+    }
+}
+
+/* Header Refinement */
+.terminal-header {
+    background: linear-gradient(to right, rgba(0, 255, 0, 0.1), rgba(0, 255, 0, 0.05), rgba(0, 255, 0, 0.1));
+    border-bottom: 2px solid rgba(0, 255, 0, 0.2);
+    padding: 1rem 2rem;
+    font-family: 'Neo Brutalist', sans-serif;
+    color: #00ff00;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    letter-spacing: 0.4em;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    z-index: 6;
+    width: 100%;
+}
+
+.terminal-header::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 10%;
+    width: 80%;
+    height: 2px;
+    background: linear-gradient(to right, transparent, #00ff00, transparent);
+    box-shadow: 0 0 15px #00ff00;
+}
+
+/* Output Area */
+.terminal-output {
+    flex: 1;
+    overflow-y: auto;
+    padding: 2.5rem;
+    font-family: 'IBM Plex Mono', monospace;
+    position: relative;
+    z-index: 4;
+}
+
+.terminal-line {
+    margin-bottom: 0.6rem;
+    line-height: 1.5;
+    text-shadow: 0 0 10px rgba(0, 255, 0, 0.4);
+}
+
+/* Custom Cyberdeck Scrollbar */
+.terminal-output::-webkit-scrollbar {
+    width: 2px;
+}
+
+.terminal-output::-webkit-scrollbar-track {
+    background: rgba(0, 20, 0, 0.3);
+}
+
+.terminal-output::-webkit-scrollbar-thumb {
+    background: #00ff00;
+    box-shadow: 0 0 10px #00ff00;
+}
+
+/* Spectrogram Visualizer */
+/* Spectrogram Visualizer */
+.visualizer-container {
+    height: 120px;
+    padding: 2px;
+    background: #0a001a;
+    border-top: 1px solid rgba(0, 255, 0, 0.2);
+    position: relative;
+    z-index: 10;
+    overflow: hidden;
+}
+
+/* Mobile Styling */
+@media (max-width: 768px) {
+    .terminal-container {
+        inset: 0;
+        bottom: 270px;
+        /* End above mobile button tray */
+        border: none;
+    }
+
+    .terminal-container::before,
+    .terminal-container::after {
+        display: none;
+    }
+
+    .terminal-header {
+        padding: 1rem;
+        font-size: 0.7rem;
+        letter-spacing: 0.2em;
+    }
+
+    .terminal-output {
+        padding: 1.5rem 1rem;
+        padding-bottom: 80px;
+        /* Space to clear the 60px visualizer */
+    }
+
+    .visualizer-container {
+        height: 60px;
+        padding: 2px;
+        bottom: 0;
+        /* Pin to bottom of shortened terminal container */
+        position: absolute;
+        left: 1rem;
+        /* Match terminal-output horizontal padding */
+        right: 1rem;
+        background: #0a001a;
+        border: 1px solid rgba(0, 255, 0, 0.2);
+    }
+}
+
+/* Command Buttons */
+.terminal-command-btn {
+    background: rgba(0, 40, 0, 0.7);
+    border: 1px solid #00ff00;
+    color: #00ff00;
+    padding: 1rem 0.5rem;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.6rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    transition: all 0.2s ease;
+    box-shadow: 0 0 5px rgba(0, 255, 0, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.terminal-command-btn:active {
+    background: #00ff00;
+    color: #000;
+    box-shadow: 0 0 20px #00ff00;
+}
+
+.terminal-status-dot {
+    width: 8px;
+    height: 8px;
+    background: #00ff00;
+    border-radius: 50%;
+    box-shadow: 0 0 10px #00ff00;
+    margin-right: 1rem;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+
+    0%,
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+
+    50% {
+        transform: scale(0.8);
+        opacity: 0.5;
+    }
+}

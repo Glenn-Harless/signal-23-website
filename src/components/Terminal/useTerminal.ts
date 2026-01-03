@@ -55,6 +55,8 @@ interface UseTerminalResult {
   terminalRef: React.RefObject<HTMLDivElement>;
   outputRef: React.RefObject<HTMLDivElement>;
   inputRef: React.RefObject<HTMLInputElement>;
+  visualizerData: number[];
+  isScanning: boolean;
 }
 
 interface UseTerminalOptions {
@@ -66,6 +68,9 @@ export function useTerminal({ isMobile }: UseTerminalOptions): UseTerminalResult
   const [input, setInput] = useState('');
   const [output, setOutput] = useState<TerminalMessage[]>([]);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [history, setHistory] = useState<string[]>([]);
+  const [historyIndex, setHistoryIndex] = useState(-1);
+  const [visualizerData, setVisualizerData] = useState<number[]>(new Array(32).fill(0));
   const viewportHeight = useViewportHeight();
   const [currentFrequency, setCurrentFrequency] = useState<string | null>(null);
   const { audioElement, isPlaying: isHomePlaying } = useAudio();
@@ -129,14 +134,19 @@ export function useTerminal({ isMobile }: UseTerminalOptions): UseTerminalResult
         const delay = message.type === 'warning' ? 50 : message.type === 'separator' ? 15 : 5;
 
         for (let i = 0; i <= message.content.length; i += 1) {
-          await wait(delay);
-          const shouldGlitch = message.type === 'warning' && Math.random() < 0.3 && i < message.content.length;
+          const charDelay = message.type === 'warning' ? Math.random() * delay * 2 : delay;
+          await wait(charDelay);
+
+          const shouldGlitch = (message.type === 'warning' || message.type === 'typing') && Math.random() < 0.1 && i < message.content.length;
           const partial = message.content.slice(0, i);
-          const content = shouldGlitch ? `${partial}█▓▒░` : partial;
+          const glitchChars = ['█', '▓', '▒', '░', '$', '&', '#', '@'];
+          const randomGlitch = glitchChars[Math.floor(Math.random() * glitchChars.length)];
+          const content = shouldGlitch ? `${partial}${randomGlitch}` : partial;
+
           updateMessageAt(index, (existing) => ({ ...existing, content }));
         }
 
-        const pause = message.type === 'warning' ? 400 : message.type === 'separator' ? 300 : 200;
+        const pause = message.type === 'warning' ? 400 : message.type === 'separator' ? 300 : 100;
         await wait(pause);
         return;
       }
@@ -293,6 +303,8 @@ export function useTerminal({ isMobile }: UseTerminalOptions): UseTerminalResult
       }
 
       appendCommandMessage(command);
+      setHistory((prev) => [command, ...prev.filter((h) => h !== command)].slice(0, 50));
+      setHistoryIndex(-1);
 
       const handler = commandHandlers[command as keyof typeof commandHandlers];
       if (!handler) {
@@ -338,6 +350,18 @@ export function useTerminal({ isMobile }: UseTerminalOptions): UseTerminalResult
     initializeOutput();
   }, [initializeOutput, isInitialized]);
 
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (currentFrequency) {
+      interval = setInterval(() => {
+        setVisualizerData(audioStreamer.getFrequencyData());
+      }, 50); // Faster update for smoother visualization
+    } else {
+      setVisualizerData(new Array(32).fill(0));
+    }
+    return () => clearInterval(interval);
+  }, [currentFrequency]);
+
   useEffect(() => () => {
     audioStreamer.stop();
   }, []);
@@ -373,13 +397,45 @@ export function useTerminal({ isMobile }: UseTerminalOptions): UseTerminalResult
 
   const handleKeyDown = useCallback(
     (event: React.KeyboardEvent<HTMLDivElement>) => {
+      // Ctrl+C to stop scan
       if (event.ctrlKey && event.key === 'c' && currentFrequency) {
         stopScan();
         appendMessage({ type: 'system', content: 'SCAN TERMINATED.' });
         appendPrompt();
+        return;
+      }
+
+      // Command History
+      if (event.key === 'ArrowUp') {
+        event.preventDefault();
+        if (history.length > 0) {
+          const nextIndex = Math.min(historyIndex + 1, history.length - 1);
+          setHistoryIndex(nextIndex);
+          setInput(history[nextIndex]);
+        }
+      } else if (event.key === 'ArrowDown') {
+        event.preventDefault();
+        if (historyIndex > 0) {
+          const nextIndex = historyIndex - 1;
+          setHistoryIndex(nextIndex);
+          setInput(history[nextIndex]);
+        } else if (historyIndex === 0) {
+          setHistoryIndex(-1);
+          setInput('');
+        }
+      }
+
+      // Tab Completion
+      if (event.key === 'Tab') {
+        event.preventDefault();
+        const availableCommands = Object.keys(commandHandlers);
+        const matches = availableCommands.filter((c) => c.startsWith(input.toLowerCase()));
+        if (matches.length === 1) {
+          setInput(matches[0]);
+        }
       }
     },
-    [appendMessage, appendPrompt, currentFrequency, stopScan],
+    [appendMessage, appendPrompt, commandHandlers, currentFrequency, history, historyIndex, input, stopScan],
   );
 
   return {
@@ -394,5 +450,7 @@ export function useTerminal({ isMobile }: UseTerminalOptions): UseTerminalResult
     terminalRef,
     outputRef: outputContainerRef,
     inputRef,
+    visualizerData,
+    isScanning: !!currentFrequency,
   };
 }

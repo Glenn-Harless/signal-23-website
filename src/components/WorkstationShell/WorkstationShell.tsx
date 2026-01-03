@@ -15,7 +15,7 @@ export const WorkstationShell: React.FC<WorkstationShellProps> = ({ children, is
     const [hexData, setHexData] = useState('0x0000');
 
     // Add page-specific detection for layout containment
-    const isLanding = location.pathname === '/' || location.pathname === '/testblandingpage';
+    const isLanding = location.pathname === '/' || location.pathname === '/testblandingpage' || location.pathname === '/terminal';
 
     // Update telemetry data
     useEffect(() => {
@@ -34,12 +34,7 @@ export const WorkstationShell: React.FC<WorkstationShellProps> = ({ children, is
         return () => clearTimeout(timer);
     }, [location.pathname]);
 
-    const navLinks = isMobile ? [
-        { label: 'test-a', path: '/' },
-        { label: 'test-b', path: '/testblandingpage' },
-        { label: 'CMD', path: '/terminal' },
-        { label: 'DATA', path: '/instruments' },
-    ] : [
+    const navLinks = [
         { label: 'test-a', path: '/' },
         { label: 'test-b', path: '/testblandingpage' },
         { label: 'CMD', path: '/terminal' },
@@ -102,9 +97,11 @@ export const WorkstationShell: React.FC<WorkstationShellProps> = ({ children, is
                 )}
             </div>
 
-            <main className={`ws-main-content ${isLanding ? 'no-padding' : ''}`}>
+            <div className={`ws-main-container ${isLanding ? 'no-padding ws-reset' : ''}`}>
                 {children}
-            </main>
+            </div>
         </div>
     );
 };
+
+

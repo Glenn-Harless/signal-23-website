@@ -1,20 +1,22 @@
 import React from 'react';
 import { useTerminal } from './useTerminal';
 import { TerminalMessage } from './terminalTypes';
+import HeatmapVisualizer from './HeatmapVisualizer';
+import './Terminal.css';
 
 interface TerminalProps {
   isMobile: boolean;
 }
 
 const TERMINAL_CLASS_BY_TYPE: Record<TerminalMessage['type'], string> = {
-  command: 'text-blue-400',
-  error: 'text-red-500',
+  command: 'text-blue-400 font-bold',
+  error: 'text-red-500 font-bold',
   warning: 'text-yellow-500 font-bold',
-  separator: 'text-green-700',
-  link: 'cursor-pointer hover:text-green-300 block',
-  typing: 'text-green-500',
-  system: 'text-green-500',
-  output: 'text-green-500',
+  separator: 'text-green-700 opacity-50',
+  link: 'text-green-400 cursor-pointer hover:text-white underline decoration-green-800 underline-offset-4 block transition-colors duration-200',
+  typing: 'text-green-500 opacity-80 italic',
+  system: 'text-green-500 font-semibold',
+  output: 'text-green-400',
   prompt: 'text-green-500',
 };
 
@@ -67,7 +69,7 @@ const TerminalLine: React.FC<TerminalLineProps> = ({
   const className = TERMINAL_CLASS_BY_TYPE[message.type] ?? 'text-green-500';
 
   return (
-    <div className="flex whitespace-pre-wrap break-words">
+    <div className="terminal-line flex whitespace-pre-wrap break-words">
       <span
         className={className}
         onClick={() => {
@@ -87,57 +89,95 @@ export const Terminal: React.FC<TerminalProps> = ({ isMobile }) => {
     input,
     setInput,
     output,
-    viewportHeight,
-    menuItems,
-    handleSubmit,
+    visualizerData,
+    isScanning,
+    handleSubmit: baseHandleSubmit,
     handleLinkClick,
     handleKeyDown,
     terminalRef,
     outputRef,
     inputRef,
+    menuItems,
   } = useTerminal({ isMobile });
 
+  const handleSubmit = (cmd?: string) => {
+    (window as any)._audioStreamer?.resumeContext();
+    baseHandleSubmit(cmd);
+  };
+
   const lastIndex = output.length - 1;
+  const [timestamp, setTimestamp] = React.useState('');
+
+  React.useEffect(() => {
+    const timer = setInterval(() => {
+      setTimestamp(new Date().toISOString().split('T')[1].split('.')[0] + 'Z');
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   return (
-    <div
-      className="text-green-500 font-mono flex flex-col h-full"
-      onClick={() => !isMobile && inputRef.current?.focus()}
-      onKeyDown={handleKeyDown}
-      ref={terminalRef}
-      tabIndex={0}
-    >
+    <div className="relative h-full w-full bg-black overflow-hidden select-none">
       <div
-        ref={outputRef}
-        className={`flex-1 overflow-y-auto p-4 flex flex-col ${isMobile ? 'text-sm' : 'text-base'}`}
-        style={{ minHeight: 0 }}
+        className="terminal-container"
+        onClick={() => !isMobile && inputRef.current?.focus()}
+        onKeyDown={handleKeyDown}
+        ref={terminalRef}
+        tabIndex={0}
       >
-        <div className="flex-1">
-          {output.map((message, index) => (
-            <TerminalLine
-              key={`${message.type}-${index}-${message.content}`}
-              message={message}
-              isMobile={isMobile}
-              isLastPrompt={message.type === 'prompt' && index === lastIndex}
-              inputValue={input}
-              onChangeInput={setInput}
-              onSubmit={handleSubmit}
-              onLinkClick={handleLinkClick}
-              inputRef={inputRef}
-            />
-          ))}
+        <div className="terminal-scanlines" />
+
+        <header className="terminal-header">
+          <div className="flex items-center">
+            <div className="terminal-status-dot" />
+            <span className="truncate">B.A.N.I.S // STATION:23</span>
+          </div>
+          <div className="hidden md:flex items-center gap-6 opacity-80">
+            <span>{timestamp}</span>
+            <span className="text-green-500/50">ENC:AES-256</span>
+            <span>NODE:0x{Math.floor(Math.random() * 0xFFFF).toString(16).toUpperCase().padStart(4, '0')}</span>
+          </div>
+          <div className="font-bold text-green-400">
+            SECURE
+          </div>
+        </header>
+
+        <div
+          ref={outputRef}
+          className="terminal-output flex flex-col"
+        >
+          <div className="flex-1">
+            {output.map((message, index) => (
+              <TerminalLine
+                key={`${message.type}-${index}-${message.content}`}
+                message={message}
+                isMobile={isMobile}
+                isLastPrompt={message.type === 'prompt' && index === lastIndex}
+                inputValue={input}
+                onChangeInput={setInput}
+                onSubmit={handleSubmit}
+                onLinkClick={handleLinkClick}
+                inputRef={inputRef}
+              />
+            ))}
+          </div>
         </div>
+
+        {isScanning && (
+          <div className="visualizer-container z-50">
+            <HeatmapVisualizer data={visualizerData} isMobile={isMobile} />
+          </div>
+        )}
       </div>
 
       {isMobile && (
         <div
-          className="border-t border-green-500/30 bg-black p-4 grid grid-cols-2 gap-2"
-          style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 1rem)' }}
+          className="absolute bottom-[52px] left-0 right-0 z-60 bg-black/95 backdrop-blur-md p-4 pb-12 grid grid-cols-2 gap-3 border-t border-green-500/20"
+          style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 1.5rem)' }}
         >
           {menuItems.map((item) => (
             <button
               key={item.command}
-              className="p-3 text-green-500 border border-green-500/30 rounded text-center hover:bg-green-500/10 active:bg-green-500/20 transition-colors"
+              className="terminal-command-btn"
               onClick={() => handleSubmit(item.command)}
             >
               {item.label}
@@ -150,3 +190,5 @@ export const Terminal: React.FC<TerminalProps> = ({ isMobile }) => {
 };
 
 export default Terminal;
+
+
