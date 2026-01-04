@@ -12,7 +12,7 @@ const OBSTACLES = [
 
 // Actions: 0=up, 1=right, 2=down, 3=left
 const ACTIONS = ['up', 'right', 'down', 'left'];
-const ACTION_ARROWS = ['\u2191', '\u2192', '\u2193', '\u2190'];
+const ACTION_ARROWS = ['\u25F0', '\u25F1', '\u25F3', '\u25F2']; // Cryptic quadrants: ◰, ◱, ◳, ◲
 const ACTION_DELTAS = [
   { x: 0, y: -1 }, { x: 1, y: 0 }, { x: 0, y: 1 }, { x: -1, y: 0 }
 ];
@@ -250,90 +250,12 @@ export const Learning: React.FC = () => {
       contourGroup.add(ring);
     }
 
-    // Optimizer particles (gradient descent agents) - sequential, one at a time
-    interface Optimizer {
-      mesh: THREE.Mesh;
-      trail: THREE.Line;
-      trailPositions: THREE.Vector3[];
-      x: number;
-      y: number;
-      vx: number;
-      vy: number;
-      learningRate: number;
-      converged: boolean;
-      active: boolean;
-      fadeOut: number; // 1.0 = visible, 0.0 = gone
-      glow: THREE.Mesh;
-    }
-
-    const optimizers: Optimizer[] = [];
-    const numOptimizers = 5;
-
-    const createOptimizer = (startX: number, startY: number, lr: number, isActive: boolean) => {
-      // Core particle - smaller, white
-      const geometry = new THREE.SphereGeometry(0.3, 16, 16);
-      const material = new THREE.MeshBasicMaterial({
-        color: 0xffffff,
-        transparent: true,
-        opacity: isActive ? 0.9 : 0
-      });
-      const mesh = new THREE.Mesh(geometry, material);
-
-      // Glow - smaller
-      const glowGeo = new THREE.SphereGeometry(0.6, 16, 16);
-      const glowMat = new THREE.MeshBasicMaterial({
-        color: 0xffffff,
-        transparent: true,
-        opacity: isActive ? 0.3 : 0
-      });
-      const glow = new THREE.Mesh(glowGeo, glowMat);
-
-      // Trail - white
-      const trailGeometry = new THREE.BufferGeometry();
-      const trailPositions = new Float32Array(150 * 3);
-      trailGeometry.setAttribute('position', new THREE.BufferAttribute(trailPositions, 3));
-      const trailMaterial = new THREE.LineBasicMaterial({
-        color: 0xffffff,
-        transparent: true,
-        opacity: isActive ? 0.3 : 0
-      });
-      const trail = new THREE.Line(trailGeometry, trailMaterial);
-
-      scene.add(mesh);
-      scene.add(glow);
-      scene.add(trail);
-
-      return {
-        mesh,
-        trail,
-        trailPositions: [],
-        x: startX,
-        y: startY,
-        vx: 0,
-        vy: 0,
-        learningRate: lr,
-        converged: false,
-        active: isActive,
-        fadeOut: isActive ? 1.0 : 0.0,
-        glow
-      };
-    };
+    // --- SIGNAL EMISSIONS (REMOVED) ---
+    // User requested pure topography without rolling particles.
+    // Removed SignalSpark interface and creation logic.
 
     // Create optimizers at different starting positions (very slow for watching)
-    const startPositions = [
-      { x: -22, y: -18, lr: 0.025 },
-      { x: 20, y: -20, lr: 0.02 },
-      { x: -18, y: 22, lr: 0.022 },
-      { x: 22, y: 18, lr: 0.018 },
-      { x: 0, y: -24, lr: 0.015 }
-    ];
-
-    startPositions.forEach((pos, idx) => {
-      // Only first optimizer is active initially
-      optimizers.push(createOptimizer(pos.x, pos.y, pos.lr, idx === 0));
-    });
-
-    let currentOptimizerIndex = 0;
+    // let currentSparkIndex = 0; // Removed particle logic
 
     // Gradient calculation (numerical)
     const computeGradient = (x: number, y: number, time: number) => {
@@ -375,144 +297,8 @@ export const Learning: React.FC = () => {
       // Update contours rotation
       contourGroup.rotation.y = time * 0.1;
 
-      // Update optimizers - sequential, one at a time
-      convergedCount = 0;
-      let totalLoss = 0;
-      let activeCount = 0;
-
-      optimizers.forEach((opt, idx) => {
-        // Only process active optimizer
-        if (opt.active && !opt.converged) {
-          activeCount++;
-
-          // Compute gradient
-          const grad = computeGradient(opt.x, opt.y, time);
-
-          // Momentum - slower
-          opt.vx = 0.85 * opt.vx - opt.learningRate * grad.dx;
-          opt.vy = 0.85 * opt.vy - opt.learningRate * grad.dy;
-
-          // Update position
-          opt.x += opt.vx;
-          opt.y += opt.vy;
-
-          // Boundary check
-          const bound = landscapeSize / 2 - 2;
-          opt.x = Math.max(-bound, Math.min(bound, opt.x));
-          opt.y = Math.max(-bound, Math.min(bound, opt.y));
-
-          // Check convergence (reached center minimum)
-          const distToCenter = Math.sqrt(opt.x * opt.x + opt.y * opt.y);
-          const speed = Math.sqrt(opt.vx * opt.vx + opt.vy * opt.vy);
-
-          if (speed < 0.008 || distToCenter < 3) {
-            opt.converged = true;
-          }
-        }
-
-        // Handle fade out for converged optimizers
-        if (opt.converged && opt.fadeOut > 0) {
-          opt.fadeOut -= 0.02; // Fade out speed
-
-          const meshMat = opt.mesh.material as THREE.MeshBasicMaterial;
-          const glowMat = opt.glow.material as THREE.MeshBasicMaterial;
-          const trailMat = opt.trail.material as THREE.LineBasicMaterial;
-
-          meshMat.opacity = opt.fadeOut * 0.9;
-          glowMat.opacity = opt.fadeOut * 0.3;
-          trailMat.opacity = opt.fadeOut * 0.3;
-
-          // When fully faded, activate next optimizer
-          if (opt.fadeOut <= 0) {
-            opt.fadeOut = 0;
-            convergedCount++;
-
-            // Activate next optimizer
-            const nextIdx = idx + 1;
-            if (nextIdx < optimizers.length && !optimizers[nextIdx].active) {
-              const nextOpt = optimizers[nextIdx];
-              nextOpt.active = true;
-              nextOpt.fadeOut = 1.0;
-
-              const nextMeshMat = nextOpt.mesh.material as THREE.MeshBasicMaterial;
-              const nextGlowMat = nextOpt.glow.material as THREE.MeshBasicMaterial;
-              const nextTrailMat = nextOpt.trail.material as THREE.LineBasicMaterial;
-
-              nextMeshMat.opacity = 0.9;
-              nextGlowMat.opacity = 0.3;
-              nextTrailMat.opacity = 0.3;
-            }
-          }
-        } else if (opt.converged) {
-          convergedCount++;
-        }
-
-        // Update mesh position for active/visible optimizers
-        if (opt.fadeOut > 0 || opt.active) {
-          const z = lossFunction(opt.x, opt.y, time);
-          opt.mesh.position.set(opt.x, z + 1, opt.y);
-          opt.glow.position.copy(opt.mesh.position);
-
-          // Subtle pulse glow
-          const pulse = 1 + Math.sin(time * 3 + idx) * 0.15;
-          opt.glow.scale.setScalar(pulse);
-
-          // Update trail
-          if (opt.active && !opt.converged) {
-            opt.trailPositions.unshift(opt.mesh.position.clone());
-            if (opt.trailPositions.length > 50) opt.trailPositions.pop();
-          }
-
-          const trailArray = opt.trail.geometry.attributes.position.array as Float32Array;
-          for (let i = 0; i < 50; i++) {
-            if (i < opt.trailPositions.length) {
-              trailArray[i * 3] = opt.trailPositions[i].x;
-              trailArray[i * 3 + 1] = opt.trailPositions[i].y;
-              trailArray[i * 3 + 2] = opt.trailPositions[i].z;
-            }
-          }
-          opt.trail.geometry.attributes.position.needsUpdate = true;
-
-          totalLoss += Math.abs(z);
-        }
-      });
-
-      // Average loss of active optimizers
-      globalLoss = activeCount > 0 ? totalLoss / activeCount : prevLoss;
-
-      // Update metrics
-      setMetrics(prev => ({
-        ...prev,
-        loss: parseFloat(globalLoss.toFixed(4)),
-        lossDirection: globalLoss < prevLoss ? 'down' : globalLoss > prevLoss ? 'up' : 'stable',
-        optimizerCount: numOptimizers,
-        converged: convergedCount
-      }));
-      prevLoss = globalLoss;
-
-      // Reset all optimizers when all have converged and faded
-      if (convergedCount === numOptimizers) {
-        currentOptimizerIndex = 0;
-        optimizers.forEach((opt, idx) => {
-          const startPos = startPositions[idx];
-          opt.x = startPos.x + (Math.random() - 0.5) * 8;
-          opt.y = startPos.y + (Math.random() - 0.5) * 8;
-          opt.vx = 0;
-          opt.vy = 0;
-          opt.converged = false;
-          opt.active = idx === 0; // Only first is active
-          opt.fadeOut = idx === 0 ? 1.0 : 0.0;
-          opt.trailPositions = [];
-
-          const meshMat = opt.mesh.material as THREE.MeshBasicMaterial;
-          const glowMat = opt.glow.material as THREE.MeshBasicMaterial;
-          const trailMat = opt.trail.material as THREE.LineBasicMaterial;
-
-          meshMat.opacity = idx === 0 ? 0.9 : 0;
-          glowMat.opacity = idx === 0 ? 0.3 : 0;
-          trailMat.opacity = idx === 0 ? 0.3 : 0;
-        });
-      }
+      // --- SPARK UPDATES (REMOVED) ---
+      // User requested pure topography.
 
       // Camera orbit
       const camRadius = 55;
@@ -552,15 +338,7 @@ export const Learning: React.FC = () => {
         }
       });
 
-      // Dispose optimizer resources
-      optimizers.forEach(opt => {
-        opt.mesh.geometry.dispose();
-        (opt.mesh.material as THREE.Material).dispose();
-        opt.glow.geometry.dispose();
-        (opt.glow.material as THREE.Material).dispose();
-        opt.trail.geometry.dispose();
-        (opt.trail.material as THREE.Material).dispose();
-      });
+      // Dispose resources
 
       // Clean up scene
       scene.clear();
@@ -595,7 +373,8 @@ export const Learning: React.FC = () => {
     <div className="learning-container">
       <div ref={mountRef} className="learning-canvas-container" />
 
-      {/* Training Metrics - Bottom Left */}
+      {/* Training Metrics - Bottom Left (Commented Out per Request) */}
+      {/* 
       <div className="learning-metrics">
         <div className="metric-entry">
           EPOCH: <span className="metric-value">{metrics.epoch}</span>
@@ -622,11 +401,13 @@ export const Learning: React.FC = () => {
           </span>
         </div>
       </div>
+      */}
 
-      {/* Q-Learning Grid - Bottom Right */}
+      {/* Signal Matrix - Bottom Right */}
       <div className="learning-grid-container">
+        {/* <div className="matrix-title">SIGNAL MATRIX // Q-POLICY</div> */}
         <div
-          className="q-grid"
+          className="q-matrix"
           style={{ gridTemplateColumns: `repeat(${GRID_SIZE}, 1fr)` }}
         >
           {Array.from({ length: GRID_SIZE * GRID_SIZE }).map((_, idx) => {
@@ -641,15 +422,15 @@ export const Learning: React.FC = () => {
             return (
               <div
                 key={idx}
-                className={`q-cell ${isAgent ? 'agent' : ''} ${isGoal ? 'goal' : ''} ${isObstacle ? 'obstacle' : ''}`}
+                className={`matrix-cell ${isAgent ? 'agent' : ''} ${isGoal ? 'goal' : ''} ${isObstacle ? 'obstacle' : ''}`}
                 style={{
                   backgroundColor: isObstacle
                     ? undefined
-                    : `rgba(255, 255, 255, ${intensity * 0.3})`,
+                    : `rgba(255, 255, 255, ${intensity * 0.1})`,
                 }}
               >
-                {isGoal ? '\u2605' : isObstacle ? '\u2716' : isAgent ? '\u25CF' :
-                  bestAction >= 0 ? <span className="q-arrow">{ACTION_ARROWS[bestAction]}</span> : ''}
+                {isGoal ? <div className="goal-beacon"></div> : isObstacle ? '\u2716' : isAgent ? <div className="agent-beacon"></div> :
+                  bestAction >= 0 ? <span className="matrix-spark">{ACTION_ARROWS[bestAction]}</span> : ''}
               </div>
             );
           })}

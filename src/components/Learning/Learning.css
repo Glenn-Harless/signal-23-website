@@ -24,57 +24,93 @@
   z-index: 10;
 }
 
-/* Q-Learning Grid World - Bottom Right */
+/* Signal Matrix - Bottom Right */
 .learning-grid-container {
   position: absolute;
   bottom: 2rem;
   right: 2rem;
   z-index: 20;
-  background: rgba(0, 0, 0, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  padding: 1rem;
+  background: rgba(0, 0, 0, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 1.25rem;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
 }
 
-.grid-title {
+.matrix-title {
   font-size: 0.6rem;
-  letter-spacing: 0.15em;
-  color: rgba(0, 255, 100, 0.4);
-  margin-bottom: 0.5rem;
-  text-align: center;
+  letter-spacing: 0.2em;
+  color: rgba(255, 255, 255, 0.3);
+  margin-bottom: 1rem;
+  text-align: left;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  padding-bottom: 0.5rem;
 }
 
-.q-grid {
+.q-matrix {
   display: grid;
-  gap: 2px;
 }
 
-.q-cell {
-  width: 28px;
-  height: 28px;
+.matrix-cell {
+  width: 32px;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 0.5rem;
   position: relative;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.01);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  transition: all 0.3s ease;
 }
 
-.q-cell.agent {
-  box-shadow: 0 0 10px rgba(0, 255, 255, 0.8), inset 0 0 10px rgba(0, 255, 255, 0.3);
+.matrix-cell.obstacle {
+  background: rgba(255, 255, 255, 0.02);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.3);
 }
 
-.q-cell.goal {
-  box-shadow: 0 0 10px rgba(255, 215, 0, 0.8), inset 0 0 10px rgba(255, 215, 0, 0.3);
+/* Agent & Goal Beacons */
+.agent-beacon,
+.goal-beacon {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
 }
 
-.q-cell.obstacle {
-  background: rgba(255, 50, 50, 0.3);
-  border-color: rgba(255, 50, 50, 0.5);
+.agent-beacon {
+  background: #ffffff;
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+  animation: pulse-beacon 1.5s infinite;
 }
 
-.q-arrow {
-  font-size: 0.7rem;
-  color: rgba(255, 255, 255, 0.8);
+.goal-beacon {
+  background: #ffffff;
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
+  animation: pulse-beacon 2s infinite;
+}
+
+@keyframes pulse-beacon {
+  0% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+
+  50% {
+    transform: scale(1.4);
+    opacity: 0.4;
+  }
+
+  100% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+}
+
+.matrix-spark {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: bold;
 }
 
 /* Training Metrics - Bottom Left */
@@ -83,65 +119,59 @@
   bottom: 2rem;
   left: 2rem;
   z-index: 20;
-  font-size: 0.7rem;
-  color: rgba(255, 255, 255, 0.7);
-  max-height: 200px;
-  overflow-y: auto;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-
-.learning-metrics::-webkit-scrollbar {
-  display: none;
-}
-
-.metrics-title {
-  font-size: 0.6rem;
-  letter-spacing: 0.15em;
-  color: rgba(255, 255, 255, 0.4);
-  margin-bottom: 0.75rem;
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.6);
+  background: rgba(0, 0, 0, 0.6);
+  padding: 1.5rem;
+  border-left: 2px solid rgba(0, 255, 204, 0.4);
+  backdrop-filter: blur(4px);
 }
 
 .metric-entry {
-  margin: 0.35rem 0;
+  margin: 0.5rem 0;
   font-family: 'IBM Plex Mono', monospace;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.1em;
+  display: flex;
+  justify-content: space-between;
+  width: 240px;
 }
 
 .metric-value {
-  color: rgba(255, 255, 255, 0.9);
+  color: #fff;
+  font-weight: bold;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
 }
 
 .metric-value.improving {
-  color: rgba(200, 255, 200, 1);
+  color: #00ffcc;
+  text-shadow: 0 0 15px rgba(0, 255, 204, 0.5);
 }
 
 .metric-value.warning {
-  color: rgba(255, 200, 150, 0.9);
+  color: #ff9900;
 }
 
-/* Mobile */
+/* Mobile Adjustments */
 @media (max-width: 768px) {
   .learning-metrics {
-    bottom: 1.5rem;
+    bottom: 1rem;
     left: 1rem;
-    font-size: 0.6rem;
-    max-height: 120px;
+    padding: 1rem;
+  }
+
+  .metric-entry {
+    width: 200px;
+    font-size: 0.65rem;
   }
 
   .learning-grid-container {
-    bottom: 1.5rem;
+    bottom: 1rem;
     right: 1rem;
     padding: 0.75rem;
   }
 
-  .q-cell {
-    width: 22px;
-    height: 22px;
-  }
-
-  .metrics-title,
-  .grid-title {
-    font-size: 0.5rem;
+  .matrix-cell {
+    width: 26px;
+    height: 26px;
   }
 }
