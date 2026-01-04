@@ -33,7 +33,7 @@ const MEDIA_LINKS: TerminalMediaLink[] = [
 const MENU_ITEMS: TerminalMenuItem[] = [
   { command: 'commands', label: 'View Commands' },
   { command: 'archives', label: 'Access Archives' },
-  { command: 'data', label: '_DATA_' },
+  { command: 'data', label: 'DATA' },
   { command: 'scan', label: 'Scan Frequencies' },
   { command: 'broadcast', label: 'Operator Broadcast' },
   { command: 'clear', label: 'Clear Terminal' },
