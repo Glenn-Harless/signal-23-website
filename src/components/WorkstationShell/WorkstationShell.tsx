@@ -15,7 +15,7 @@ export const WorkstationShell: React.FC<WorkstationShellProps> = ({ children, is
     const [hexData, setHexData] = useState('0x0000');
 
     // Add page-specific detection for layout containment
-    const isLanding = location.pathname === '/' || location.pathname === '/testblandingpage' || location.pathname === '/terminal';
+    const isLanding = location.pathname === '/' || location.pathname === '/testblandingpage' || location.pathname === '/terminal' || location.pathname === '/resonance' || location.pathname === '/tangle';
 
     // Update telemetry data
     useEffect(() => {
