@@ -1,0 +1,147 @@
+.learning-container {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  background: #000;
+  overflow: hidden;
+  font-family: 'IBM Plex Mono', monospace;
+}
+
+.learning-canvas-container {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* Subtle vignette */
+.learning-container::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at center, transparent 0%, rgba(0, 0, 0, 0.5) 100%);
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* Q-Learning Grid World - Bottom Right */
+.learning-grid-container {
+  position: absolute;
+  bottom: 2rem;
+  right: 2rem;
+  z-index: 20;
+  background: rgba(0, 0, 0, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 1rem;
+}
+
+.grid-title {
+  font-size: 0.6rem;
+  letter-spacing: 0.15em;
+  color: rgba(0, 255, 100, 0.4);
+  margin-bottom: 0.5rem;
+  text-align: center;
+}
+
+.q-grid {
+  display: grid;
+  gap: 2px;
+}
+
+.q-cell {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.5rem;
+  position: relative;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.q-cell.agent {
+  box-shadow: 0 0 10px rgba(0, 255, 255, 0.8), inset 0 0 10px rgba(0, 255, 255, 0.3);
+}
+
+.q-cell.goal {
+  box-shadow: 0 0 10px rgba(255, 215, 0, 0.8), inset 0 0 10px rgba(255, 215, 0, 0.3);
+}
+
+.q-cell.obstacle {
+  background: rgba(255, 50, 50, 0.3);
+  border-color: rgba(255, 50, 50, 0.5);
+}
+
+.q-arrow {
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+/* Training Metrics - Bottom Left */
+.learning-metrics {
+  position: absolute;
+  bottom: 2rem;
+  left: 2rem;
+  z-index: 20;
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.7);
+  max-height: 200px;
+  overflow-y: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.learning-metrics::-webkit-scrollbar {
+  display: none;
+}
+
+.metrics-title {
+  font-size: 0.6rem;
+  letter-spacing: 0.15em;
+  color: rgba(255, 255, 255, 0.4);
+  margin-bottom: 0.75rem;
+}
+
+.metric-entry {
+  margin: 0.35rem 0;
+  font-family: 'IBM Plex Mono', monospace;
+  letter-spacing: 0.05em;
+}
+
+.metric-value {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.metric-value.improving {
+  color: rgba(200, 255, 200, 1);
+}
+
+.metric-value.warning {
+  color: rgba(255, 200, 150, 0.9);
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .learning-metrics {
+    bottom: 1.5rem;
+    left: 1rem;
+    font-size: 0.6rem;
+    max-height: 120px;
+  }
+
+  .learning-grid-container {
+    bottom: 1.5rem;
+    right: 1rem;
+    padding: 0.75rem;
+  }
+
+  .q-cell {
+    width: 22px;
+    height: 22px;
+  }
+
+  .metrics-title,
+  .grid-title {
+    font-size: 0.5rem;
+  }
+}

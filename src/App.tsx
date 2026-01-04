@@ -14,6 +14,7 @@ import { SuccessPage } from './components/Instruments/SuccessPage';
 import { WorkstationShell } from './components/WorkstationShell/WorkstationShell';
 import { TestLandingPage } from './components/TestLandingPage/TestLandingPage';
 import { Tangle } from './components/Tangle/Tangle';
+import { Learning } from './components/Learning/Learning';
 
 // Home component (previously App content)
 interface HomeProps {
@@ -150,6 +151,7 @@ const App = () => {
           <Route path="/testblandingpage" element={<Navigate to="/resonance" replace />} />
           <Route path="/resonance" element={<TestLandingPage />} />
           <Route path="/tangle" element={<Tangle />} />
+          <Route path="/learning" element={<Learning />} />
         </Routes>
       </WorkstationShell>
     </BrowserRouter>
