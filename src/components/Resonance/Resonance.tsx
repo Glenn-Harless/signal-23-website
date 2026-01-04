@@ -20,6 +20,7 @@ export const Resonance: React.FC = () => {
     const mountRef = useRef<HTMLDivElement>(null);
     const [logs, setLogs] = useState<string[]>([]);
     const logContainerRef = useRef<HTMLDivElement>(null);
+    const [showText, setShowText] = useState(false);
 
     // Neural Network Simulation Logic
     useEffect(() => {
@@ -35,6 +36,33 @@ export const Resonance: React.FC = () => {
         renderer.setSize(width, height);
         renderer.setPixelRatio(window.devicePixelRatio);
         mountRef.current.appendChild(renderer.domElement);
+
+        // Helper to create a circular glow texture
+        const createCircleTexture = () => {
+            const size = 64;
+            const canvas = document.createElement('canvas');
+            canvas.width = size;
+            canvas.height = size;
+            const context = canvas.getContext('2d');
+            if (!context) return null;
+
+            context.beginPath();
+            context.arc(size / 2, size / 2, size / 2, 0, Math.PI * 2);
+            const gradient = context.createRadialGradient(
+                size / 2, size / 2, 0,
+                size / 2, size / 2, size / 2
+            );
+            gradient.addColorStop(0, 'rgba(255, 255, 255, 1)');
+            gradient.addColorStop(0.2, 'rgba(255, 255, 255, 0.8)');
+            gradient.addColorStop(0.4, 'rgba(255, 255, 255, 0.2)');
+            gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+            context.fillStyle = gradient;
+            context.fill();
+
+            return new THREE.CanvasTexture(canvas);
+        };
+
+        const circleTexture = createCircleTexture();
 
         // Hyperbolic Surface Parameters
         const hyperbolicZ = (r: number, theta: number, time: number) => {
@@ -59,7 +87,7 @@ export const Resonance: React.FC = () => {
         // --- Persistent Grid Structures ---
         const gridGroup = new THREE.Group();
         scene.add(gridGroup);
-        const gridMaterial = new THREE.LineBasicMaterial({ color: 0x333333, transparent: true, opacity: 0.3 });
+        const gridMaterial = new THREE.LineBasicMaterial({ color: 0x444444, transparent: true, opacity: 0.4 });
 
         const rings = 8;
         const segments = 64;
@@ -124,7 +152,15 @@ export const Resonance: React.FC = () => {
 
         const pointGeom = new THREE.BufferGeometry();
         pointGeom.setAttribute('position', new THREE.BufferAttribute(new Float32Array(numPoints * 3), 3));
-        const pointMaterial = new THREE.PointsMaterial({ color: 0xffffff, size: 0.25, transparent: true, opacity: 0.8 });
+        const pointMaterial = new THREE.PointsMaterial({
+            color: 0xffffff,
+            size: 1.2,
+            transparent: true,
+            opacity: 0.8,
+            map: circleTexture,
+            alphaTest: 0.01,
+            blending: THREE.AdditiveBlending
+        });
         const nodes = new THREE.Points(pointGeom, pointMaterial);
         scene.add(nodes);
 
@@ -132,7 +168,7 @@ export const Resonance: React.FC = () => {
         const maxSynapses = 400;
         const lineGeom = new THREE.BufferGeometry();
         lineGeom.setAttribute('position', new THREE.BufferAttribute(new Float32Array(maxSynapses * 2 * 3), 3));
-        const lineMaterial = new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.15 });
+        const lineMaterial = new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.4 });
         const synapses = new THREE.LineSegments(lineGeom, lineMaterial);
         scene.add(synapses);
 
@@ -201,8 +237,8 @@ export const Resonance: React.FC = () => {
             camera.position.z = 50 + Math.sin(time * 0.2) * 15;
             camera.lookAt(0, 0, 0);
 
-            pointMaterial.opacity = 0.6 + Math.sin(time * 1.5) * 0.2;
-            lineMaterial.opacity = 0.1 + Math.sin(time * 0.8) * 0.05;
+            pointMaterial.opacity = 0.8 + Math.sin(time * 1.5) * 0.15;
+            lineMaterial.opacity = 0.25 + Math.sin(time * 0.8) * 0.15;
 
             renderer.render(scene, camera);
         };
@@ -244,27 +280,21 @@ export const Resonance: React.FC = () => {
     }, [logs]);
 
     return (
-        <div className="resonance-container">
+        <div className="resonance-container" onClick={() => setShowText(prev => !prev)}>
             <div ref={mountRef} className="nn-canvas" />
 
-            <div className="test-hud">
-                {/* Right Edge Side Title */}
-                {/* 
-                <div className="hud-side-title">
-                    <h1 className="test-main-title">SIGNAL-3</h1>
-                </div>
-                */}
-
-                {/* Bottom-Right Logs */}
-                <div className="test-hud-bottom">
-                    <div className="learning-logs" ref={logContainerRef}>
-                        {logs.map((log, i) => (
-                            <div key={i} className="log-entry">{log}</div>
-                        ))}
+            {showText && (
+                <div className="test-hud">
+                    {/* Bottom-Right Logs */}
+                    <div className="test-hud-bottom">
+                        <div className="learning-logs" ref={logContainerRef}>
+                            {logs.map((log, i) => (
+                                <div key={i} className="log-entry">{log}</div>
+                            ))}
+                        </div>
                     </div>
                 </div>
-            </div>
-
+            )}
         </div>
     );
 };
