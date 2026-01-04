@@ -185,8 +185,9 @@ export const Resonance: React.FC = () => {
         if (mountRef.current) resizeObserver.observe(mountRef.current);
 
         // Animation
+        let animationId: number;
         const animate = () => {
-            const frameId = requestAnimationFrame(animate);
+            animationId = requestAnimationFrame(animate);
             const time = Date.now() * 0.001;
 
             updateGrid(time);
@@ -245,14 +246,24 @@ export const Resonance: React.FC = () => {
         animate();
 
         return () => {
+            cancelAnimationFrame(animationId);
             resizeObserver.disconnect();
-            if (mountRef.current) mountRef.current.removeChild(renderer.domElement);
 
+            // Dispose texture
+            if (circleTexture) circleTexture.dispose();
+
+            // Dispose all scene objects
             scene.traverse((child) => {
                 if (child instanceof THREE.Mesh || child instanceof THREE.Points || child instanceof THREE.Line || child instanceof THREE.LineSegments) {
                     disposeObject(child);
                 }
             });
+
+            scene.clear();
+
+            if (mountRef.current && renderer.domElement) {
+                mountRef.current.removeChild(renderer.domElement);
+            }
             renderer.dispose();
         };
     }, []);
