@@ -27,7 +27,7 @@ const MEDIA_LINKS: TerminalMediaLink[] = [
   { name: 'SOUNDCLOUD', url: 'https://soundcloud.com/signal-23' },
   { name: 'BANDCAMP', url: 'https://signal-23.bandcamp.com/' },
   { name: 'INSTAGRAM', url: 'https://www.instagram.com/signal23music/' },
-  { name: 'HYPERFOLLOW // PILLARS', url: 'https://distrokid.com/hyperfollow/signal23/pillars' },
+  { name: 'HYPERFOLLOW // RESET', url: 'https://distrokid.com/hyperfollow/signal23/reset' },
 ];
 
 const MENU_ITEMS: TerminalMenuItem[] = [
@@ -71,7 +71,7 @@ export function useTerminal({ isMobile }: UseTerminalOptions): UseTerminalResult
   const [isInitialized, setIsInitialized] = useState(false);
   const [history, setHistory] = useState<string[]>([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
-  const [visualizerData, setVisualizerData] = useState<number[]>(new Array(32).fill(0));
+  const [visualizerData, setVisualizerData] = useState<number[]>(new Array(64).fill(0));
   const [isFlashing, setIsFlashing] = useState(false);
   const viewportHeight = useViewportHeight();
   const [currentFrequency, setCurrentFrequency] = useState<string | null>(null);
@@ -282,8 +282,8 @@ export function useTerminal({ isMobile }: UseTerminalOptions): UseTerminalResult
         { type: 'warning', content: 'OPERATOR CREDENTIALS NOT FOUND' },
         { type: 'warning', content: 'SOME PERMISSIONS RESTRICTED' },
         { type: 'separator', content: '---------------------------' },
-        { type: 'system', content: 'AUX RELAY UNLOCKED: PILLARS SIGNAL' },
-        { type: 'link', content: ' HYPERFOLLOW // PILLARS' },
+        { type: 'system', content: 'AUX RELAY UNLOCKED: RESET SIGNAL' },
+        { type: 'link', content: ' HYPERFOLLOW // RESET' },
       ],
       clear: async () => {
         stopScan();

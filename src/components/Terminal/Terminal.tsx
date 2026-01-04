@@ -157,11 +157,11 @@ export const Terminal: React.FC<TerminalProps> = ({ isMobile }) => {
       </div>
 
       {isMobile && (
-        <div className="fixed bottom-0 left-0 right-0 z-60 terminal-mobile-tray border-t border-green-900/40"
+        <div className="fixed bottom-0 left-0 right-0 z-50 terminal-mobile-tray border-t border-green-900/40"
           style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
         >
           {isScanning && (
-            <div className="visualizer-container-mobile w-full border-b border-green-900/20">
+            <div className="visualizer-container-mobile border-b border-green-900/20">
               <HeatmapVisualizer data={visualizerData} isMobile={true} />
             </div>
           )}
