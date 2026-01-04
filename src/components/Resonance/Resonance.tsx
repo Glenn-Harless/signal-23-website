@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
-import './TestLandingPage.css';
+import './Resonance.css';
 
 const LOG_MESSAGES = [
     "INITIALIZING NEURAL FABRIC...",
@@ -16,7 +16,7 @@ const LOG_MESSAGES = [
     "DATA_STREAM_SYNCHRONIZED",
 ];
 
-export const TestLandingPage: React.FC = () => {
+export const Resonance: React.FC = () => {
     const mountRef = useRef<HTMLDivElement>(null);
     const [logs, setLogs] = useState<string[]>([]);
     const logContainerRef = useRef<HTMLDivElement>(null);
@@ -244,14 +244,16 @@ export const TestLandingPage: React.FC = () => {
     }, [logs]);
 
     return (
-        <div className="test-landing-container">
+        <div className="resonance-container">
             <div ref={mountRef} className="nn-canvas" />
 
             <div className="test-hud">
                 {/* Right Edge Side Title */}
+                {/* 
                 <div className="hud-side-title">
                     <h1 className="test-main-title">SIGNAL-3</h1>
                 </div>
+                */}
 
                 {/* Bottom-Right Logs */}
                 <div className="test-hud-bottom">

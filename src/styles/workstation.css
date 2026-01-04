@@ -33,7 +33,7 @@
     padding: 1.5rem;
     z-index: 100000;
     pointer-events: none;
-    font-family: 'Neo Brutalist', sans-serif;
+    font-family: 'IBM Plex Mono', monospace;
     text-transform: uppercase;
     letter-spacing: 0.3em;
     font-size: 0.8rem;
@@ -52,10 +52,10 @@
 .ws-nav {
     display: flex;
     gap: 2rem;
-    font-family: 'Neo Brutalist', sans-serif;
+    font-family: 'IBM Plex Mono', monospace;
     text-transform: uppercase;
     letter-spacing: 0.3em;
-    font-size: 0.7rem;
+    font-size: 0.65rem;
 }
 
 .ws-nav-item {

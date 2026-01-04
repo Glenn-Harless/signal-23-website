@@ -12,7 +12,7 @@ import { useAudio } from './hooks/useAudio';
 import { InstrumentsPage } from './components/Instruments/InstrumentsPage';
 import { SuccessPage } from './components/Instruments/SuccessPage';
 import { WorkstationShell } from './components/WorkstationShell/WorkstationShell';
-import { TestLandingPage } from './components/TestLandingPage/TestLandingPage';
+import { Resonance } from './components/Resonance/Resonance';
 import { Tangle } from './components/Tangle/Tangle';
 import { Learning } from './components/Learning/Learning';
 
@@ -40,9 +40,16 @@ const Home: React.FC<HomeProps> = ({ isMobile }) => {
     }
   ];
 
-  // Handle portal click to navigate to terminal
+  // Handle portal click with random chance for easter eggs
   const handlePortalClick = () => {
-    navigate('/terminal');
+    const chance = Math.random();
+    if (chance < 0.20) {
+      const easterEggs = ['/resonance', '/tangle', '/learning'];
+      const randomEgg = easterEggs[Math.floor(Math.random() * easterEggs.length)];
+      navigate(randomEgg);
+    } else {
+      navigate('/terminal');
+    }
   };
 
   return (
@@ -149,7 +156,7 @@ const App = () => {
           <Route path="/instruments" element={<InstrumentsPage />} />
           <Route path="/instruments/success" element={<SuccessPage />} />
           <Route path="/testblandingpage" element={<Navigate to="/resonance" replace />} />
-          <Route path="/resonance" element={<TestLandingPage />} />
+          <Route path="/resonance" element={<Resonance />} />
           <Route path="/tangle" element={<Tangle />} />
           <Route path="/learning" element={<Learning />} />
         </Routes>
