@@ -9,14 +9,14 @@ interface TerminalProps {
 }
 
 const TERMINAL_CLASS_BY_TYPE: Record<TerminalMessage['type'], string> = {
-  command: 'text-blue-400 font-bold',
-  error: 'text-red-500 font-bold',
-  warning: 'text-yellow-500 font-bold',
-  separator: 'text-green-700 opacity-50',
-  link: 'text-green-400 cursor-pointer hover:text-white underline decoration-green-800 underline-offset-4 block transition-colors duration-200',
+  command: 'text-green-300 font-bold',
+  error: 'text-red-600 font-bold',
+  warning: 'text-yellow-600 font-bold',
+  separator: 'text-green-900 opacity-60',
+  link: 'text-green-400 cursor-pointer hover:text-white underline decoration-green-900 underline-offset-4 block transition-colors duration-200',
   typing: 'text-green-500 opacity-80 italic',
-  system: 'text-green-500 font-semibold',
-  output: 'text-green-400',
+  system: 'text-green-400 font-semibold',
+  output: 'text-green-500',
   prompt: 'text-green-500',
 };
 
@@ -91,6 +91,7 @@ export const Terminal: React.FC<TerminalProps> = ({ isMobile }) => {
     output,
     visualizerData,
     isScanning,
+    isFlashing,
     handleSubmit: baseHandleSubmit,
     handleLinkClick,
     handleKeyDown,
@@ -116,34 +117,20 @@ export const Terminal: React.FC<TerminalProps> = ({ isMobile }) => {
   }, []);
 
   return (
-    <div className="relative h-full w-full bg-black overflow-hidden select-none">
+    <div className={`relative h-full w-full bg-[#000b00] overflow-hidden select-none transition-colors duration-200 ${isFlashing ? 'bg-red-900/30' : ''}`}>
+      <div className="terminal-scanlines" />
+      <div className="terminal-noise" />
       <div
-        className="terminal-container"
+        className={`terminal-container ${isFlashing ? 'terminal-flash' : ''}`}
         onClick={() => !isMobile && inputRef.current?.focus()}
         onKeyDown={handleKeyDown}
         ref={terminalRef}
         tabIndex={0}
       >
-        <div className="terminal-scanlines" />
-
-        <header className="terminal-header">
-          <div className="flex items-center">
-            <div className="terminal-status-dot" />
-            <span className="truncate">B.A.N.I.S // STATION:23</span>
-          </div>
-          <div className="hidden md:flex items-center gap-6 opacity-80">
-            <span>{timestamp}</span>
-            <span className="text-green-500/50">ENC:AES-256</span>
-            <span>NODE:0x{Math.floor(Math.random() * 0xFFFF).toString(16).toUpperCase().padStart(4, '0')}</span>
-          </div>
-          <div className="font-bold text-green-400">
-            SECURE
-          </div>
-        </header>
 
         <div
           ref={outputRef}
-          className="terminal-output flex flex-col"
+          className={`terminal-output flex flex-col ${isScanning && isMobile ? 'scanning-active' : ''}`}
         >
           <div className="flex-1">
             {output.map((message, index) => (
@@ -162,7 +149,7 @@ export const Terminal: React.FC<TerminalProps> = ({ isMobile }) => {
           </div>
         </div>
 
-        {isScanning && (
+        {isScanning && !isMobile && (
           <div className="visualizer-container z-50">
             <HeatmapVisualizer data={visualizerData} isMobile={isMobile} />
           </div>
@@ -170,19 +157,25 @@ export const Terminal: React.FC<TerminalProps> = ({ isMobile }) => {
       </div>
 
       {isMobile && (
-        <div
-          className="absolute bottom-[52px] left-0 right-0 z-60 bg-black/95 backdrop-blur-md p-4 pb-12 grid grid-cols-2 gap-3 border-t border-green-500/20"
-          style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 1.5rem)' }}
+        <div className="fixed bottom-0 left-0 right-0 z-60 terminal-mobile-tray border-t border-green-900/40"
+          style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
         >
-          {menuItems.map((item) => (
-            <button
-              key={item.command}
-              className="terminal-command-btn"
-              onClick={() => handleSubmit(item.command)}
-            >
-              {item.label}
-            </button>
-          ))}
+          {isScanning && (
+            <div className="visualizer-container-mobile w-full border-b border-green-900/20">
+              <HeatmapVisualizer data={visualizerData} isMobile={true} />
+            </div>
+          )}
+          <div className="p-4 grid grid-cols-2 gap-3">
+            {menuItems.map((item) => (
+              <button
+                key={item.command}
+                className="terminal-command-btn"
+                onClick={() => handleSubmit(item.command)}
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
         </div>
       )}
     </div>

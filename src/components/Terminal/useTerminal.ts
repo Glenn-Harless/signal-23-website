@@ -33,7 +33,7 @@ const MEDIA_LINKS: TerminalMediaLink[] = [
 const MENU_ITEMS: TerminalMenuItem[] = [
   { command: 'commands', label: 'View Commands' },
   { command: 'archives', label: 'Access Archives' },
-  { command: 'racks', label: 'Instrument Racks' },
+  { command: 'data', label: '_DATA_' },
   { command: 'scan', label: 'Scan Frequencies' },
   { command: 'broadcast', label: 'Operator Broadcast' },
   { command: 'clear', label: 'Clear Terminal' },
@@ -57,6 +57,7 @@ interface UseTerminalResult {
   inputRef: React.RefObject<HTMLInputElement>;
   visualizerData: number[];
   isScanning: boolean;
+  isFlashing: boolean;
 }
 
 interface UseTerminalOptions {
@@ -71,6 +72,7 @@ export function useTerminal({ isMobile }: UseTerminalOptions): UseTerminalResult
   const [history, setHistory] = useState<string[]>([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
   const [visualizerData, setVisualizerData] = useState<number[]>(new Array(32).fill(0));
+  const [isFlashing, setIsFlashing] = useState(false);
   const viewportHeight = useViewportHeight();
   const [currentFrequency, setCurrentFrequency] = useState<string | null>(null);
   const { audioElement, isPlaying: isHomePlaying } = useAudio();
@@ -257,7 +259,7 @@ export function useTerminal({ isMobile }: UseTerminalOptions): UseTerminalResult
         { type: 'separator', content: '————————————————————————————' },
         { type: 'output', content: 'COMMANDS      - Display this directory' },
         { type: 'output', content: 'ARCHIVES      - Access media archives' },
-        { type: 'output', content: 'RACKS         - List available instrument racks' },
+        { type: 'output', content: 'DATA          - Access restricted datasets' },
         { type: 'output', content: 'SCAN          - Scan frequencies' },
         { type: 'output', content: 'BROADCAST     - Operator broadcast' },
         { type: 'output', content: 'CLEAR         - Clear terminal buffer' },
@@ -265,18 +267,15 @@ export function useTerminal({ isMobile }: UseTerminalOptions): UseTerminalResult
         { type: 'separator', content: '————————————————————————————' },
       ],
       archives: () => executeArchive(),
-      racks: async () => [
-        { type: 'output', content: 'RETRIEVING INSTRUMENT RACK DATA...' },
-        { type: 'separator', content: '————————————————————————————' },
-        { type: 'output', content: 'ID: arps | ARPEGGIATOR COLLECTION' },
-        { type: 'output', content: '   [SIZE: ~5MB | MACROS: 8 | TAG: /STUDIO/INSTRUMENTS]' },
-        { type: 'output', content: 'ID: audio-fx | AUDIO EFFECT RACKS' },
-        { type: 'output', content: '   [SIZE: ~2MB | MACROS: 8 | TAG: /STUDIO/FX]' },
-        { type: 'output', content: 'ID: bass | BASS INSTRUMENT RACKS' },
-        { type: 'output', content: '   [SIZE: ~3MB | MACROS: 8 | TAG: /STUDIO/INSTRUMENTS]' },
-        { type: 'separator', content: '————————————————————————————' },
-        { type: 'link', content: ' ACCESS LEDGER' },
-      ],
+      data: async () => {
+        setIsFlashing(true);
+        setTimeout(() => setIsFlashing(false), 200);
+        return [
+          { type: 'error', content: 'ACCESS DENIED: ENCRYPTION LEVEL INSUFFICIENT' },
+          { type: 'error', content: 'SYSTEM LOCKDOWN INITIATED...' },
+          { type: 'error', content: 'ERROR: CRITICAL SECURITY BREACH PREVENTED' },
+        ];
+      },
       scan: () => executeScan(),
       broadcast: async () => [
         { type: 'warning', content: 'PHYSICAL ACCESS KEY NOT DETECTED' },
@@ -452,5 +451,6 @@ export function useTerminal({ isMobile }: UseTerminalOptions): UseTerminalResult
     inputRef,
     visualizerData,
     isScanning: !!currentFrequency,
+    isFlashing,
   };
 }

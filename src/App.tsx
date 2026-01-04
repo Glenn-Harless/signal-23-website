@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useNavigate, Navigate } from 'react-router-dom';
 import { Terminal } from './components/Terminal/Terminal';
 import { Portal } from './components/Portal/Portal';
 import { AudioPlayer } from './components/Audio/AudioPlayer';
@@ -146,7 +146,8 @@ const App = () => {
           <Route path="/terminal" element={<Terminal isMobile={isMobile} />} />
           <Route path="/instruments" element={<InstrumentsPage />} />
           <Route path="/instruments/success" element={<SuccessPage />} />
-          <Route path="/testblandingpage" element={<TestLandingPage />} />
+          <Route path="/testblandingpage" element={<Navigate to="/resonance" replace />} />
+          <Route path="/resonance" element={<TestLandingPage />} />
         </Routes>
       </WorkstationShell>
     </BrowserRouter>

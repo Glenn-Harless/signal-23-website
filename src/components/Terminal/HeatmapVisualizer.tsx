@@ -13,23 +13,11 @@ const HeatmapVisualizer: React.FC<HeatmapVisualizerProps> = ({ data, isMobile })
     const getColor = (value: number) => {
         // value is 0-100
         const v = value / 100;
-
-        // Simple 3-stop gradient
-        if (v < 0.5) {
-            // Interpolate Purple (#240b36) to Teal (#25858e)
-            const t = v * 2;
-            const r = Math.round(36 * (1 - t) + 37 * t);
-            const g = Math.round(11 * (1 - t) + 133 * t);
-            const b = Math.round(54 * (1 - t) + 142 * t);
-            return `rgb(${r},${g},${b})`;
-        } else {
-            // Interpolate Teal (#25858e) to Yellow (#fde725)
-            const t = (v - 0.5) * 2;
-            const r = Math.round(37 * (1 - t) + 253 * t);
-            const g = Math.round(133 * (1 - t) + 231 * t);
-            const b = Math.round(142 * (1 - t) + 37 * t);
-            return `rgb(${r},${g},${b})`;
-        }
+        // Monochromatic Cold War Green Scale
+        const r = Math.round(0);
+        const g = Math.round(20 + 235 * v);
+        const b = Math.round(0);
+        return `rgb(${r},${g},${b})`;
     };
 
     useEffect(() => {
@@ -53,7 +41,7 @@ const HeatmapVisualizer: React.FC<HeatmapVisualizerProps> = ({ data, isMobile })
                 newBuffer.height = canvas.height;
                 const bCtx = newBuffer.getContext('2d', { alpha: false });
                 if (bCtx) {
-                    bCtx.fillStyle = '#0a001a';
+                    bCtx.fillStyle = '#000b00';
                     bCtx.fillRect(0, 0, newBuffer.width, newBuffer.height);
                     // Copy old content if possible
                     if (bufferCanvasRef.current) {

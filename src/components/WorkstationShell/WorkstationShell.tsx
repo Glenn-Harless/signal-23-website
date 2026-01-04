@@ -35,10 +35,8 @@ export const WorkstationShell: React.FC<WorkstationShellProps> = ({ children, is
     }, [location.pathname]);
 
     const navLinks = [
-        { label: 'test-a', path: '/' },
-        { label: 'test-b', path: '/testblandingpage' },
-        { label: 'CMD', path: '/terminal' },
-        { label: 'DATA', path: '/instruments' },
+        { label: 'PORTAL', path: '/' },
+        { label: 'TERMINAL', path: '/terminal' },
     ];
 
     return (
@@ -46,56 +44,17 @@ export const WorkstationShell: React.FC<WorkstationShellProps> = ({ children, is
             <div className="ws-scanlines" />
             <div className="ws-noise" />
 
-            {/* Persistent Telemetry HUD */}
-            <div className={`ws-telemetry-frame ${isLanding && location.pathname === '/' ? 'minimal' : ''}`}>
-                <header className="ws-telemetry-bar top">
-                    <div className="ws-status-item" style={location.pathname === '/' ? { visibility: 'hidden' } : {}}>
-                        <span className="ws-status-label">SYS_AUTH:</span>
-                        <span className="ws-status-value">SIGNAL-23</span>
-                    </div>
-
-                    <nav className="ws-nav">
-                        {navLinks.map((link) => (
-                            <Link
-                                key={link.path}
-                                to={link.path}
-                                className={`ws-nav-item ${location.pathname === link.path ? 'active' : ''}`}
-                            >
-                                {link.label}
-                            </Link>
-                        ))}
-                    </nav>
-
-                    <div className="ws-status-item extra" style={location.pathname === '/' ? { visibility: 'hidden' } : {}}>
-                        <span className="ws-status-label">NODE:</span>
-                        <span className="ws-status-value">{hexData}</span>
-                    </div>
-                </header>
-
-                {location.pathname !== '/' && (
-                    <footer className="ws-telemetry-bar bottom">
-                        <div className="ws-status-item">
-                            <span className="ws-status-label">COORD:</span>
-                            <span className="ws-status-value">51.5074° N, 0.1278° W</span>
-                        </div>
-
-                        <div className="ws-status-item">
-                            <span className="ws-status-label">TIME:</span>
-                            <span className="ws-status-value">{timestamp}</span>
-                        </div>
-
-                        <div className="ws-status-item extra">
-                            <span className="ws-status-label">STATUS:</span>
-                            <span className="ws-status-value">BROADCAST_ACTIVE</span>
-                        </div>
-
-                        <div className="ws-status-item">
-                            <span className="ws-status-label">SYNC:</span>
-                            <span className="ws-status-value" style={{ color: 'var(--ws-accent)', opacity: 1 }}>CONNECTED</span>
-                        </div>
-                    </footer>
-                )}
-            </div>
+            <nav className="ws-nav-container">
+                {navLinks.map((link) => (
+                    <Link
+                        key={link.path}
+                        to={link.path}
+                        className={`ws-nav-item ${location.pathname === link.path ? 'active' : ''}`}
+                    >
+                        {link.label}
+                    </Link>
+                ))}
+            </nav>
 
             <div className={`ws-main-container ${isLanding ? 'no-padding ws-reset' : ''}`}>
                 {children}
