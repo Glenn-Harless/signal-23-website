@@ -34,6 +34,81 @@ export const Tangle: React.FC = () => {
   const [quantumState, setQuantumState] = useState(0);
   const [showText, setShowText] = useState(false);
 
+  // Recording state
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordingTime, setRecordingTime] = useState(0);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const chunksRef = useRef<Blob[]>([]);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const recordingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  const startRecording = () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    try {
+      const stream = canvas.captureStream(60);
+      const recorder = new MediaRecorder(stream, {
+        mimeType: 'video/webm;codecs=vp9',
+        videoBitsPerSecond: 8000000
+      });
+
+      chunksRef.current = [];
+
+      recorder.ondataavailable = (e) => {
+        if (e.data.size > 0) {
+          chunksRef.current.push(e.data);
+        }
+      };
+
+      recorder.onstop = () => {
+        const blob = new Blob(chunksRef.current, { type: 'video/webm' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `tangle-${Date.now()}.webm`;
+        a.click();
+        URL.revokeObjectURL(url);
+      };
+
+      mediaRecorderRef.current = recorder;
+      recorder.start(100);
+      setIsRecording(true);
+      setRecordingTime(0);
+
+      recordingIntervalRef.current = setInterval(() => {
+        setRecordingTime(prev => prev + 1);
+      }, 1000);
+    } catch (err) {
+      console.error('Recording failed:', err);
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+      if (recordingIntervalRef.current) {
+        clearInterval(recordingIntervalRef.current);
+      }
+    }
+  };
+
+  const toggleRecording = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (isRecording) {
+      stopRecording();
+    } else {
+      startRecording();
+    }
+  };
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
   // Three.js visualization
   useEffect(() => {
     if (!mountRef.current) return;
@@ -47,6 +122,7 @@ export const Tangle: React.FC = () => {
     renderer.setSize(width, height);
     renderer.setPixelRatio(window.devicePixelRatio);
     mountRef.current.appendChild(renderer.domElement);
+    canvasRef.current = renderer.domElement;
 
     // --- SIGNAL TOPOLOGY (Pure Morphing) ---
     const signalTopology = (x: number, y: number, time: number) => {
@@ -228,6 +304,18 @@ export const Tangle: React.FC = () => {
     }
   }, [logs]);
 
+  // Cleanup recording on unmount
+  useEffect(() => {
+    return () => {
+      if (recordingIntervalRef.current) {
+        clearInterval(recordingIntervalRef.current);
+      }
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+        mediaRecorderRef.current.stop();
+      }
+    };
+  }, []);
+
   return (
     <div className="tangle-container">
       <div
@@ -236,6 +324,18 @@ export const Tangle: React.FC = () => {
         onClick={() => setShowText(prev => !prev)}
         style={{ cursor: 'pointer' }}
       />
+
+      {/* Record Button - Dev only */}
+      {process.env.NODE_ENV !== 'production' && (
+        <button
+          className={`record-button ${isRecording ? 'recording' : ''}`}
+          onClick={toggleRecording}
+          title={isRecording ? 'Stop Recording' : 'Start Recording'}
+        >
+          <span className="record-icon" />
+          {isRecording && <span className="record-time">{formatTime(recordingTime)}</span>}
+        </button>
+      )}
 
       {/* Quantum Channel - Bottom Left */}
       {showText && (
