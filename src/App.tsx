@@ -14,6 +14,8 @@ import { SuccessPage } from './components/Instruments/SuccessPage';
 import { WorkstationShell } from './components/WorkstationShell/WorkstationShell';
 import { Resonance } from './components/Resonance/Resonance';
 import { Growth } from './components/Growth/Growth';
+import { ForbiddingBlocks } from './components/ForbiddingBlocks/ForbiddingBlocks';
+import { Well } from './components/Well/Well';
 import { Tangle } from './components/Tangle/Tangle';
 import { Learning } from './components/Learning/Learning';
 
@@ -45,7 +47,7 @@ const Home: React.FC<HomeProps> = ({ isMobile }) => {
   const handlePortalClick = () => {
     const chance = Math.random();
     if (chance < 0.20) {
-      const easterEggs = ['/resonance', '/tangle', '/learning', '/growth'];
+      const easterEggs = ['/resonance', '/tangle', '/learning', '/growth'] //, '/forbidding'];
       const randomEgg = easterEggs[Math.floor(Math.random() * easterEggs.length)];
       navigate(randomEgg);
     } else {
@@ -159,6 +161,8 @@ const App = () => {
           <Route path="/testblandingpage" element={<Navigate to="/resonance" replace />} />
           <Route path="/resonance" element={<Resonance />} />
           <Route path="/growth" element={<Growth />} />
+          <Route path="/forbidding" element={<ForbiddingBlocks />} />
+          <Route path="/well" element={<Well />} />
           <Route path="/tangle" element={<Tangle />} />
           <Route path="/learning" element={<Learning />} />
         </Routes>
