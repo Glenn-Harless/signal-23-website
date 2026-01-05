@@ -133,7 +133,7 @@ export function useTerminal({ isMobile }: UseTerminalOptions): UseTerminalResult
     async (message: TerminalMessage) => {
       if (message.type === 'warning' || message.type === 'separator' || message.type === 'typing') {
         const index = await appendPlaceholder({ type: message.type, content: '' });
-        const delay = message.type === 'warning' ? 50 : message.type === 'separator' ? 15 : 5;
+        const delay = message.type === 'warning' ? 15 : message.type === 'separator' ? 5 : 3;
 
         for (let i = 0; i <= message.content.length; i += 1) {
           const charDelay = message.type === 'warning' ? Math.random() * delay * 2 : delay;
@@ -148,7 +148,7 @@ export function useTerminal({ isMobile }: UseTerminalOptions): UseTerminalResult
           updateMessageAt(index, (existing) => ({ ...existing, content }));
         }
 
-        const pause = message.type === 'warning' ? 400 : message.type === 'separator' ? 300 : 100;
+        const pause = message.type === 'warning' ? 150 : message.type === 'separator' ? 100 : 50;
         await wait(pause);
         return;
       }
@@ -324,12 +324,26 @@ export function useTerminal({ isMobile }: UseTerminalOptions): UseTerminalResult
     }
     hasInitialized.current = true;
 
+    const hasSeenIntro = sessionStorage.getItem('terminal-intro-seen');
+
+    if (hasSeenIntro) {
+      // Skip animation on repeat visits this session
+      setOutput([...INITIAL_MESSAGES, INITIAL_PROMPT]);
+      setIsInitialized(true);
+      setTimeout(() => {
+        executeCommand('commands');
+      }, 100);
+      return;
+    }
+
+    // First visit this session - show animation
     for (const message of INITIAL_MESSAGES) {
       // eslint-disable-next-line no-await-in-loop
       await typeMessage(message);
     }
     appendPrompt();
     setIsInitialized(true);
+    sessionStorage.setItem('terminal-intro-seen', 'true');
 
     // Auto execute commands listing
     setTimeout(() => {
