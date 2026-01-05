@@ -170,10 +170,6 @@ export function useTerminal({ isMobile }: UseTerminalOptions): UseTerminalResult
     setInput('');
   }, []);
 
-  const exitTerminal = useCallback(() => {
-    navigate('/', { state: { isMobile } });
-  }, [isMobile, navigate]);
-
   const stopScan = useCallback(() => {
     audioStreamer.stop();
     setCurrentFrequency(null);
@@ -263,7 +259,6 @@ export function useTerminal({ isMobile }: UseTerminalOptions): UseTerminalResult
         { type: 'output', content: 'SCAN          - Scan frequencies' },
         { type: 'output', content: 'BROADCAST     - Operator broadcast' },
         { type: 'output', content: 'CLEAR         - Clear terminal buffer' },
-        { type: 'output', content: 'EXIT          - Terminate connection' },
         { type: 'separator', content: '————————————————————————————' },
       ],
       archives: () => executeArchive(),
@@ -291,7 +286,7 @@ export function useTerminal({ isMobile }: UseTerminalOptions): UseTerminalResult
         return [];
       },
     }),
-    [executeArchive, executeScan, exitTerminal, resetTerminal, stopScan],
+    [executeArchive, executeScan, resetTerminal, stopScan],
   );
 
   const executeCommand = useCallback(
