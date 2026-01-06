@@ -18,6 +18,7 @@ import { ForbiddingBlocks } from './components/ForbiddingBlocks/ForbiddingBlocks
 import { Well } from './components/Well/Well';
 import { Tangle } from './components/Tangle/Tangle';
 import { Learning } from './components/Learning/Learning';
+import { Terms } from './components/Terms/Terms';
 
 // Home component (previously App content)
 interface HomeProps {
@@ -165,6 +166,7 @@ const App = () => {
           <Route path="/well" element={<Well />} />
           <Route path="/tangle" element={<Tangle />} />
           <Route path="/learning" element={<Learning />} />
+          <Route path="/terms" element={<Terms />} />
         </Routes>
       </WorkstationShell>
     </BrowserRouter>
