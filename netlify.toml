@@ -3,6 +3,11 @@
   command = "npm run build"
   functions = "netlify/functions"
 
+[dev]
+  command = "npm start"
+  targetPort = 8080
+  port = 8888
+
 [build.environment]
   NODE_VERSION = "18"
 
