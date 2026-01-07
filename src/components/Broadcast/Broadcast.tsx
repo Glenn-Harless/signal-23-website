@@ -102,6 +102,16 @@ const Broadcast: React.FC = () => {
             const baseAberration = isMobileRef.current ? 0.02 : 0.005;
             const freqAberration = isMobileRef.current ? 0.08 : 0.02;
 
+            // Update Tower pulse
+            tower.traverse((child) => {
+                if (child instanceof THREE.Mesh) {
+                    child.material.opacity = 0.6 + Math.sin(elapsedTime * 2) * 0.2 + avgFreq * 0.5;
+                }
+            });
+
+            // Update Rings
+            systems.ringSystem.update(elapsedTime, avgFreq);
+
             // Update Post Shader
             postPass.uniforms.uTime.value = elapsedTime;
             postPass.uniforms.uChromAberration.value = baseAberration + avgFreq * freqAberration;
