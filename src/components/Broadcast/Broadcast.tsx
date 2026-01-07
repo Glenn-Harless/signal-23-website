@@ -92,23 +92,19 @@ const Broadcast: React.FC = () => {
 
 
         // ANIMATION LOOP
+        const isMobileRef = { current: window.innerWidth < 768 };
+
         const animate = () => {
             const elapsedTime = clockRef.current.getElapsedTime();
             const avgFreq = systems.audioSystem.getAverageFrequency();
 
-            // Update Tower pulse
-            tower.traverse((child) => {
-                if (child instanceof THREE.Mesh) {
-                    child.material.opacity = 0.6 + Math.sin(elapsedTime * 2) * 0.2 + avgFreq * 0.5;
-                }
-            });
-
-            // Update Rings
-            systems.ringSystem.update(elapsedTime, avgFreq);
+            // More intense aberration on mobile to be visible
+            const baseAberration = isMobileRef.current ? 0.02 : 0.005;
+            const freqAberration = isMobileRef.current ? 0.08 : 0.02;
 
             // Update Post Shader
             postPass.uniforms.uTime.value = elapsedTime;
-            postPass.uniforms.uChromAberration.value = 0.005 + avgFreq * 0.02;
+            postPass.uniforms.uChromAberration.value = baseAberration + avgFreq * freqAberration;
 
             // Update state for React (Data Fragments)
             stateRef.current.rings.forEach(ring => {
@@ -125,8 +121,10 @@ const Broadcast: React.FC = () => {
         animate();
 
         const handleResize = () => {
+            isMobileRef.current = window.innerWidth < 768;
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
+
             renderer.setSize(window.innerWidth, window.innerHeight);
             composer.setSize(window.innerWidth, window.innerHeight);
         };
