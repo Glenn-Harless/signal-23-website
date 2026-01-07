@@ -31,19 +31,6 @@ const Home: React.FC<HomeProps> = ({ isMobile }) => {
   const navigate = useNavigate();
   const { isPlaying, togglePlayback } = useAudio();
 
-  const navLinks = [
-    {
-      label: "music@signal23.net",
-      description: "Get in touch",
-      href: "mailto:music@signal23.net"
-    },
-    {
-      label: "Instrument Racks",
-      description: "Ableton Packs",
-      href: "/instruments"
-    }
-  ];
-
   // Handle portal click - go to terminal
   const handlePortalClick = () => {
     navigate('/terminal');
@@ -92,6 +79,21 @@ const Home: React.FC<HomeProps> = ({ isMobile }) => {
               SIGNAL-3
             </h1>
           </div>
+
+          <nav
+            className="absolute bottom-0 left-0 right-0 z-20 p-6"
+            style={{
+              paddingBottom: isMobile ? 'calc(env(safe-area-inset-bottom) + 1.5rem)' : '1.5rem'
+            }}
+          >
+            <div className="flex justify-center opacity-60 font-ibm-mono">
+              <NavigationLink
+                label="music@signal23.net"
+                description="Get in touch"
+                href="mailto:music@signal23.net"
+              />
+            </div>
+          </nav>
         </div>
 
         <svg className="hidden">
