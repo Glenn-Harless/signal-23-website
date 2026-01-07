@@ -1,0 +1,238 @@
+.test-landing-container {
+    box-sizing: border-box;
+    background: #000;
+    color: #fff;
+    position: absolute;
+    /* Respect the shell's telemetry frame boundaries (inset: 0.75rem) */
+    inset: 0.75rem;
+    overflow: hidden;
+    overscroll-behavior: none;
+    /* Block overscroll/pull-to-refresh */
+    font-family: 'IBM Plex Mono', monospace;
+}
+
+.nn-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
+    display: block;
+}
+
+.test-hud {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 10;
+    pointer-events: none;
+    display: flex;
+    justify-content: space-between;
+    padding: 2.5rem;
+    box-sizing: border-box;
+}
+
+/* --- Vertical Side Title --- */
+.hud-side-title {
+    position: absolute;
+    right: 2.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.test-main-title {
+    font-size: clamp(2rem, 8vh, 6rem);
+    font-weight: 900;
+    margin: 0;
+    color: #fff;
+    line-height: 1;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    font-family: 'Neobrutetest', sans-serif;
+    opacity: 0.15;
+    /* Watermark feel */
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    mix-blend-mode: overlay;
+    transition: opacity 0.5s ease;
+}
+
+.hud-side-title:hover .test-main-title {
+    opacity: 0.4;
+}
+
+/* --- Bottom-Right Logs --- */
+.test-hud-bottom {
+    position: absolute;
+    bottom: 2.5rem;
+    right: 2.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+.resonance-container {
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    color: #fff;
+    text-align: right;
+    pointer-events: auto;
+}
+
+/* --- Animations --- */
+@keyframes flicker {
+
+    0%,
+    19.999%,
+    22%,
+    62.999%,
+    64%,
+    64.999%,
+    70%,
+    100% {
+        opacity: 0.8;
+    }
+
+    20%,
+    21.999%,
+    63%,
+    63.999%,
+    65%,
+    69.999% {
+        opacity: 0.4;
+    }
+}
+
+.anim-flicker {
+    animation: flicker 4s linear infinite;
+}
+
+@media (max-width: 768px) {
+    .test-hud {
+        padding: 1.5rem;
+        padding-top: 5rem;
+        flex-direction: column;
+        justify-content: flex-start;
+        gap: 2rem;
+    }
+
+    .hud-side-title {
+        position: static;
+        transform: none;
+        flex-direction: row;
+        align-items: baseline;
+        gap: 1rem;
+    }
+
+    .test-main-title {
+        writing-mode: horizontal-tb;
+        font-size: 2.5rem;
+        opacity: 0.6;
+    }
+
+    .test-hud-bottom {
+        position: static;
+        width: 100%;
+        margin-top: auto;
+    }
+
+    .learning-logs {
+        width: 100%;
+        max-width: none;
+    }
+}
+
+@media (max-width: 480px) {
+    .test-main-title {
+        font-size: 2.5rem;
+    }
+
+    .learning-logs {
+        max-width: 180px;
+    }
+}
+
+/* Enhancing touch targets for the global shell nav when on this page */
+:global(.ws-nav-item) {
+    padding: 0.5rem 0.2rem;
+}
+
+/* Record Button */
+.record-button {
+    position: absolute;
+    top: 1.5rem;
+    right: 1.5rem;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    background: rgba(0, 0, 0, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    backdrop-filter: blur(4px);
+}
+
+.record-button:hover {
+    background: rgba(0, 0, 0, 0.8);
+    border-color: rgba(255, 255, 255, 0.4);
+}
+
+.record-icon {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.7);
+    transition: all 0.2s ease;
+}
+
+.record-button.recording .record-icon {
+    background: #ff3333;
+    box-shadow: 0 0 10px rgba(255, 51, 51, 0.8);
+    animation: pulse-record 1s ease-in-out infinite;
+}
+
+.record-time {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.75rem;
+    color: #ff3333;
+    letter-spacing: 0.05em;
+}
+
+@keyframes pulse-record {
+    0%, 100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.6;
+        transform: scale(0.9);
+    }
+}
+
+@media (max-width: 768px) {
+    .record-button {
+        top: 1rem;
+        right: 1rem;
+        padding: 0.4rem 0.6rem;
+    }
+
+    .record-icon {
+        width: 10px;
+        height: 10px;
+    }
+
+    .record-time {
+        font-size: 0.65rem;
+    }
+}

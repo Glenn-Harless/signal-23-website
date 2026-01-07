@@ -44,11 +44,11 @@ const useNumberStationSequence = (onGlitchChange: (isGlitching: boolean) => void
       prev.map((item, itemIndex) =>
         itemIndex === index
           ? {
-              ...item,
-              value: ['█', '▓', '▒', '░'][Math.floor(Math.random() * 4)],
-              opacity: Math.random() * BASE_OPACITY + 0.3,
-              isGlitched: true,
-            }
+            ...item,
+            value: ['█', '▓', '▒', '░'][Math.floor(Math.random() * 4)],
+            opacity: Math.random() * BASE_OPACITY + 0.3,
+            isGlitched: true,
+          }
           : item,
       ),
     );
@@ -139,12 +139,12 @@ export const EnhancedNumberStation: React.FC<NumberStationProps> = ({ isMobile, 
   const { sequence, warning, glitchEffect } = useNumberStationSequence(onGlitchChange);
 
   const containerClass = useMemo(
-    () => (isMobile ? 'flex justify-between items-center' : 'flex flex-col justify-center'),
+    () => (isMobile ? 'flex justify-between items-start pt-2' : 'flex flex-col justify-center'),
     [isMobile],
   );
 
   return (
-    <div className="fixed top-0 left-0 w-full h-16 px-6 font-mono pointer-events-none">
+    <div className="fixed top-0 left-0 w-full h-24 px-6 font-mono pointer-events-none">
       <div className={`h-full ${containerClass}`}>
         <div
           className={`flex space-x-2 ${glitchEffect ? 'animate-pulse' : ''}`}
@@ -171,9 +171,8 @@ export const EnhancedNumberStation: React.FC<NumberStationProps> = ({ isMobile, 
         </div>
         {warning && (
           <div
-            className={`text-xs text-red-500 opacity-70 tracking-wider animate-fadeInOut ${
-              isMobile ? 'ml-4 max-w-[160px]' : 'mt-2'
-            }`}
+            className={`text-xs text-red-500 opacity-70 tracking-wider animate-fadeInOut ${isMobile ? 'mt-8 text-right max-w-[160px]' : 'mt-2'
+              }`}
           >
             {warning}
           </div>

@@ -1,0 +1,175 @@
+/* B.A.N.I.S Workstation Shell Styles */
+
+:root {
+    --ws-border: rgba(255, 255, 255, 0.15);
+    --ws-bg: #000000;
+    --ws-text: #FFFFFF;
+    --ws-accent: #EF4444;
+    --ws-dim: rgba(255, 255, 255, 0.4);
+    --ws-glow: rgba(255, 255, 255, 0.05);
+}
+
+.workstation-shell {
+    background-color: var(--ws-bg);
+    color: var(--ws-text);
+    height: 100dvh;
+    width: 100vw;
+    font-family: 'IBM Plex Mono', monospace;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Global Navigation */
+.ws-nav-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: center;
+    gap: 3rem;
+    padding: 1.5rem;
+    z-index: 100000;
+    pointer-events: none;
+    font-family: 'IBM Plex Mono', monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.3em;
+    font-size: 0.8rem;
+}
+
+.ws-nav-item {
+    pointer-events: auto;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    opacity: 0.4;
+    text-decoration: none;
+    color: white;
+}
+
+/* Global Navigation in HUD */
+.ws-nav {
+    display: flex;
+    gap: 2rem;
+    font-family: 'IBM Plex Mono', monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.3em;
+    font-size: 0.65rem;
+}
+
+.ws-nav-item {
+    cursor: pointer;
+    transition: all 0.2s ease;
+    opacity: 0.5;
+    text-decoration: none;
+    color: white;
+}
+
+.ws-nav-item:hover,
+.ws-nav-item.active {
+    opacity: 1;
+    text-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
+}
+
+/* Main Content Area */
+.ws-main-container {
+    flex: 1;
+    position: relative;
+    overflow-y: auto;
+    padding: 3rem 1.5rem;
+    height: 100%;
+    width: 100%;
+}
+
+.ws-main-container.no-padding {
+    padding: 0;
+    overflow: hidden;
+}
+
+.ws-main-container.ws-reset {
+    position: absolute !important;
+    inset: 0 !important;
+    width: 100vw !important;
+    height: 100dvh !important;
+    display: block !important;
+    z-index: 10;
+}
+
+/* Global Effects */
+.ws-scanlines {
+    position: fixed;
+    inset: 0;
+    background: linear-gradient(rgba(18, 16, 16, 0) 50%,
+            rgba(0, 0, 0, 0.1) 50%),
+        linear-gradient(90deg,
+            rgba(255, 0, 0, 0.02),
+            rgba(0, 255, 0, 0.01),
+            rgba(0, 0, 255, 0.02));
+    background-size: 100% 2px, 3px 100%;
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.15;
+}
+
+.ws-noise {
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+    opacity: 0.015;
+    pointer-events: none;
+    z-index: 9998;
+}
+
+/* Transition Flicker */
+@keyframes ws-flicker {
+    0% {
+        opacity: 1;
+    }
+
+    10% {
+        opacity: 0.8;
+    }
+
+    20% {
+        opacity: 0.9;
+    }
+
+    30% {
+        opacity: 1;
+    }
+
+    45% {
+        opacity: 0.7;
+    }
+
+    50% {
+        opacity: 1;
+    }
+
+    65% {
+        opacity: 0.9;
+    }
+
+    80% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}
+
+.ws-transitioning {
+    animation: ws-flicker 0.15s infinite;
+}
+
+/* Mobile Adjustments for Shell */
+@media (max-width: 768px) {
+    .ws-nav-container {
+        gap: 1.5rem;
+        padding: 1rem;
+        letter-spacing: 0.1em;
+        font-size: 0.7rem;
+    }
+}

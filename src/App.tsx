@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useNavigate, Navigate } from 'react-router-dom';
 import { Terminal } from './components/Terminal/Terminal';
 import { Portal } from './components/Portal/Portal';
 import { AudioPlayer } from './components/Audio/AudioPlayer';
@@ -9,6 +9,16 @@ import { EnhancedNumberStation } from './components/EnhancedNumberStation/Enhanc
 import { GlitchOverlay } from './components/GlitchOverlay/GlitchOverlay';
 import { useViewportHeight } from './hooks/useViewportHeight';
 import { useAudio } from './hooks/useAudio';
+import { InstrumentsPage } from './components/Instruments/InstrumentsPage';
+import { SuccessPage } from './components/Instruments/SuccessPage';
+import { WorkstationShell } from './components/WorkstationShell/WorkstationShell';
+import { Resonance } from './components/Resonance/Resonance';
+import { Growth } from './components/Growth/Growth';
+import { ForbiddingBlocks } from './components/ForbiddingBlocks/ForbiddingBlocks';
+import { Well } from './components/Well/Well';
+import { Tangle } from './components/Tangle/Tangle';
+import { Learning } from './components/Learning/Learning';
+import { Terms } from './components/Terms/Terms';
 
 // Home component (previously App content)
 interface HomeProps {
@@ -21,45 +31,33 @@ const Home: React.FC<HomeProps> = ({ isMobile }) => {
   const navigate = useNavigate();
   const { isPlaying, togglePlayback } = useAudio();
 
-  const navLinks = [
-    { 
-      label: "music@signal23.net",
-      description: "Get in touch",
-      href: "mailto:music@signal23.net"
-    }
-  ];
-
-  // Handle portal click to navigate to terminal
+  // Handle portal click - go to terminal
   const handlePortalClick = () => {
     navigate('/terminal');
   };
 
   return (
     <>
-      <div 
-        className="relative w-full h-screen overflow-hidden bg-black"
-        style={{
-          height: isMobile ? `${viewportHeight}px` : '100vh',
-          maxHeight: isMobile ? `${viewportHeight}px` : '100vh'
-        }}
+      <div
+        className="relative w-full h-full overflow-hidden bg-black"
       >
         <div className="fixed inset-0 bg-black -z-10" />
-        
+
         <div className="relative h-full">
           <div className="absolute inset-0 z-20">
-          <AudioPlayer 
+            <AudioPlayer
               isPlaying={isPlaying}
               onPlayPause={togglePlayback}
               audioSource="/pieces-website-mp3.mp3"
             />
           </div>
 
-          <Portal 
-            isMobile={isMobile} 
+          <Portal
+            isMobile={isMobile}
             onClick={handlePortalClick}
           />
 
-          <EnhancedNumberStation 
+          <EnhancedNumberStation
             isMobile={isMobile}
             onGlitchChange={setShowGlitch}
           />
@@ -68,7 +66,7 @@ const Home: React.FC<HomeProps> = ({ isMobile }) => {
             <div className="col-span-7 xl:col-span-8 relative">
             </div>
 
-              <div className="col-span-5 xl:col-span-4 relative">
+            <div className="col-span-5 xl:col-span-4 relative">
               <div className="h-full">
                 <DistortedStack isPlayingAudio={isPlaying} />
               </div>
@@ -76,21 +74,24 @@ const Home: React.FC<HomeProps> = ({ isMobile }) => {
           </div>
 
           <div className="md:hidden flex flex-col items-center h-full relative z-10">
+            {/* Font renders "-" as "-2", so "SIGNAL-3" displays as "SIGNAL-23" */}
             <h1 className="text-4xl sm:text-5xl font-bold text-white font-neo-brute-transparent mt-12">
               SIGNAL-3
             </h1>
           </div>
 
-          <nav 
+          <nav
             className="absolute bottom-0 left-0 right-0 z-20 p-6"
             style={{
               paddingBottom: isMobile ? 'calc(env(safe-area-inset-bottom) + 1.5rem)' : '1.5rem'
             }}
           >
-            <div className="flex justify-center space-x-8 opacity-60 font-ibm-mono">
-              {navLinks.map((link, index) => (
-                <NavigationLink key={index} {...link} />
-              ))}
+            <div className="flex justify-center opacity-60 font-ibm-mono">
+              <NavigationLink
+                label="music@signal23.net"
+                description="Get in touch"
+                href="mailto:music@signal23.net"
+              />
             </div>
           </nav>
         </div>
@@ -98,8 +99,8 @@ const Home: React.FC<HomeProps> = ({ isMobile }) => {
         <svg className="hidden">
           <defs>
             <filter id="eroded-blur">
-              <feTurbulence 
-                type="fractalNoise" 
+              <feTurbulence
+                type="fractalNoise"
                 baseFrequency="1.2"
                 numOctaves="5"
               />
@@ -107,13 +108,13 @@ const Home: React.FC<HomeProps> = ({ isMobile }) => {
                 in="SourceGraphic"
                 scale="12"
               />
-              <feGaussianBlur stdDeviation=".3"/>
+              <feGaussianBlur stdDeviation=".3" />
               <feComponentTransfer>
-                <feFuncR type="linear" slope="1.8" intercept="-0.2"/>
-                <feFuncG type="linear" slope="1.8" intercept="-0.2"/>
-                <feFuncB type="linear" slope="1.8" intercept="-0.2"/>
+                <feFuncR type="linear" slope="1.8" intercept="-0.2" />
+                <feFuncG type="linear" slope="1.8" intercept="-0.2" />
+                <feFuncB type="linear" slope="1.8" intercept="-0.2" />
               </feComponentTransfer>
-              <feComposite operator="in" in2="SourceGraphic"/>
+              <feComposite operator="in" in2="SourceGraphic" />
             </filter>
           </defs>
         </svg>
@@ -147,10 +148,22 @@ const App = () => {
 
   return (
     <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Home isMobile={isMobile} />} />
-        <Route path="/terminal" element={<Terminal isMobile={isMobile} />} />
-      </Routes>
+      <WorkstationShell isMobile={isMobile}>
+        <Routes>
+          <Route path="/" element={<Home isMobile={isMobile} />} />
+          <Route path="/terminal" element={<Terminal isMobile={isMobile} />} />
+          <Route path="/instruments" element={<InstrumentsPage />} />
+          <Route path="/instruments/success" element={<SuccessPage />} />
+          <Route path="/testblandingpage" element={<Navigate to="/resonance" replace />} />
+          <Route path="/resonance" element={<Resonance />} />
+          <Route path="/growth" element={<Growth />} />
+          <Route path="/forbidding" element={<ForbiddingBlocks />} />
+          <Route path="/well" element={<Well />} />
+          <Route path="/tangle" element={<Tangle />} />
+          <Route path="/learning" element={<Learning />} />
+          <Route path="/terms" element={<Terms />} />
+        </Routes>
+      </WorkstationShell>
     </BrowserRouter>
   );
 };

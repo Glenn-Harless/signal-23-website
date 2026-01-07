@@ -1,0 +1,140 @@
+.tangle-container {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  background: #000;
+  overflow: hidden;
+  font-family: 'IBM Plex Mono', monospace;
+}
+
+.tangle-canvas-container {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* Subtle vignette */
+.tangle-container::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at center, transparent 0%, rgba(0, 0, 0, 0.5) 100%);
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* Quantum Channel - Bottom Left */
+.tangle-quantum-channel {
+  position: absolute;
+  bottom: 2rem;
+  left: 2rem;
+  z-index: 20;
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.7);
+  max-height: 200px;
+  overflow-y: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.tangle-quantum-channel::-webkit-scrollbar {
+  display: none;
+}
+
+.channel-title {
+  font-size: 0.6rem;
+  letter-spacing: 0.15em;
+  color: rgba(255, 255, 255, 0.4);
+  margin-bottom: 0.75rem;
+}
+
+.channel-entry {
+  margin: 0.35rem 0;
+  font-family: 'IBM Plex Mono', monospace;
+  letter-spacing: 0.05em;
+}
+
+/* Record Button */
+.record-button {
+  position: absolute;
+  top: 1.5rem;
+  right: 1.5rem;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(4px);
+}
+
+.record-button:hover {
+  background: rgba(0, 0, 0, 0.8);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.record-icon {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.7);
+  transition: all 0.2s ease;
+}
+
+.record-button.recording .record-icon {
+  background: #ff3333;
+  box-shadow: 0 0 10px rgba(255, 51, 51, 0.8);
+  animation: pulse-record 1s ease-in-out infinite;
+}
+
+.record-time {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.75rem;
+  color: #ff3333;
+  letter-spacing: 0.05em;
+}
+
+@keyframes pulse-record {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(0.9);
+  }
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .tangle-quantum-channel {
+    bottom: 1.5rem;
+    left: 1rem;
+    font-size: 0.6rem;
+    max-height: 150px;
+  }
+
+  .channel-title {
+    font-size: 0.5rem;
+  }
+
+  .record-button {
+    top: 1rem;
+    right: 1rem;
+    padding: 0.4rem 0.6rem;
+  }
+
+  .record-icon {
+    width: 10px;
+    height: 10px;
+  }
+
+  .record-time {
+    font-size: 0.65rem;
+  }
+}

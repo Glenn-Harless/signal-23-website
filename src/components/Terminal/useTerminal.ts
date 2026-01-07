@@ -23,10 +23,11 @@ const INITIAL_MESSAGES: TerminalMessage[] = [
 
 const MEDIA_LINKS: TerminalMediaLink[] = [
   { name: 'YOUTUBE', url: 'https://youtube.com/@signal-23-music' },
+  { name: 'SPOTIFY', url: 'https://open.spotify.com/artist/3ZKXfUCXvaZbEdCRx9sWD6' },
   { name: 'SOUNDCLOUD', url: 'https://soundcloud.com/signal-23' },
   { name: 'BANDCAMP', url: 'https://signal-23.bandcamp.com/' },
   { name: 'INSTAGRAM', url: 'https://www.instagram.com/signal23music/' },
-  { name: 'HYPERFOLLOW // PIECES', url: 'https://distrokid.com/hyperfollow/signal23/pieces' },
+  { name: 'HYPERFOLLOW // RESET', url: 'https://distrokid.com/hyperfollow/signal23/reset' },
 ];
 
 const MENU_ITEMS: TerminalMenuItem[] = [
@@ -35,7 +36,7 @@ const MENU_ITEMS: TerminalMenuItem[] = [
   { command: 'scan', label: 'Scan Frequencies' },
   { command: 'broadcast', label: 'Operator Broadcast' },
   { command: 'clear', label: 'Clear Terminal' },
-  { command: 'exit', label: 'Exit Terminal' },
+  { command: 'exit', label: 'EXIT' },
 ];
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -54,6 +55,9 @@ interface UseTerminalResult {
   terminalRef: React.RefObject<HTMLDivElement>;
   outputRef: React.RefObject<HTMLDivElement>;
   inputRef: React.RefObject<HTMLInputElement>;
+  visualizerData: number[];
+  isScanning: boolean;
+  isFlashing: boolean;
 }
 
 interface UseTerminalOptions {
@@ -65,6 +69,10 @@ export function useTerminal({ isMobile }: UseTerminalOptions): UseTerminalResult
   const [input, setInput] = useState('');
   const [output, setOutput] = useState<TerminalMessage[]>([]);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [history, setHistory] = useState<string[]>([]);
+  const [historyIndex, setHistoryIndex] = useState(-1);
+  const [visualizerData, setVisualizerData] = useState<number[]>(new Array(64).fill(0));
+  const [isFlashing, setIsFlashing] = useState(false);
   const viewportHeight = useViewportHeight();
   const [currentFrequency, setCurrentFrequency] = useState<string | null>(null);
   const { audioElement, isPlaying: isHomePlaying } = useAudio();
@@ -72,6 +80,7 @@ export function useTerminal({ isMobile }: UseTerminalOptions): UseTerminalResult
   const terminalRef = useRef<HTMLDivElement>(null);
   const outputContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const hasInitialized = useRef(false);
 
   const appendMessage = useCallback((message: TerminalMessage) => {
     setOutput((prev) => [...prev, message]);
@@ -124,17 +133,22 @@ export function useTerminal({ isMobile }: UseTerminalOptions): UseTerminalResult
     async (message: TerminalMessage) => {
       if (message.type === 'warning' || message.type === 'separator' || message.type === 'typing') {
         const index = await appendPlaceholder({ type: message.type, content: '' });
-        const delay = message.type === 'warning' ? 50 : message.type === 'separator' ? 15 : 5;
+        const delay = message.type === 'warning' ? 15 : message.type === 'separator' ? 5 : 3;
 
         for (let i = 0; i <= message.content.length; i += 1) {
-          await wait(delay);
-          const shouldGlitch = message.type === 'warning' && Math.random() < 0.3 && i < message.content.length;
+          const charDelay = message.type === 'warning' ? Math.random() * delay * 2 : delay;
+          await wait(charDelay);
+
+          const shouldGlitch = (message.type === 'warning' || message.type === 'typing') && Math.random() < 0.1 && i < message.content.length;
           const partial = message.content.slice(0, i);
-          const content = shouldGlitch ? `${partial}█▓▒░` : partial;
+          const glitchChars = ['█', '▓', '▒', '░', '$', '&', '#', '@'];
+          const randomGlitch = glitchChars[Math.floor(Math.random() * glitchChars.length)];
+          const content = shouldGlitch ? `${partial}${randomGlitch}` : partial;
+
           updateMessageAt(index, (existing) => ({ ...existing, content }));
         }
 
-        const pause = message.type === 'warning' ? 400 : message.type === 'separator' ? 300 : 200;
+        const pause = message.type === 'warning' ? 150 : message.type === 'separator' ? 100 : 50;
         await wait(pause);
         return;
       }
@@ -155,10 +169,6 @@ export function useTerminal({ isMobile }: UseTerminalOptions): UseTerminalResult
     setCurrentFrequency(null);
     setInput('');
   }, []);
-
-  const exitTerminal = useCallback(() => {
-    navigate('/', { state: { isMobile } });
-  }, [isMobile, navigate]);
 
   const stopScan = useCallback(() => {
     audioStreamer.stop();
@@ -225,11 +235,11 @@ export function useTerminal({ isMobile }: UseTerminalOptions): UseTerminalResult
         { type: 'output', content: isMobile ? 'PRESS SCAN TO STOP' : '[CTRL+C TO TERMINATE]' },
         ...(isHomePlaying
           ? [
-              {
-                type: 'warning',
-                content: 'HOME AUDIO SUPPRESSED DURING SCAN',
-              } as TerminalMessage,
-            ]
+            {
+              type: 'warning',
+              content: 'HOME AUDIO SUPPRESSED DURING SCAN',
+            } as TerminalMessage,
+          ]
           : []),
       ];
     } catch (error) {
@@ -245,33 +255,37 @@ export function useTerminal({ isMobile }: UseTerminalOptions): UseTerminalResult
         { type: 'separator', content: '————————————————————————————' },
         { type: 'output', content: 'COMMANDS      - Display this directory' },
         { type: 'output', content: 'ARCHIVES      - Access media archives' },
+        { type: 'output', content: 'EXIT          - Exit terminal' },
         { type: 'output', content: 'SCAN          - Scan frequencies' },
         { type: 'output', content: 'BROADCAST     - Operator broadcast' },
         { type: 'output', content: 'CLEAR         - Clear terminal buffer' },
-        { type: 'output', content: 'EXIT          - Terminate connection' },
         { type: 'separator', content: '————————————————————————————' },
       ],
       archives: () => executeArchive(),
+      exit: async () => {
+        stopScan();
+        setTimeout(() => navigate('/'), 500);
+        return [
+          { type: 'system', content: 'TERMINATING SESSION...' },
+          { type: 'system', content: 'CONNECTION CLOSED.' },
+        ];
+      },
       scan: () => executeScan(),
       broadcast: async () => [
         { type: 'warning', content: 'PHYSICAL ACCESS KEY NOT DETECTED' },
         { type: 'warning', content: 'OPERATOR CREDENTIALS NOT FOUND' },
         { type: 'warning', content: 'SOME PERMISSIONS RESTRICTED' },
         { type: 'separator', content: '---------------------------' },
-        { type: 'system', content: 'AUX RELAY UNLOCKED: PIECES SIGNAL' },
-        { type: 'link', content: ' HYPERFOLLOW // PIECES' },
+        { type: 'system', content: 'AUX RELAY UNLOCKED: RESET SIGNAL' },
+        { type: 'link', content: ' HYPERFOLLOW // RESET' },
       ],
       clear: async () => {
         stopScan();
         resetTerminal();
         return [];
       },
-      exit: async () => {
-        exitTerminal();
-        return [{ type: 'output', content: 'TERMINATING SECURE CONNECTION...' }];
-      },
     }),
-    [executeArchive, executeScan, exitTerminal, resetTerminal, stopScan],
+    [executeArchive, executeScan, navigate, resetTerminal, stopScan],
   );
 
   const executeCommand = useCallback(
@@ -282,6 +296,8 @@ export function useTerminal({ isMobile }: UseTerminalOptions): UseTerminalResult
       }
 
       appendCommandMessage(command);
+      setHistory((prev) => [command, ...prev.filter((h) => h !== command)].slice(0, 50));
+      setHistoryIndex(-1);
 
       const handler = commandHandlers[command as keyof typeof commandHandlers];
       if (!handler) {
@@ -302,12 +318,31 @@ export function useTerminal({ isMobile }: UseTerminalOptions): UseTerminalResult
   );
 
   const initializeOutput = useCallback(async () => {
+    if (hasInitialized.current) {
+      return;
+    }
+    hasInitialized.current = true;
+
+    const hasSeenIntro = sessionStorage.getItem('terminal-intro-seen');
+
+    if (hasSeenIntro) {
+      // Skip animation on repeat visits this session
+      setOutput([...INITIAL_MESSAGES, INITIAL_PROMPT]);
+      setIsInitialized(true);
+      setTimeout(() => {
+        executeCommand('commands');
+      }, 100);
+      return;
+    }
+
+    // First visit this session - show animation
     for (const message of INITIAL_MESSAGES) {
       // eslint-disable-next-line no-await-in-loop
       await typeMessage(message);
     }
     appendPrompt();
     setIsInitialized(true);
+    sessionStorage.setItem('terminal-intro-seen', 'true');
 
     // Auto execute commands listing
     setTimeout(() => {
@@ -321,6 +356,18 @@ export function useTerminal({ isMobile }: UseTerminalOptions): UseTerminalResult
     }
     initializeOutput();
   }, [initializeOutput, isInitialized]);
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (currentFrequency) {
+      interval = setInterval(() => {
+        setVisualizerData(audioStreamer.getFrequencyData());
+      }, 50); // Faster update for smoother visualization
+    } else {
+      setVisualizerData(new Array(32).fill(0));
+    }
+    return () => clearInterval(interval);
+  }, [currentFrequency]);
 
   useEffect(() => () => {
     audioStreamer.stop();
@@ -345,21 +392,57 @@ export function useTerminal({ isMobile }: UseTerminalOptions): UseTerminalResult
   );
 
   const handleLinkClick = useCallback((content: string) => {
+    if (content === ' ACCESS LEDGER') {
+      navigate('/instruments');
+      return;
+    }
     const link = MEDIA_LINKS.find((item) => ` ${item.name}` === content);
     if (link) {
       window.open(link.url, '_blank');
     }
-  }, []);
+  }, [navigate]);
 
   const handleKeyDown = useCallback(
     (event: React.KeyboardEvent<HTMLDivElement>) => {
+      // Ctrl+C to stop scan
       if (event.ctrlKey && event.key === 'c' && currentFrequency) {
         stopScan();
         appendMessage({ type: 'system', content: 'SCAN TERMINATED.' });
         appendPrompt();
+        return;
+      }
+
+      // Command History
+      if (event.key === 'ArrowUp') {
+        event.preventDefault();
+        if (history.length > 0) {
+          const nextIndex = Math.min(historyIndex + 1, history.length - 1);
+          setHistoryIndex(nextIndex);
+          setInput(history[nextIndex]);
+        }
+      } else if (event.key === 'ArrowDown') {
+        event.preventDefault();
+        if (historyIndex > 0) {
+          const nextIndex = historyIndex - 1;
+          setHistoryIndex(nextIndex);
+          setInput(history[nextIndex]);
+        } else if (historyIndex === 0) {
+          setHistoryIndex(-1);
+          setInput('');
+        }
+      }
+
+      // Tab Completion
+      if (event.key === 'Tab') {
+        event.preventDefault();
+        const availableCommands = Object.keys(commandHandlers);
+        const matches = availableCommands.filter((c) => c.startsWith(input.toLowerCase()));
+        if (matches.length === 1) {
+          setInput(matches[0]);
+        }
       }
     },
-    [appendMessage, appendPrompt, currentFrequency, stopScan],
+    [appendMessage, appendPrompt, commandHandlers, currentFrequency, history, historyIndex, input, stopScan],
   );
 
   return {
@@ -374,5 +457,8 @@ export function useTerminal({ isMobile }: UseTerminalOptions): UseTerminalResult
     terminalRef,
     outputRef: outputContainerRef,
     inputRef,
+    visualizerData,
+    isScanning: !!currentFrequency,
+    isFlashing,
   };
 }
