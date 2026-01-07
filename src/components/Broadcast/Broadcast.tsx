@@ -9,9 +9,9 @@ import gsap from 'gsap';
 import { createTowerGeometry } from './TowerGeometry';
 import { WaveRingSystem } from './WaveRingSystem';
 import { NumbersStation } from './NumbersStation';
-import { DataFragments } from './DataFragments';
 import { BroadcastPostShader } from './BroadcastPostShader';
 import { RingParams } from './types';
+
 
 
 const dataPayloads = [
@@ -177,22 +177,6 @@ const Broadcast: React.FC = () => {
             style={{ width: '100%', height: '100vh', background: 'black', overflow: 'hidden', position: 'relative' }}
             onClick={spawnRing}
         >
-            <DataFragments rings={rings} />
-
-            <div style={{
-                position: 'absolute',
-                bottom: '2rem',
-                left: '2rem',
-                color: '#00FF66',
-                fontFamily: '"IBM Plex Mono", monospace',
-                fontSize: '12px',
-                pointerEvents: 'none',
-                opacity: 0.7
-            }}>
-                [ CLICK TO BROADCAST ]<br />
-                SIGNAL DEGRADATION: ACTIVE<br />
-                STATION ID: 23-SIG-ECHO
-            </div>
         </div>
     );
 };

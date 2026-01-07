@@ -11,16 +11,16 @@ export class NumbersStation {
         this.carrier = new Tone.Oscillator({
             frequency: 60,
             type: "sine",
-            volume: -20
+            volume: -40
         }).toDestination();
 
         this.noise = new Tone.Noise({
             type: "brown",
-            volume: -30
+            volume: -50
         }).toDestination();
 
         this.pip = new Tone.MembraneSynth({
-            volume: -10
+            volume: -25
         }).toDestination();
 
         this.analyzer = new Tone.Analyser("fft", 256);
@@ -43,8 +43,8 @@ export class NumbersStation {
         }
 
         // Briefly increase noise
-        this.noise.volume.rampTo(-15, 0.1);
-        this.noise.volume.rampTo(-30, 0.5, now + 1);
+        this.noise.volume.rampTo(-35, 0.1);
+        this.noise.volume.rampTo(-50, 0.5, now + 1);
     }
 
     getFrequencyData() {
