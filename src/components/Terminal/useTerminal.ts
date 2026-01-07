@@ -33,10 +33,10 @@ const MEDIA_LINKS: TerminalMediaLink[] = [
 const MENU_ITEMS: TerminalMenuItem[] = [
   { command: 'commands', label: 'View Commands' },
   { command: 'archives', label: 'Access Archives' },
-  { command: 'exit', label: 'EXIT' },
   { command: 'scan', label: 'Scan Frequencies' },
   { command: 'broadcast', label: 'Operator Broadcast' },
   { command: 'clear', label: 'Clear Terminal' },
+  { command: 'exit', label: 'EXIT' },
 ];
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
