@@ -44,16 +44,9 @@ const Home: React.FC<HomeProps> = ({ isMobile }) => {
     }
   ];
 
-  // Handle portal click with random chance for easter eggs
+  // Handle portal click - go to terminal
   const handlePortalClick = () => {
-    const chance = Math.random();
-    if (chance < 0.20) {
-      const easterEggs = ['/resonance', '/tangle', '/learning', '/growth'] //, '/forbidding'];
-      const randomEgg = easterEggs[Math.floor(Math.random() * easterEggs.length)];
-      navigate(randomEgg);
-    } else {
-      navigate('/terminal');
-    }
+    navigate('/terminal');
   };
 
   return (

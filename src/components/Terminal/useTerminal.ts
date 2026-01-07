@@ -33,7 +33,7 @@ const MEDIA_LINKS: TerminalMediaLink[] = [
 const MENU_ITEMS: TerminalMenuItem[] = [
   { command: 'commands', label: 'View Commands' },
   { command: 'archives', label: 'Access Archives' },
-  { command: 'data', label: 'DATA' },
+  { command: 'exit', label: 'EXIT' },
   { command: 'scan', label: 'Scan Frequencies' },
   { command: 'broadcast', label: 'Operator Broadcast' },
   { command: 'clear', label: 'Clear Terminal' },
@@ -255,20 +255,19 @@ export function useTerminal({ isMobile }: UseTerminalOptions): UseTerminalResult
         { type: 'separator', content: '————————————————————————————' },
         { type: 'output', content: 'COMMANDS      - Display this directory' },
         { type: 'output', content: 'ARCHIVES      - Access media archives' },
-        { type: 'output', content: 'DATA          - Access restricted datasets' },
+        { type: 'output', content: 'EXIT          - Exit terminal' },
         { type: 'output', content: 'SCAN          - Scan frequencies' },
         { type: 'output', content: 'BROADCAST     - Operator broadcast' },
         { type: 'output', content: 'CLEAR         - Clear terminal buffer' },
         { type: 'separator', content: '————————————————————————————' },
       ],
       archives: () => executeArchive(),
-      data: async () => {
-        setIsFlashing(true);
-        setTimeout(() => setIsFlashing(false), 200);
+      exit: async () => {
+        stopScan();
+        setTimeout(() => navigate('/'), 500);
         return [
-          { type: 'error', content: 'ACCESS DENIED: ENCRYPTION LEVEL INSUFFICIENT' },
-          { type: 'error', content: 'SYSTEM LOCKDOWN INITIATED...' },
-          { type: 'error', content: 'ERROR: CRITICAL SECURITY BREACH PREVENTED' },
+          { type: 'system', content: 'TERMINATING SESSION...' },
+          { type: 'system', content: 'CONNECTION CLOSED.' },
         ];
       },
       scan: () => executeScan(),
@@ -286,7 +285,7 @@ export function useTerminal({ isMobile }: UseTerminalOptions): UseTerminalResult
         return [];
       },
     }),
-    [executeArchive, executeScan, resetTerminal, stopScan],
+    [executeArchive, executeScan, navigate, resetTerminal, stopScan],
   );
 
   const executeCommand = useCallback(
