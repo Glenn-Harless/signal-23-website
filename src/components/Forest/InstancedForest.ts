@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { ForestShader } from './ForestShader';
 import { TreeData } from './types';
 
-export const createInstancedForest = (treeCount: number, maxDepth: number) => {
+export const createInstancedForest = (treeCount: number = 400, maxDepth: number = 6) => {
     const branchesPerTree = Math.pow(2, maxDepth + 1) - 1;
     const totalInstances = treeCount * branchesPerTree;
 
@@ -21,9 +21,9 @@ export const createInstancedForest = (treeCount: number, maxDepth: number) => {
 
     for (let i = 0; i < treeCount; i++) {
         const treePos = new THREE.Vector3(
-            (Math.random() - 0.5) * 100,
+            (Math.random() - 0.5) * 120,
             0,
-            (Math.random() - 0.5) * 60 - 30
+            (Math.random() - 0.5) * 80 - 40
         );
 
         const treeScale = 0.5 + Math.random() * 0.5;
@@ -53,6 +53,7 @@ export const createInstancedForest = (treeCount: number, maxDepth: number) => {
             const nextPos = new THREE.Vector3(0, length, 0).applyEuler(rot).add(pos);
             const angle = (0.2 + Math.random() * 0.2) * Math.PI;
 
+            // Binary split
             recursiveBranch(nextPos, new THREE.Euler(rot.x, rot.y, rot.z + angle), depth + 1);
             recursiveBranch(nextPos, new THREE.Euler(rot.x, rot.y, rot.z - angle), depth + 1);
         };
