@@ -19,6 +19,9 @@ import { Well } from './components/Well/Well';
 import { Tangle } from './components/Tangle/Tangle';
 import { Learning } from './components/Learning/Learning';
 import { Terms } from './components/Terms/Terms';
+import { Stepwell } from './components/Stepwell/Stepwell';
+import Broadcast from './components/Broadcast/Broadcast';
+
 
 // Home component (previously App content)
 interface HomeProps {
@@ -162,6 +165,9 @@ const App = () => {
           <Route path="/tangle" element={<Tangle />} />
           <Route path="/learning" element={<Learning />} />
           <Route path="/terms" element={<Terms />} />
+          <Route path="/stepwell" element={<Stepwell />} />
+          <Route path="/broadcast" element={<Broadcast />} />
+
         </Routes>
       </WorkstationShell>
     </BrowserRouter>

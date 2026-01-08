@@ -1,0 +1,146 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap');
+
+.stepwell-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #050505;
+    overflow: hidden;
+    z-index: 10;
+    font-family: 'Space Mono', monospace;
+    color: rgba(255, 255, 255, 0.6);
+    user-select: none;
+}
+
+.stepwell-canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+/* --- UI Layout --- */
+.stepwell-ui {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    display: flex;
+    flex-direction: column;
+    padding: 2rem;
+    box-sizing: border-box;
+}
+
+/* --- Header --- */
+.ui-header {
+    width: 100%;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 0.5rem;
+    overflow: hidden;
+    white-space: nowrap;
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+}
+
+.scrolling-text {
+    display: inline-block;
+    padding-left: 100%;
+    animation: scrollText 20s linear infinite;
+}
+
+@keyframes scrollText {
+    0% {
+        transform: translateX(0);
+    }
+
+    100% {
+        transform: translateX(-100%);
+    }
+}
+
+/* --- Coordinates --- */
+.ui-coords {
+    position: absolute;
+    top: 5rem;
+    right: 2rem;
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.coord-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.coord-item .label {
+    font-size: 0.6rem;
+    opacity: 0.4;
+}
+
+.coord-item .value {
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+/* --- Logs --- */
+.ui-logs {
+    margin-top: auto;
+    width: 300px;
+    font-size: 0.65rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    opacity: 0.5;
+}
+
+.log-entry {
+    line-height: 1.2;
+}
+
+/* --- Footer --- */
+.ui-footer {
+    margin-top: 2rem;
+    font-size: 0.65rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding-top: 0.5rem;
+    display: flex;
+    justify-content: space-between;
+}
+
+.status-ok {
+    color: #44ff44;
+    text-shadow: 0 0 5px rgba(68, 255, 68, 0.4);
+}
+
+/* --- Visual Effects --- */
+.vignette {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle, transparent 40%, rgba(0, 0, 0, 0.8) 100%);
+    pointer-events: none;
+}
+
+@media (max-width: 768px) {
+    .stepwell-ui {
+        padding: 1rem;
+    }
+
+    .ui-logs {
+        display: none;
+        /* Hide logs on mobile for clarity */
+    }
+
+    .ui-coords {
+        top: auto;
+        bottom: 4rem;
+        right: 1rem;
+    }
+}
