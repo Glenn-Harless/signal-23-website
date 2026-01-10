@@ -18,11 +18,11 @@ const Forest: React.FC = () => {
         // SCENE SETUP
         const scene = new THREE.Scene();
         sceneRef.current = scene;
-        scene.background = new THREE.Color(0x000000);
-        scene.fog = new THREE.FogExp2(0x000000, 0.025);
+        scene.background = new THREE.Color(0x000205); // Very deep blue-black
+        scene.fog = new THREE.FogExp2(0x000205, 0.035); // Slightly thicker fog
 
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        camera.position.set(0, 8, 30);
+        camera.position.set(0, 10, 40); // Pull back slightly for more awe
 
         const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
@@ -30,11 +30,11 @@ const Forest: React.FC = () => {
         containerRef.current.appendChild(renderer.domElement);
 
         // INSTANCED FOREST
-        const { mesh: forestMesh, treeData } = createInstancedForest(400, 6);
+        const { mesh: forestMesh, treeData } = createInstancedForest(450, 6); // More dense
         scene.add(forestMesh);
 
         // FIREFLIES
-        const fireflies = createFireflies(150);
+        const fireflies = createFireflies(120); // Slightly fewer for focus
         scene.add(fireflies);
 
         // ACTIVE TREE OVERLAY
@@ -42,27 +42,27 @@ const Forest: React.FC = () => {
         scene.add(activeOverlay.getGroup());
 
         // GROUND FOG LAYER
-        const planeGeo = new THREE.PlaneGeometry(200, 200);
+        const planeGeo = new THREE.PlaneGeometry(300, 300);
         const planeMat = new THREE.MeshBasicMaterial({
-            color: 0x05080a,
+            color: 0x020408,
             transparent: true,
-            opacity: 0.3,
+            opacity: 0.4,
             side: THREE.DoubleSide,
             depthWrite: false
         });
         const groundFog = new THREE.Mesh(planeGeo, planeMat);
         groundFog.rotation.x = -Math.PI / 2;
-        groundFog.position.y = 0.5;
+        groundFog.position.y = 0.2;
         scene.add(groundFog);
 
         // POST PROCESSING
         const composer = new EffectComposer(renderer);
         composer.addPass(new RenderPass(scene, camera));
 
-        // TUNE BLOOM
+        // TUNE BLOOM - Lower it significantly
         const bloomPass = new UnrealBloomPass(
             new THREE.Vector2(window.innerWidth, window.innerHeight),
-            1.2, 0.6, 0.7
+            0.6, 0.4, 0.85
         );
         composer.addPass(bloomPass);
 
@@ -78,7 +78,7 @@ const Forest: React.FC = () => {
             // Update Forest Shader Uniforms
             const forestMat = forestMesh.material as THREE.ShaderMaterial;
             forestMat.uniforms.uTime.value = elapsedTime;
-            forestMat.uniforms.uWindIntensity.value = 0.1 + Math.sin(elapsedTime * 0.3) * 0.05;
+            forestMat.uniforms.uWindIntensity.value = 0.05 + Math.sin(elapsedTime * 0.2) * 0.03;
 
             // Update Fireflies
             updateFireflies(fireflies, elapsedTime);
@@ -86,12 +86,12 @@ const Forest: React.FC = () => {
             // Update Trace animations
             activeOverlay.update(elapsedTime);
 
-            // FIREFLY PROXIMITY LOGIC
+            // FIREFLY PROXIMITY LOGIC - Lower Frequency
             const fireflyPos = fireflies.geometry.attributes.position.array as Float32Array;
-            for (let i = 0; i < 150; i++) {
+            for (let i = 0; i < 120; i++) {
                 const fy = fireflyPos[i * 3 + 1];
                 // Only particles near "ground"
-                if (fy < 4) {
+                if (fy < 3.0) {
                     const fx = fireflyPos[i * 3];
                     const fz = fireflyPos[i * 3 + 2];
 
@@ -102,7 +102,7 @@ const Forest: React.FC = () => {
                             const dz = fz - tree.position.z;
                             const distSq = dx * dx + dz * dz;
 
-                            if (distSq < 4) { // 2 unit radius
+                            if (distSq < 1.0) { // Tighter activation radius
                                 activeOverlay.tracePath(
                                     tree.position,
                                     tree.rotation,
@@ -110,8 +110,8 @@ const Forest: React.FC = () => {
                                     6,
                                     scene
                                 );
-                                // Prevent rapid re-activation
-                                treeCooldowns.set(tree.id, elapsedTime + 8);
+                                // Prevent rapid re-activation - longer cooldown
+                                treeCooldowns.set(tree.id, elapsedTime + 25);
                                 break;
                             }
                         }

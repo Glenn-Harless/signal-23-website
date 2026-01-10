@@ -25,28 +25,23 @@ export const ForestShader = {
       vHeight = position.y;
       
       // Calculate height factor (sway more at the top)
-      float heightFactor = position.y / 10.0; // Assuming tree height around 10
+      float heightFactor = position.y / 10.0;
       
-      // Sway animation using instance position as phase offset
-      // We'll use instanceMatrix to get the world position indirectly or pass an attribute
-      // For InstancedMesh, we can use instances' position or a custom attribute phase
-      // Here we'll just use the modelMatrix's translation part
       vec3 worldPos = (instanceMatrix * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
       float phase = worldPos.x * 0.5 + worldPos.z * 0.3;
       
-      // Multi-frequency swaying
+      // Multi-frequency swaying - make it more rigid/mechanical
       float primarySway = sin(uTime * uSwaySpeed + phase) * uSwayAmplitude;
-      float secondarySway = sin(uTime * 1.7 + phase * 2.3) * (uSwayAmplitude * 0.3);
-      float microTremor = sin(uTime * 4.0 + phase * 5.0) * (uSwayAmplitude * 0.1);
+      // High frequency digital "jitter"
+      float jitter = sin(uTime * 40.0 + worldPos.y) * 0.002 * step(0.9, sin(uTime * 2.0 + phase));
       
-      // Wind gusts
       float gust = uWindIntensity * sin(uTime * 0.3 + phase * 0.1) * 0.5;
       
-      float totalSway = (primarySway + secondarySway + microTremor + gust) * heightFactor;
+      float totalSway = (primarySway + gust) * heightFactor + jitter;
       
       vec3 transformed = position;
       transformed.x += totalSway;
-      transformed.z += totalSway * 0.5;
+      transformed.z += totalSway * 0.3;
 
       vec4 mvPosition = modelViewMatrix * instanceMatrix * vec4(transformed, 1.0);
       vDepth = -mvPosition.z;
@@ -64,18 +59,24 @@ export const ForestShader = {
     varying float vDepth;
     varying float vHeight;
 
-    void main() {
-      // Dark forest green tint
-      vec3 baseColor = vec3(0.15, 0.22, 0.18);
-      
-      // Breathing pulse "life"
-      float phase = fract(vHeight * 0.1 + uTime * 0.2);
-      float aliveGlow = 0.03 + 0.02 * sin(uTime * 0.5 + vHeight * 0.5);
-      baseColor += aliveGlow;
+    float hash(vec2 p) {
+        return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
+    }
 
-      // Subtle detail
-      float lineDetail = smoothstep(0.4, 0.5, abs(vUv.x - 0.5));
-      baseColor += lineDetail * 0.05;
+    void main() {
+      // Dystopian monolith grey-green
+      vec3 baseColor = vec3(0.06, 0.08, 0.07);
+      
+      // Data tremor/refresh effect
+      float glitchLine = step(0.98, sin(vHeight * 4.0 - uTime * 2.0));
+      float noise = hash(vec2(floor(vHeight * 20.0), floor(uTime * 15.0)));
+      float refresh = glitchLine * noise * 0.1;
+      
+      baseColor += refresh;
+
+      // Subtle edge highlight (digital feel)
+      float edge = smoothstep(0.45, 0.5, abs(vUv.x - 0.5));
+      baseColor += edge * 0.02;
 
       // Fog calculation
       float fogFactor = smoothstep(uFogNear, uFogFar, vDepth);

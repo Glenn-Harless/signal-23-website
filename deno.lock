@@ -39,6 +39,7 @@
         "npm:style-loader@^3.2.1",
         "npm:tailwindcss@^3.4.10",
         "npm:three@0.157",
+        "npm:tone@^15.1.22",
         "npm:typescript@^4.5.0",
         "npm:webpack-cli@^4.8.0",
         "npm:webpack-dev-server@4",
