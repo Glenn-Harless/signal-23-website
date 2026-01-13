@@ -77,7 +77,7 @@ export const Nerve: React.FC = () => {
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
         const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         mountRef.current.appendChild(renderer.domElement);
         canvasRef.current = renderer.domElement;
 
@@ -214,7 +214,12 @@ export const Nerve: React.FC = () => {
             blending: THREE.AdditiveBlending,
             depthWrite: false
         });
+        // PRE-ALLOCATE pulse buffer to avoid memory leak
+        const maxPulses = pulseMax;
+        const pulsePosArr = new Float32Array(maxPulses * 3);
         const pulseGeom = new THREE.BufferGeometry();
+        pulseGeom.setAttribute('position', new THREE.BufferAttribute(pulsePosArr, 3));
+        pulseGeom.setDrawRange(0, 0); // Start with nothing drawn
         const pulsePoints = new THREE.Points(pulseGeom, pulseMaterial);
         scene.add(pulsePoints);
 
@@ -286,18 +291,19 @@ export const Nerve: React.FC = () => {
             // Occasional spawn
             if (Math.random() > 0.94) spawnPulse();
 
-            // Update pulse geometry
-            const pulsePosArr = new Float32Array(activePulses.length * 3);
+            // Update pulse geometry - REUSE pre-allocated buffer
+            const posArray = pulseGeom.attributes.position.array as Float32Array;
             activePulses.forEach((p, i) => {
                 const start = nodes[p.startNodeIndex].position;
                 const end = nodes[p.endNodeIndex].position;
-                const currentPos = start.clone().lerp(end, p.progress);
-                pulsePosArr[i * 3] = currentPos.x;
-                pulsePosArr[i * 3 + 1] = currentPos.y;
-                pulsePosArr[i * 3 + 2] = currentPos.z;
+                // Lerp without creating new Vector3
+                const t = p.progress;
+                posArray[i * 3] = start.x + (end.x - start.x) * t;
+                posArray[i * 3 + 1] = start.y + (end.y - start.y) * t;
+                posArray[i * 3 + 2] = start.z + (end.z - start.z) * t;
             });
-            pulseGeom.setAttribute('position', new THREE.BufferAttribute(pulsePosArr, 3));
-            pulseGeom.attributes.position.needsUpdate = activePulses.length > 0;
+            pulseGeom.attributes.position.needsUpdate = true;
+            pulseGeom.setDrawRange(0, activePulses.length); // Only draw active pulses
 
             // Seizure Mode
             if (!seizureMode && Math.random() > 0.998 && seizureCooldown <= 0) {
