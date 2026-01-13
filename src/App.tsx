@@ -21,6 +21,8 @@ import { Learning } from './components/Learning/Learning';
 import { Terms } from './components/Terms/Terms';
 import { Stepwell } from './components/Stepwell/Stepwell';
 import Broadcast from './components/Broadcast/Broadcast';
+import Forest from './components/Forest/Forest';
+
 
 
 // Home component (previously App content)
@@ -167,6 +169,8 @@ const App = () => {
           <Route path="/terms" element={<Terms />} />
           <Route path="/stepwell" element={<Stepwell />} />
           <Route path="/broadcast" element={<Broadcast />} />
+          <Route path="/forest" element={<Forest />} />
+
 
         </Routes>
       </WorkstationShell>
