@@ -25,6 +25,8 @@ export const SuccessPage: React.FC = () => {
             return;
         }
 
+        let isMounted = true;
+
         const verifyPayment = async () => {
             try {
                 const response = await fetch('/.netlify/functions/verify-payment', {
@@ -33,22 +35,32 @@ export const SuccessPage: React.FC = () => {
                     body: JSON.stringify({ sessionId }),
                 });
 
+                if (!isMounted) return;
+
                 if (!response.ok) {
                     const error = await response.json();
                     throw new Error(error.error || 'Verification failed');
                 }
 
                 const data = await response.json();
-                setDownloadData(data);
-                setStatus('success');
+                if (isMounted) {
+                    setDownloadData(data);
+                    setStatus('success');
+                }
             } catch (error) {
-                console.error('Verification error:', error);
-                setErrorMessage(error instanceof Error ? error.message : 'An error occurred');
-                setStatus('error');
+                if (isMounted) {
+                    console.error('Verification error:', error);
+                    setErrorMessage(error instanceof Error ? error.message : 'An error occurred');
+                    setStatus('error');
+                }
             }
         };
 
         verifyPayment();
+
+        return () => {
+            isMounted = false;
+        };
     }, [sessionId]);
 
     return (

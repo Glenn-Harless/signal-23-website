@@ -295,7 +295,7 @@ export const Stepwell: React.FC = () => {
         });
 
         const descentSpeed = 0.15;
-        let animId: number;
+        let animId: number = 0;
 
         const animate = (time: number) => {
             animId = requestAnimationFrame(animate);
@@ -348,8 +348,38 @@ export const Stepwell: React.FC = () => {
             window.removeEventListener('resize', handleResize);
             cancelAnimationFrame(animId);
             driftTween.kill();
+
+            // Dispose all scene objects
+            scene.traverse((obj) => {
+                if (obj instanceof THREE.Mesh || obj instanceof THREE.LineSegments || obj instanceof THREE.Points) {
+                    if (obj.geometry) obj.geometry.dispose();
+                    if (obj.material) {
+                        if (Array.isArray(obj.material)) {
+                            obj.material.forEach(m => m.dispose());
+                        } else {
+                            obj.material.dispose();
+                        }
+                    }
+                }
+                if (obj instanceof THREE.Light) {
+                    obj.dispose?.();
+                }
+            });
+
+            // Dispose shared material
+            wallMaterial.dispose();
+
+            // Clear scene and levels ref
+            scene.clear();
+            levelsRef.current = [];
+
+            // Dispose post-processing
+            composer.dispose();
+
+            if (mountRef.current && renderer.domElement) {
+                mountRef.current.removeChild(renderer.domElement);
+            }
             renderer.dispose();
-            // Deep dispose logic here if needed
         };
     }, []);
 

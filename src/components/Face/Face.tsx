@@ -183,35 +183,56 @@ export const Face: React.FC = () => {
                         meshFound = true;
                         const geometry = child.geometry as THREE.BufferGeometry;
 
-                        console.log('Found mesh with', geometry.attributes.position.count, 'vertices');
+                        // Center the model geometry immediately
+                        geometry.center();
 
                         // Get vertex positions
                         const positions = geometry.attributes.position;
-                        vertexCount = positions.count;
-
-                        // Store original positions for animation
                         const fullPositions = positions.array;
-
-                        // Downsample points to avoid "blob" effect
-                        // Target roughly 1500-2000 points for a clean "node" look
-                        const targetPointCount = 2000;
                         const totalVertices = positions.count;
-                        const samplingRate = Math.min(1, targetPointCount / totalVertices);
 
+                        // DISTANCE-BASED SAMPLING to normalize density
+                        // This prevents eyes/ears from being too dense
                         const sampledPositions: number[] = [];
+                        const minDistance = 0.08; // Minimum distance between nodes
+                        const minDistanceSq = minDistance * minDistance;
 
+                        // Simple greedy sampling
                         for (let i = 0; i < totalVertices; i++) {
-                            if (Math.random() < samplingRate) {
-                                sampledPositions.push(
-                                    fullPositions[i * 3],
-                                    fullPositions[i * 3 + 1],
-                                    fullPositions[i * 3 + 2]
-                                );
+                            const x = fullPositions[i * 3];
+                            const y = fullPositions[i * 3 + 1];
+                            const z = fullPositions[i * 3 + 2];
+
+                            // Check distance against all currently accepted points
+                            // (For 2000 points this O(N^2) is acceptable on load, but we can optimize if needed)
+                            // To speed it up, we just check against a subset or use a grid, but for <2000 points brute force is fine
+                            let tooClose = false;
+
+                            // Optimization: checking backward from most recently added is often enough for mesh traversals,
+                            // but for random access or full coverage, we need to be careful.
+                            // Given standard mesh vertex ordering, spatial locality isn't guaranteed.
+                            // However, we only need "good enough" distribution.
+
+                            for (let j = 0; j < sampledPositions.length; j += 3) {
+                                const dx = x - sampledPositions[j];
+                                const dy = y - sampledPositions[j + 1];
+                                const dz = z - sampledPositions[j + 2];
+                                const distSq = dx * dx + dy * dy + dz * dz;
+
+                                if (distSq < minDistanceSq) {
+                                    tooClose = true;
+                                    break;
+                                }
+                            }
+
+                            if (!tooClose) {
+                                sampledPositions.push(x, y, z);
                             }
                         }
 
                         const sampledFloat32 = new Float32Array(sampledPositions);
                         vertexCount = sampledPositions.length / 3;
+                        console.log(`Downsampled from ${totalVertices} to ${vertexCount} nodes`);
 
                         // Create points from SAMPLED vertices
                         const pointsGeom = new THREE.BufferGeometry();
@@ -227,21 +248,10 @@ export const Face: React.FC = () => {
                         wireframe = new THREE.LineSegments(wireframeGeom, lineMat);
                         faceGroup.add(wireframe);
 
-                        // Center the model
-                        geometry.computeBoundingBox();
-                        const box = geometry.boundingBox!;
-                        const center = new THREE.Vector3();
-                        box.getCenter(center);
-
-                        console.log('Bounding box:', box.min, box.max);
-                        console.log('Center:', center);
-
-                        // Apply centering to the group
-                        faceGroup.position.set(-center.x, -center.y, -center.z);
-
                         // Scale to fit view
                         const size = new THREE.Vector3();
-                        box.getSize(size);
+                        geometry.computeBoundingBox(); // Recompute after center
+                        geometry.boundingBox!.getSize(size);
                         const maxDim = Math.max(size.x, size.y, size.z);
                         const scale = 3.5 / maxDim; // Slightly larger
                         faceGroup.scale.setScalar(scale);
@@ -301,9 +311,11 @@ export const Face: React.FC = () => {
             animationId = requestAnimationFrame(animate);
             const time = performance.now() * 0.001;
 
-            // Subtle animation - geometry is already oriented correctly
-            faceGroup.rotation.x = Math.sin(time * 0.08) * 0.1;  // Gentle nod
-            faceGroup.rotation.y = Math.sin(time * 0.1) * 0.3;   // Slow turn
+            // Continuous 360 rotation
+            faceGroup.rotation.y = time * 0.2;
+
+            // Removed nodding for stable rotation
+            faceGroup.rotation.x = 0;
 
             // Subtle breathing scale
             const baseScale = faceGroup.scale.x; // Preserve loaded scale
@@ -454,11 +466,12 @@ export const Face: React.FC = () => {
             {/* Record Button */}
             {process.env.NODE_ENV !== 'production' && (
                 <button
-                    className={`face-record-button ${isRecording ? 'recording' : ''}`}
+                    className={`record-button ${isRecording ? 'recording' : ''}`}
                     onClick={toggleRecording}
+                    title={isRecording ? 'Stop Recording' : 'Start Recording'}
                 >
-                    <span className="face-record-icon" />
-                    {isRecording && <span className="face-record-time">
+                    <span className="record-icon" />
+                    {isRecording && <span className="record-time">
                         {Math.floor(recordingTime / 60)}:{(recordingTime % 60).toString().padStart(2, '0')}
                     </span>}
                 </button>

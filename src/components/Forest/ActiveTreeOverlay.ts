@@ -194,4 +194,25 @@ void main() {
             }
         });
     }
+
+    dispose() {
+        // Kill all gsap animations targeting this overlay's elements
+        gsap.killTweensOf(this.group.children);
+
+        // Dispose all meshes in the group
+        this.group.traverse(child => {
+            if (child instanceof THREE.Mesh) {
+                child.geometry.dispose();
+                if (child.material instanceof THREE.Material) {
+                    child.material.dispose();
+                }
+            }
+        });
+
+        // Dispose the trace material
+        this.traceMaterial.dispose();
+
+        // Clear the group
+        this.group.clear();
+    }
 }

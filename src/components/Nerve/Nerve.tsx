@@ -243,6 +243,7 @@ export const Nerve: React.FC = () => {
         let animationId: number;
         let seizureMode = false;
         let seizureCooldown = 0;
+        let seizureTimeoutId: NodeJS.Timeout | null = null;
 
         const animate = () => {
             animationId = requestAnimationFrame(animate);
@@ -308,9 +309,10 @@ export const Nerve: React.FC = () => {
             // Seizure Mode
             if (!seizureMode && Math.random() > 0.998 && seizureCooldown <= 0) {
                 seizureMode = true;
-                setTimeout(() => {
+                seizureTimeoutId = setTimeout(() => {
                     seizureMode = false;
                     seizureCooldown = 500;
+                    seizureTimeoutId = null;
                 }, 2000);
             }
             if (seizureCooldown > 0) seizureCooldown--;
@@ -342,6 +344,18 @@ export const Nerve: React.FC = () => {
         return () => {
             cancelAnimationFrame(animationId);
             window.removeEventListener('resize', handleResize);
+
+            // Clear seizure timeout
+            if (seizureTimeoutId) clearTimeout(seizureTimeoutId);
+
+            // Clear recording interval
+            if (recordingIntervalRef.current) {
+                clearInterval(recordingIntervalRef.current);
+            }
+            if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+                mediaRecorderRef.current.stop();
+            }
+
             if (mountRef.current && renderer.domElement) {
                 mountRef.current.removeChild(renderer.domElement);
             }
