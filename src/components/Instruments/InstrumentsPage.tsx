@@ -109,15 +109,30 @@ export const InstrumentsPage: React.FC = () => {
         };
     }, []);
 
+    // Track timeouts for cleanup
+    const flickerTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+    // Cleanup timeouts on unmount
+    useEffect(() => {
+        return () => {
+            if (flickerTimeoutRef.current) clearTimeout(flickerTimeoutRef.current);
+            if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
+        };
+    }, []);
+
     const handlePackSelect = (pack: AbletonPack) => {
         setCheckoutState('IDLE');
         setFlicker(true);
         setSelectedPack(pack);
-        setTimeout(() => setFlicker(false), 200);
+
+        if (flickerTimeoutRef.current) clearTimeout(flickerTimeoutRef.current);
+        flickerTimeoutRef.current = setTimeout(() => setFlicker(false), 200);
 
         // Scroll to acquisition panel on mobile
         if (window.innerWidth <= 1024) {
-            setTimeout(() => {
+            if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
+            scrollTimeoutRef.current = setTimeout(() => {
                 acquisitionRef.current?.scrollIntoView({ behavior: 'smooth' });
             }, 100);
         }

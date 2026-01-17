@@ -22,6 +22,8 @@ import { Terms } from './components/Terms/Terms';
 import { Stepwell } from './components/Stepwell/Stepwell';
 import Broadcast from './components/Broadcast/Broadcast';
 import Forest from './components/Forest/Forest';
+import { Nerve } from './components/Nerve/Nerve';
+import { Face } from './components/Face/Face';
 
 
 
@@ -170,6 +172,8 @@ const App = () => {
           <Route path="/stepwell" element={<Stepwell />} />
           <Route path="/broadcast" element={<Broadcast />} />
           <Route path="/forest" element={<Forest />} />
+          <Route path="/nerve" element={<Nerve />} />
+          <Route path="/face" element={<Face />} />
 
 
         </Routes>

@@ -56,6 +56,27 @@ docker compose up --build
 - `index.html` - HTML entry point
 - `abridged_tim0.mp3` - Audio content
 
+## Pages
+
+| Path | Description |
+|------|-------------|
+| `/` | Home |
+| `/terminal` | Terminal |
+| `/instruments` | Instruments |
+| `/instruments/success` | Instruments Success |
+| `/resonance` | Resonance |
+| `/growth` | Growth |
+| `/forbidding` | Forbidding Blocks |
+| `/well` | Well |
+| `/tangle` | Tangle |
+| `/learning` | Learning |
+| `/terms` | Terms |
+| `/stepwell` | Stepwell |
+| `/broadcast` | Broadcast |
+| `/forest` | Forest |
+| `/nerve` | Nerve |
+| `/face` | Face |
+
 ## Key Technologies
 
 - React

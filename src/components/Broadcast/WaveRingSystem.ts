@@ -60,8 +60,19 @@ export class WaveRingSystem {
         const ringIndex = this.rings.findIndex(r => r.name === id);
         if (ringIndex > -1) {
             const ring = this.rings[ringIndex];
+            ring.geometry.dispose();
+            (ring.material as THREE.Material).dispose();
             this.group.remove(ring);
             this.rings.splice(ringIndex, 1);
         }
+    }
+
+    dispose() {
+        this.rings.forEach(ring => {
+            ring.geometry.dispose();
+            (ring.material as THREE.Material).dispose();
+            this.group.remove(ring);
+        });
+        this.rings = [];
     }
 }

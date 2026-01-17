@@ -145,11 +145,13 @@ const Forest: React.FC = () => {
 
         // ANIMATION LOOP
         const clock = new THREE.Clock();
+        let animationId: number;
 
         // Tracking tree activation cooldowns
         const treeCooldowns: Map<string, number> = new Map();
 
         const animate = () => {
+            animationId = requestAnimationFrame(animate);
             const elapsedTime = clock.getElapsedTime();
 
             // Update Forest Shader Uniforms
@@ -197,7 +199,6 @@ const Forest: React.FC = () => {
             }
 
             composer.render();
-            requestAnimationFrame(animate);
         };
 
         animate();
@@ -211,8 +212,33 @@ const Forest: React.FC = () => {
         window.addEventListener('resize', handleResize);
 
         return () => {
+            cancelAnimationFrame(animationId);
             window.removeEventListener('resize', handleResize);
+
+            // Dispose scene objects
+            scene.traverse((obj) => {
+                if (obj instanceof THREE.Mesh || obj instanceof THREE.LineSegments || obj instanceof THREE.Points) {
+                    if (obj.geometry) obj.geometry.dispose();
+                    if (obj.material) {
+                        if (Array.isArray(obj.material)) {
+                            obj.material.forEach(m => m.dispose());
+                        } else {
+                            obj.material.dispose();
+                        }
+                    }
+                }
+            });
+
+            // Dispose active overlay
+            activeOverlay.dispose();
+
+            planeGeo.dispose();
+            planeMat.dispose();
+
+            scene.clear();
+            composer.dispose();
             renderer.dispose();
+
             if (containerRef.current?.contains(renderer.domElement)) {
                 containerRef.current.removeChild(renderer.domElement);
             }

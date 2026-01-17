@@ -192,8 +192,9 @@ export const ForbiddingBlocks: React.FC = () => {
         if (mountRef.current) resizeObserver.observe(mountRef.current);
 
         let time = 0;
+        let animationId: number;
         const animate = () => {
-            const frameId = requestAnimationFrame(animate);
+            animationId = requestAnimationFrame(animate);
             time += 0.002;
 
             // Camera Motion: Slow sweeping drift
@@ -243,11 +244,27 @@ export const ForbiddingBlocks: React.FC = () => {
         animate();
 
         return () => {
+            cancelAnimationFrame(animationId);
             resizeObserver.disconnect();
-            if (mountRef.current) mountRef.current.removeChild(renderer.domElement);
+
+            // Dispose all geometries
+            monoliths.forEach(m => {
+                m.mesh.geometry.dispose();
+                m.wire.geometry.dispose();
+            });
+            pGeo.dispose();
+
+            // Dispose materials
             wallMat.dispose();
             wireMat.dispose();
             pMat.dispose();
+
+            // Clear scene
+            scene.clear();
+
+            if (mountRef.current && renderer.domElement) {
+                mountRef.current.removeChild(renderer.domElement);
+            }
             renderer.dispose();
         };
     }, []);

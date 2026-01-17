@@ -93,8 +93,10 @@ const Broadcast: React.FC = () => {
 
         // ANIMATION LOOP
         const isMobileRef = { current: window.innerWidth < 768 };
+        let animationId: number;
 
         const animate = () => {
+            animationId = requestAnimationFrame(animate);
             const elapsedTime = clockRef.current.getElapsedTime();
             const avgFreq = systems.audioSystem.getAverageFrequency();
 
@@ -125,7 +127,6 @@ const Broadcast: React.FC = () => {
             setRings([...stateRef.current.rings]);
 
             composer.render();
-            requestAnimationFrame(animate);
         };
 
         animate();
@@ -141,7 +142,34 @@ const Broadcast: React.FC = () => {
         window.addEventListener('resize', handleResize);
 
         return () => {
+            cancelAnimationFrame(animationId);
             window.removeEventListener('resize', handleResize);
+
+            // Kill any active gsap animations
+            gsap.killTweensOf(systems.ringSystem);
+
+            // Dispose scene objects
+            scene.traverse((obj) => {
+                if (obj instanceof THREE.Mesh || obj instanceof THREE.LineSegments || obj instanceof THREE.Points) {
+                    if (obj.geometry) obj.geometry.dispose();
+                    if (obj.material) {
+                        if (Array.isArray(obj.material)) {
+                            obj.material.forEach(m => m.dispose());
+                        } else {
+                            obj.material.dispose();
+                        }
+                    }
+                }
+            });
+
+            // Dispose ring system resources
+            systems.ringSystem.dispose();
+
+            groundMat.dispose();
+            groundGeo.dispose();
+
+            scene.clear();
+            composer.dispose();
             renderer.dispose();
             systems.audioSystem.stop();
         };
