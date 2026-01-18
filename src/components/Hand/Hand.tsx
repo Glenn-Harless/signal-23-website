@@ -233,8 +233,10 @@ export const Hand: React.FC = () => {
                 handGroup.traverse((child) => {
                     if (child instanceof THREE.Bone) {
                         bones.push(child);
+                        console.log('Bone found:', child.name);
                     }
                 });
+                console.log('Total bones found:', bones.length);
 
                 // Animation Mixer
                 if (gltf.animations && gltf.animations.length > 0) {
@@ -287,32 +289,27 @@ export const Hand: React.FC = () => {
             // Continuous rotation like Face
             handGroup.rotation.y = time * 0.3;
 
-            // Update Mixer
+            // Update Mixer for baked animations
             if (mixer) {
-                mixer.update(0.016); // delta time
-            } else {
-                // PROCEDURAL ANIMATION (Finger Curl)
-                // If no baked animation, we animate bones manually.
-                // We look for bones that might be phalanges.
-                // Simple heuristic: rotate all bones that are not root?
-                // Or looking for names like "Proximal", "Mid", "Distal", "Phal"
-
-                const angle = (Math.sin(time * 2) + 1) * 0.4; // 0 to 0.8 radians
-
-                bones.forEach(bone => {
-                    // Filter for finger joints based on common naming conventions or hierarchy depth
-                    // Assuming standard rig: Hand -> Finger1 -> Finger1_01 ...
-                    // We'll just animate everything deep in the hierarchy slightly
-                    // OR specifically look for names.
-                    const name = bone.name.toLowerCase();
-                    if (name.includes('hand') || name.includes('root') || name.includes('wrist')) return;
-
-                    // Rotate on Z or X axis (depends on rig orientation)
-                    // We'll try Z axis which is common for curling
-                    // We blend it to be safe
-                    bone.rotation.z = -angle; // Curl in?
-                });
+                mixer.update(0.016);
             }
+
+            // PROCEDURAL ANIMATION (Finger Curl) - runs even with mixer
+            // Animate finger bones to curl open/closed
+            const curl = (Math.sin(time * 1.5) + 1) * 0.5; // 0 to 1
+            const angle = curl * 0.8; // 0 to 0.8 radians
+
+            bones.forEach(bone => {
+                const name = bone.name.toLowerCase();
+
+                // Skip root/hand/wrist bones
+                if (name.includes('armature') || name.includes('root') || name.includes('wrist')) return;
+                if (name === 'hand' || name.includes('hand_')) return;
+
+                // Finger bones - try X axis (most common for curl)
+                // Different models use different conventions
+                bone.rotation.x = angle;
+            });
 
             // Material pulse (from Face.tsx)
             pointsMat.opacity = 0.7 + Math.sin(time * 2.0) * 0.2;
