@@ -24,6 +24,7 @@ import Broadcast from './components/Broadcast/Broadcast';
 import Forest from './components/Forest/Forest';
 import { Nerve } from './components/Nerve/Nerve';
 import { Face } from './components/Face/Face';
+import { Hand } from './components/Hand/Hand';
 
 
 
@@ -176,6 +177,7 @@ const App = () => {
           <Route path="/face" element={<Face />} />
 
 
+          <Route path="/hand" element={<Hand />} />
         </Routes>
       </WorkstationShell>
     </BrowserRouter>

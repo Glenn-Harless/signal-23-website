@@ -27,7 +27,7 @@ const MEDIA_LINKS: TerminalMediaLink[] = [
   { name: 'SOUNDCLOUD', url: 'https://soundcloud.com/signal-23' },
   { name: 'BANDCAMP', url: 'https://signal-23.bandcamp.com/' },
   { name: 'INSTAGRAM', url: 'https://www.instagram.com/signal23music/' },
-  { name: 'HYPERFOLLOW // RESET', url: 'https://distrokid.com/hyperfollow/signal23/reset' },
+  { name: 'HYPERFOLLOW // DECAY', url: 'https://distrokid.com/hyperfollow/signal23/decay' },
 ];
 
 const MENU_ITEMS: TerminalMenuItem[] = [
@@ -276,8 +276,8 @@ export function useTerminal({ isMobile }: UseTerminalOptions): UseTerminalResult
         { type: 'warning', content: 'OPERATOR CREDENTIALS NOT FOUND' },
         { type: 'warning', content: 'SOME PERMISSIONS RESTRICTED' },
         { type: 'separator', content: '---------------------------' },
-        { type: 'system', content: 'AUX RELAY UNLOCKED: RESET SIGNAL' },
-        { type: 'link', content: ' HYPERFOLLOW // RESET' },
+        { type: 'system', content: 'AUX RELAY UNLOCKED: DECAY SIGNAL' },
+        { type: 'link', content: ' HYPERFOLLOW // DECAY' },
       ],
       clear: async () => {
         stopScan();
