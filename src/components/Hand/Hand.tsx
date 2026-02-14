@@ -62,7 +62,7 @@ export const Hand: React.FC = () => {
         let isComponentMounted = true;
 
         const scene = new THREE.Scene();
-        scene.fog = new THREE.FogExp2(0x000000, 0.015);
+        scene.fog = new THREE.FogExp2(0x000000, 0.02); // Absolute Black Fog for Broadcast feel
 
         const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
         camera.position.z = 5;
@@ -108,19 +108,32 @@ export const Hand: React.FC = () => {
         })();
 
         const pointsMat = new THREE.PointsMaterial({
-            size: 0.12,
+            size: 0.16,
             map: nodeSprite,
             transparent: true,
-            opacity: 0.7,
+            opacity: 0.9,
             blending: THREE.AdditiveBlending,
             depthWrite: false,
-            sizeAttenuation: true
+            sizeAttenuation: true,
+            color: 0xffffff // Broadcast White
+        });
+
+        // Accent material for fingertips (Numbers Station Green)
+        const accentMat = new THREE.PointsMaterial({
+            size: 0.18,
+            map: nodeSprite,
+            transparent: true,
+            opacity: 0.9,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false,
+            sizeAttenuation: true,
+            color: 0x00ff66
         });
 
         const lineMat = new THREE.LineBasicMaterial({
-            color: 0x8899aa,
+            color: 0xffffff, // White Signal
             transparent: true,
-            opacity: 0.15,
+            opacity: 0.06,
             blending: THREE.AdditiveBlending
         });
 
@@ -229,14 +242,19 @@ export const Hand: React.FC = () => {
                     }
                 });
 
-                // Find Bones for Animation
+                // Find Bones and Add Joint Nodes
                 handGroup.traverse((child) => {
                     if (child instanceof THREE.Bone) {
                         bones.push(child);
-                        console.log('Bone found:', child.name);
+
+                        // Add a glowing node at each joint for a "constellation" look
+                        const jointNode = new THREE.Points(
+                            new THREE.BufferGeometry().setAttribute('position', new THREE.Float32BufferAttribute([0, 0, 0], 3)),
+                            pointsMat
+                        );
+                        child.add(jointNode);
                     }
                 });
-                console.log('Total bones found:', bones.length);
 
                 // Animation Mixer
                 if (gltf.animations && gltf.animations.length > 0) {
@@ -258,12 +276,7 @@ export const Hand: React.FC = () => {
                 const targetScale = 3.5 / maxDim;
                 handGroup.scale.setScalar(targetScale);
 
-                // 3. Debug Object (Remove once verified)
-                const debugBox = new THREE.Mesh(
-                    new THREE.BoxGeometry(0.1, 0.1, 0.1),
-                    new THREE.MeshBasicMaterial({ color: 0xff0000 })
-                );
-                scene.add(debugBox);
+                // 3. Cleanup debug assets (Removed red cube)
 
                 if (!isAnimating && isComponentMounted) {
                     isAnimating = true;
@@ -286,18 +299,19 @@ export const Hand: React.FC = () => {
             animationId = requestAnimationFrame(animate);
             const time = performance.now() * 0.001;
 
-            // Continuous rotation like Face
-            handGroup.rotation.y = time * 0.3;
+            // 1. Organic Hand Sway (Floating "Alive" look)
+            handGroup.rotation.y = time * 0.4;
+            handGroup.rotation.x = Math.sin(time * 0.5) * 0.1 + 0.2;
+            handGroup.position.y = Math.sin(time * 1.2) * 0.1;
 
             // Update Mixer for baked animations
             if (mixer) {
                 mixer.update(0.016);
             }
 
-            // PROCEDURAL ANIMATION (Finger Curl) - runs even with mixer
-            // Animate finger bones to curl open/closed
-            const curl = (Math.sin(time * 1.5) + 1) * 0.5; // 0 to 1
-            const angle = curl * 0.8; // 0 to 0.8 radians
+            // 2. PROCEDURAL ANIMATION (Organic Fist Clench)
+            const baseSpeed = 2.5;
+            const maxAngle = Math.PI / 1.7;
 
             bones.forEach(bone => {
                 const name = bone.name.toLowerCase();
@@ -306,14 +320,23 @@ export const Hand: React.FC = () => {
                 if (name.includes('armature') || name.includes('root') || name.includes('wrist')) return;
                 if (name === 'hand' || name.includes('hand_')) return;
 
-                // Finger bones - try X axis (most common for curl)
-                // Different models use different conventions
-                bone.rotation.x = angle;
+                // Add organic timing offset
+                let offset = 0;
+                if (name.includes('index')) offset = 0.1;
+                if (name.includes('middle')) offset = 0.2;
+                if (name.includes('ring')) offset = 0.3;
+                if (name.includes('pinky')) offset = 0.4;
+                if (name.includes('thumb')) offset = 0.5;
+
+                const clenchFactor = (Math.sin(time * baseSpeed + offset) + 1) / 2;
+
+                // Finger bones - try X axis for curl
+                bone.rotation.x = clenchFactor * maxAngle;
             });
 
-            // Material pulse (from Face.tsx)
-            pointsMat.opacity = 0.7 + Math.sin(time * 2.0) * 0.2;
-            lineMat.opacity = 0.1 + Math.sin(time * 1.5) * 0.05;
+            // Material pulse 
+            pointsMat.opacity = 0.6 + Math.sin(time * 2.5) * 0.2;
+            lineMat.opacity = 0.08 + Math.sin(time * 1.8) * 0.04;
 
             // Camera sway
             camera.position.x = Math.sin(time * 0.15) * 0.3;
