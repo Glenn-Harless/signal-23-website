@@ -5,9 +5,9 @@ import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass';
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass';
-import './Hand.css';
+import './Birth.css';
 
-export const Hand: React.FC = () => {
+export const Birth: React.FC = () => {
     const mountRef = useRef<HTMLDivElement>(null);
     const [isRecording, setIsRecording] = useState(false);
     const [recordingTime, setRecordingTime] = useState(0);
@@ -75,7 +75,7 @@ export const Hand: React.FC = () => {
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         renderer.toneMapping = THREE.ReinhardToneMapping;
-        renderer.toneMappingExposure = 1.0;
+        renderer.toneMappingExposure = 1.2;
         mountRef.current.appendChild(renderer.domElement);
         canvasRef.current = renderer.domElement;
 
@@ -85,9 +85,9 @@ export const Hand: React.FC = () => {
 
         const bloomPass = new UnrealBloomPass(
             new THREE.Vector2(window.innerWidth, window.innerHeight),
-            0.8,   // strength - subtle glow, preserves form
-            0.5,   // radius - tighter spread
-            0.4    // threshold - only bright elements bloom
+            1.8,   // strength - strong atmospheric glow
+            0.9,   // radius - wide, soft spread
+            0.15   // threshold - low so even dim elements bloom
         );
         composer.addPass(bloomPass);
 
@@ -150,7 +150,7 @@ export const Hand: React.FC = () => {
         renderer.domElement.addEventListener('webglcontextrestored', handleContextRestored);
 
         // Spectral lighting
-        const spectralLight = new THREE.PointLight(0x3355aa, 0.35, 12);
+        const spectralLight = new THREE.PointLight(0x3355aa, 0.6, 12);
         spectralLight.position.set(0, 0.5, 3);
         scene.add(spectralLight);
 
@@ -182,14 +182,14 @@ export const Hand: React.FC = () => {
         })();
 
         const pointsMat = new THREE.PointsMaterial({
-            size: 0.12,
+            size: 0.18,
             map: nodeSprite,
             transparent: true,
-            opacity: 0.6,
+            opacity: 0.85,
             blending: THREE.AdditiveBlending,
             depthWrite: false,
             sizeAttenuation: true,
-            color: 0x8899bb
+            color: 0xccddff
         });
 
         const accentMat = new THREE.PointsMaterial({
@@ -213,9 +213,9 @@ export const Hand: React.FC = () => {
         // Ghost mesh material (solid, translucent, responds to light)
         const ghostMat = new THREE.MeshPhongMaterial({
             color: 0x1a2a4a,
-            emissive: 0x040810,
+            emissive: 0x060a18,
             transparent: true,
-            opacity: 0.08,
+            opacity: 0.12,
             blending: THREE.AdditiveBlending,
             depthWrite: false,
             side: THREE.DoubleSide,
@@ -508,8 +508,8 @@ export const Hand: React.FC = () => {
     }, []);
 
     return (
-        <div className="hand-container">
-            <div ref={mountRef} className="hand-canvas" />
+        <div className="birth-container">
+            <div ref={mountRef} className="birth-canvas" />
             {process.env.NODE_ENV !== 'production' && (
                 <button
                     className={`record-button ${isRecording ? 'recording' : ''}`}

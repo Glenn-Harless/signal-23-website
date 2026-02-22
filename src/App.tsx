@@ -25,6 +25,8 @@ import Forest from './components/Forest/Forest';
 import { Nerve } from './components/Nerve/Nerve';
 import { Face } from './components/Face/Face';
 import { Hand } from './components/Hand/Hand';
+import { Birth } from './components/Birth/Birth';
+import { Murmur } from './components/Murmur/Murmur';
 
 
 
@@ -178,6 +180,8 @@ const App = () => {
 
 
           <Route path="/hand" element={<Hand />} />
+          <Route path="/birth" element={<Birth />} />
+          <Route path="/murmur" element={<Murmur />} />
         </Routes>
       </WorkstationShell>
     </BrowserRouter>
