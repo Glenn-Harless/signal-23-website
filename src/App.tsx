@@ -27,6 +27,8 @@ import { Face } from './components/Face/Face';
 import { Hand } from './components/Hand/Hand';
 import { Birth } from './components/Birth/Birth';
 import { Murmur } from './components/Murmur/Murmur';
+import { Decay } from './components/Decay/Decay';
+import { Reclamation } from './components/Reclamation/Reclamation';
 
 
 
@@ -182,6 +184,8 @@ const App = () => {
           <Route path="/hand" element={<Hand />} />
           <Route path="/birth" element={<Birth />} />
           <Route path="/murmur" element={<Murmur />} />
+          <Route path="/decay" element={<Decay />} />
+          <Route path="/reclamation" element={<Reclamation />} />
         </Routes>
       </WorkstationShell>
     </BrowserRouter>
