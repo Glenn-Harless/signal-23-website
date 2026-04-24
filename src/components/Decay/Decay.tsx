@@ -6,29 +6,25 @@ import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPa
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass';
 import './Decay.css';
 
-// ── Constants ────────────────────────────────────────────────────────────────
-const CYCLE_DURATION = 35;
-const PRISTINE_END = 8;
-const CRUMBLE_END = 20;
-const DUST_END = 28;
+// ── Shell constants ──────────────────────────────────────────────────────────
+const OUTER_RADIUS = 2.6;
+const INNER_RADIUS = 2.1;
 const SUBDIVISIONS = 3;
-const RADIUS = 1.5;
-const PARTICLE_COUNT = 200;
+const PARTICLE_COUNT = 260;
 
-// ── Fragment data ────────────────────────────────────────────────────────────
 interface Fragment {
     homeA: THREE.Vector3;
     homeB: THREE.Vector3;
     homeC: THREE.Vector3;
-    offset: THREE.Vector3;
-    normal: THREE.Vector3;
     center: THREE.Vector3;
-    health: number;
-    velocity: THREE.Vector3;
-    rotation: THREE.Euler;
-    rotVelocity: THREE.Vector3;
-    neighbors: number[];
-    crackDepth: number;
+    normal: THREE.Vector3;
+    // Per-fragment noise phases for idiosyncratic micro-wobble
+    noisePhaseA: number;
+    noisePhaseB: number;
+    // Regional timing seed so the shell doesn't breathe perfectly uniform
+    regionSeed: number;
+    // 0→1 instantaneous strain, decays exponentially toward 0 after a spasm
+    stressAccumulator: number;
 }
 
 function buildFragments(geometry: THREE.BufferGeometry): Fragment[] {
@@ -48,56 +44,20 @@ function buildFragments(geometry: THREE.BufferGeometry): Fragment[] {
         const normal = new THREE.Vector3().crossVectors(ab, ac).normalize();
 
         fragments.push({
-            homeA: a, homeB: b, homeC: c,
-            offset: new THREE.Vector3(),
-            normal,
+            homeA: a,
+            homeB: b,
+            homeC: c,
             center,
-            health: 1.0,
-            velocity: new THREE.Vector3(),
-            rotation: new THREE.Euler(),
-            rotVelocity: new THREE.Vector3(
-                (Math.random() - 0.5) * 0.02,
-                (Math.random() - 0.5) * 0.02,
-                (Math.random() - 0.5) * 0.02
-            ),
-            neighbors: [],
-            crackDepth: 0,
+            normal,
+            noisePhaseA: Math.random() * Math.PI * 2,
+            noisePhaseB: Math.random() * Math.PI * 2,
+            regionSeed: Math.random(),
+            stressAccumulator: 0,
         });
     }
     return fragments;
 }
 
-function buildAdjacency(fragments: Fragment[]): void {
-    const vertMap = new Map<string, number[]>();
-    const quantize = (v: THREE.Vector3) =>
-        `${(v.x * 1000) | 0},${(v.y * 1000) | 0},${(v.z * 1000) | 0}`;
-
-    for (let i = 0; i < fragments.length; i++) {
-        const f = fragments[i];
-        for (const v of [f.homeA, f.homeB, f.homeC]) {
-            const key = quantize(v);
-            if (!vertMap.has(key)) vertMap.set(key, []);
-            vertMap.get(key)!.push(i);
-        }
-    }
-
-    for (let i = 0; i < fragments.length; i++) {
-        const f = fragments[i];
-        const neighborCounts = new Map<number, number>();
-        for (const v of [f.homeA, f.homeB, f.homeC]) {
-            const key = quantize(v);
-            const sharing = vertMap.get(key) || [];
-            for (const j of sharing) {
-                if (j !== i) neighborCounts.set(j, (neighborCounts.get(j) || 0) + 1);
-            }
-        }
-        for (const [j, count] of neighborCounts) {
-            if (count >= 2) fragments[i].neighbors.push(j);
-        }
-    }
-}
-
-// ── Component ────────────────────────────────────────────────────────────────
 export const Decay: React.FC = () => {
     const mountRef = useRef<HTMLDivElement>(null);
     const [isRecording, setIsRecording] = useState(false);
@@ -139,7 +99,8 @@ export const Decay: React.FC = () => {
             setIsRecording(true);
             setRecordingTime(0);
             recordingIntervalRef.current = setInterval(
-                () => setRecordingTime(p => p + 1), 1000
+                () => setRecordingTime((p) => p + 1),
+                1000
             );
         } catch (err) {
             console.error('Recording failed:', err);
@@ -164,25 +125,25 @@ export const Decay: React.FC = () => {
 
         // ── Scene ────────────────────────────────────────────────────────
         const scene = new THREE.Scene();
-        scene.fog = new THREE.FogExp2(0x000000, 0.03);
+        scene.fog = new THREE.FogExp2(0x000000, 0.025);
 
         const camera = new THREE.PerspectiveCamera(
-            50, window.innerWidth / window.innerHeight, 0.1, 1000
+            50,
+            window.innerWidth / window.innerHeight,
+            0.1,
+            1000
         );
-        camera.position.z = 5;
+        camera.position.z = 7.2;
 
         const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         renderer.toneMapping = THREE.ReinhardToneMapping;
-        renderer.toneMappingExposure = 1.0;
+        renderer.toneMappingExposure = 1.05;
         mountRef.current.appendChild(renderer.domElement);
         canvasRef.current = renderer.domElement;
 
-        // Context loss handlers
-        const handleContextLost = (event: Event) => {
-            event.preventDefault();
-        };
+        const handleContextLost = (event: Event) => event.preventDefault();
         const handleContextRestored = () => {
             renderer.setSize(window.innerWidth, window.innerHeight);
             composer.setSize(window.innerWidth, window.innerHeight);
@@ -196,7 +157,9 @@ export const Decay: React.FC = () => {
 
         const bloomPass = new UnrealBloomPass(
             new THREE.Vector2(window.innerWidth, window.innerHeight),
-            0.6, 0.4, 0.3
+            0.8,
+            0.55,
+            0.22
         );
         composer.addPass(bloomPass);
 
@@ -226,7 +189,7 @@ export const Decay: React.FC = () => {
                     float grain = rand(vUv + fract(time)) * grainIntensity;
                     color.rgb += grain - grainIntensity * 0.5;
                     vec2 uv = vUv - 0.5;
-                    float vig = 1.0 - dot(uv, uv) * 1.6;
+                    float vig = 1.0 - dot(uv, uv) * 1.45;
                     color.rgb *= clamp(vig, 0.0, 1.0);
                     gl_FragColor = color;
                 }
@@ -235,29 +198,33 @@ export const Decay: React.FC = () => {
         composer.addPass(grainPass);
 
         // ── Lighting ─────────────────────────────────────────────────────
-        const keyLight = new THREE.PointLight(0x6688cc, 1.5, 20);
-        keyLight.position.set(2, 2, 4);
+        const keyLight = new THREE.PointLight(0x6688cc, 1.4, 30);
+        keyLight.position.set(4, 4, 6);
         scene.add(keyLight);
 
-        const backLight = new THREE.PointLight(0x4455aa, 0.8, 15);
-        backLight.position.set(-3, -1, -2);
+        const backLight = new THREE.PointLight(0x4455aa, 0.7, 25);
+        backLight.position.set(-5, -2, -3);
         scene.add(backLight);
 
-        const rimLight = new THREE.PointLight(0x334488, 0.6, 12);
-        rimLight.position.set(0, -2, 3);
+        const rimLight = new THREE.PointLight(0x334488, 0.5, 20);
+        rimLight.position.set(0, -3, 5);
         scene.add(rimLight);
 
-        scene.add(new THREE.AmbientLight(0x222244, 0.8));
+        // The molten core — warm light at the sphere's center. Intensity ramps
+        // up during strain so light floods through any gaps that open.
+        const coreLight = new THREE.PointLight(0xff5522, 0.4, 18);
+        coreLight.position.set(0, 0, 0);
+        scene.add(coreLight);
 
-        // ── Build icosahedron fragments ──────────────────────────────────
-        const baseGeom = new THREE.IcosahedronGeometry(RADIUS, SUBDIVISIONS);
+        scene.add(new THREE.AmbientLight(0x222244, 0.7));
+
+        // ── Build outer icosahedron fragments ────────────────────────────
+        const baseGeom = new THREE.IcosahedronGeometry(OUTER_RADIUS, SUBDIVISIONS);
         const nonIndexed = baseGeom.toNonIndexed();
         const fragments = buildFragments(nonIndexed);
-        buildAdjacency(fragments);
         baseGeom.dispose();
         nonIndexed.dispose();
 
-        // ── Render geometry ──────────────────────────────────────────────
         const vertexCount = fragments.length * 3;
         const positions = new Float32Array(vertexCount * 3);
         const colors = new Float32Array(vertexCount * 3);
@@ -269,51 +236,81 @@ export const Decay: React.FC = () => {
             positions[i9 + 3] = f.homeB.x; positions[i9 + 4] = f.homeB.y; positions[i9 + 5] = f.homeB.z;
             positions[i9 + 6] = f.homeC.x; positions[i9 + 7] = f.homeC.y; positions[i9 + 8] = f.homeC.z;
             for (let v = 0; v < 3; v++) {
-                colors[i9 + v * 3]     = 0.35;
-                colors[i9 + v * 3 + 1] = 0.4;
-                colors[i9 + v * 3 + 2] = 0.55;
+                colors[i9 + v * 3]     = 0.12;
+                colors[i9 + v * 3 + 1] = 0.14;
+                colors[i9 + v * 3 + 2] = 0.22;
             }
         }
 
-        const geom = new THREE.BufferGeometry();
-        geom.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-        geom.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-        geom.computeVertexNormals();
+        const shellGeom = new THREE.BufferGeometry();
+        shellGeom.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        shellGeom.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+        shellGeom.computeVertexNormals();
 
-        const material = new THREE.MeshPhongMaterial({
+        const shellMat = new THREE.MeshPhongMaterial({
             vertexColors: true,
             transparent: true,
-            opacity: 0.85,
+            opacity: 0.94,
             side: THREE.DoubleSide,
-            shininess: 30,
-            specular: new THREE.Color(0x2244aa),
+            shininess: 40,
+            specular: new THREE.Color(0x3355bb),
             emissive: new THREE.Color(0x0a0e1a),
         });
-        const mesh = new THREE.Mesh(geom, material);
-        scene.add(mesh);
+        const shellMesh = new THREE.Mesh(shellGeom, shellMat);
+        scene.add(shellMesh);
 
+        // Wireframe overlay — subtle seam highlight
         const wireMat = new THREE.MeshBasicMaterial({
-            color: 0x4466aa,
+            color: 0x5588cc,
             transparent: true,
-            opacity: 0.12,
+            opacity: 0.14,
             wireframe: true,
             blending: THREE.AdditiveBlending,
             depthWrite: false,
         });
-        const wireMesh = new THREE.Mesh(geom, wireMat);
+        const wireMesh = new THREE.Mesh(shellGeom, wireMat);
         scene.add(wireMesh);
 
-        // ── Ambient dust particles ───────────────────────────────────────
+        // ── Inner molten core ────────────────────────────────────────────
+        // A smaller sphere seen through the gaps when plates strain outward.
+        const coreGeom = new THREE.IcosahedronGeometry(INNER_RADIUS, 2);
+        const coreMat = new THREE.MeshBasicMaterial({
+            color: 0xff6633,
+            transparent: true,
+            opacity: 0.25,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false,
+        });
+        const coreMesh = new THREE.Mesh(coreGeom, coreMat);
+        scene.add(coreMesh);
+
+        // Secondary inner wireframe — gives depth inside the core glow
+        const coreWireGeom = new THREE.IcosahedronGeometry(INNER_RADIUS * 0.85, 1);
+        const coreWireMat = new THREE.LineBasicMaterial({
+            color: 0xff8844,
+            transparent: true,
+            opacity: 0.22,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false,
+        });
+        const coreWireMesh = new THREE.LineSegments(
+            new THREE.EdgesGeometry(coreWireGeom),
+            coreWireMat
+        );
+        scene.add(coreWireMesh);
+        coreWireGeom.dispose();
+
+        // ── Ambient dust ─────────────────────────────────────────────────
         const dustGeom = new THREE.BufferGeometry();
         const dustPositions = new Float32Array(PARTICLE_COUNT * 3);
         const dustSpeeds = new Float32Array(PARTICLE_COUNT);
         const dustDrifts = new Float32Array(PARTICLE_COUNT * 2);
 
         for (let i = 0; i < PARTICLE_COUNT; i++) {
-            dustPositions[i * 3]     = (Math.random() - 0.5) * 8;
-            dustPositions[i * 3 + 1] = (Math.random() - 0.5) * 8;
-            dustPositions[i * 3 + 2] = (Math.random() - 0.5) * 8;
-            dustSpeeds[i] = 0.001 + Math.random() * 0.003;
+            dustPositions[i * 3]     = (Math.random() - 0.5) * 14;
+            dustPositions[i * 3 + 1] = (Math.random() - 0.5) * 14;
+            dustPositions[i * 3 + 2] = (Math.random() - 0.5) * 14;
+            dustSpeeds[i] = 0.0006 + Math.random() * 0.002;
             dustDrifts[i * 2]     = (Math.random() - 0.5) * 0.0004;
             dustDrifts[i * 2 + 1] = (Math.random() - 0.5) * 0.0004;
         }
@@ -333,212 +330,56 @@ export const Decay: React.FC = () => {
         })();
 
         const dustMat = new THREE.PointsMaterial({
-            size: 0.03,
+            size: 0.04,
             map: dustSprite,
             transparent: true,
-            opacity: 0.15,
+            opacity: 0.18,
             blending: THREE.AdditiveBlending,
             depthWrite: false,
             sizeAttenuation: true,
-            color: 0x556688,
+            color: 0x667799,
         });
         const dustPoints = new THREE.Points(dustGeom, dustMat);
         scene.add(dustPoints);
 
-        // ── Cycle state ──────────────────────────────────────────────────
-        let cycleTime = 0;
+        // ── Animation state ──────────────────────────────────────────────
         let lastFrameTime = performance.now() * 0.001;
-        let crackFrontier: number[] = [];
-        const crackVisited = new Set<number>();
+        let breathPhase = 0;        // phase accumulator in cycles
+        let panicLevel = 0;         // 0→1, slowly builds, discharges on spasm
+        let spasmCooldown = 1.5;    // refractory period after spasm
+        let shakeTime = 0;          // remaining camera shake duration
+        let shakeMag = 0;           // amplitude of current shake
 
-        function resetCycle() {
-            cycleTime = 0;
-            crackVisited.clear();
-            crackFrontier = [];
-            const seedCount = 2 + Math.floor(Math.random() * 2);
-            for (let s = 0; s < seedCount; s++) {
-                const idx = Math.floor(Math.random() * fragments.length);
-                crackFrontier.push(idx);
-                crackVisited.add(idx);
-            }
+        const triggerSpasm = () => {
+            // Pick a random region on the unit sphere
+            const region = new THREE.Vector3(
+                Math.random() - 0.5,
+                Math.random() - 0.5,
+                Math.random() - 0.5
+            ).normalize();
+
+            const intensity = 0.55 + Math.random() * 0.45;
+
             for (const f of fragments) {
-                f.health = 1.0;
-                f.offset.set(0, 0, 0);
-                f.velocity.set(0, 0, 0);
-                f.rotation.set(0, 0, 0);
-                f.crackDepth = 0;
-            }
-        }
-        resetCycle();
-
-        function propagateCracks(rate: number) {
-            const newFrontier: number[] = [];
-            const spread = Math.max(1, Math.floor(rate));
-            for (let s = 0; s < spread && crackFrontier.length > 0; s++) {
-                const randIdx = Math.floor(Math.random() * crackFrontier.length);
-                const fi = crackFrontier[randIdx];
-                crackFrontier.splice(randIdx, 1);
-                const frag = fragments[fi];
-                frag.crackDepth = Math.max(frag.crackDepth, 1);
-
-                for (const ni of frag.neighbors) {
-                    if (!crackVisited.has(ni)) {
-                        crackVisited.add(ni);
-                        newFrontier.push(ni);
-                        fragments[ni].crackDepth = frag.crackDepth + 1;
-                    }
-                }
-            }
-            crackFrontier.push(...newFrontier);
-        }
-
-        // ── Pre-allocated reusables ──────────────────────────────────────
-        const _rotMatrix = new THREE.Matrix4();
-        const _v = new THREE.Vector3();
-
-        // ── Animation ────────────────────────────────────────────────────
-        let animationId = 0;
-
-        const animate = () => {
-            if (!isComponentMounted) return;
-            animationId = requestAnimationFrame(animate);
-            const time = performance.now() * 0.001;
-            const dt = Math.min(time - lastFrameTime, 0.05);
-            lastFrameTime = time;
-            cycleTime += dt;
-
-            if (cycleTime >= CYCLE_DURATION) resetCycle();
-
-            // ── Phase logic ──────────────────────────────────────────────
-            if (cycleTime < PRISTINE_END) {
-                const progress = cycleTime / PRISTINE_END;
-                propagateCracks(1 + progress * 2);
-                for (const f of fragments) {
-                    if (f.crackDepth > 0 && f.health > 0.3) {
-                        f.health -= dt * 0.08;
-                    }
-                }
-            } else if (cycleTime < CRUMBLE_END) {
-                propagateCracks(5);
-                for (const f of fragments) {
-                    if (f.crackDepth > 0) {
-                        f.health -= dt * 0.15;
-                        if (f.health < 0) f.health = 0;
-                    }
-                    if (f.health <= 0.1) {
-                        f.velocity.addScaledVector(f.normal, 0.0008);
-                        f.velocity.x += (Math.random() - 0.5) * 0.0003;
-                        f.velocity.y += (Math.random() - 0.5) * 0.0003;
-                        f.velocity.z += (Math.random() - 0.5) * 0.0003;
-                        f.offset.add(f.velocity);
-                        f.rotation.x += f.rotVelocity.x;
-                        f.rotation.y += f.rotVelocity.y;
-                        f.rotation.z += f.rotVelocity.z;
-                    }
-                }
-            } else if (cycleTime < DUST_END) {
-                for (const f of fragments) {
-                    f.health = Math.max(f.health - dt * 0.1, 0);
-                    if (f.health <= 0.1) {
-                        f.velocity.multiplyScalar(0.995);
-                        f.offset.add(f.velocity);
-                        f.rotation.x += f.rotVelocity.x * 0.5;
-                        f.rotation.y += f.rotVelocity.y * 0.5;
-                    }
-                }
-            } else {
-                const rebuildProgress = (cycleTime - DUST_END) / (CYCLE_DURATION - DUST_END);
-                const ease = 1 - Math.pow(1 - rebuildProgress, 3);
-                for (const f of fragments) {
-                    f.offset.multiplyScalar(1 - ease * 0.08);
-                    f.rotation.x *= 1 - ease * 0.08;
-                    f.rotation.y *= 1 - ease * 0.08;
-                    f.rotation.z *= 1 - ease * 0.08;
-                    f.health = Math.min(1, f.health + dt * 0.5);
-                    f.velocity.multiplyScalar(0.9);
+                const dot = f.normal.dot(region);
+                if (dot > 0.1) {
+                    // Quadratic falloff — epicenter pushes hard, edges mild
+                    const falloff = Math.pow((dot - 0.1) / 0.9, 2);
+                    f.stressAccumulator = Math.min(
+                        1.0,
+                        f.stressAccumulator + intensity * falloff
+                    );
                 }
             }
 
-            // ── Update geometry buffer ───────────────────────────────────
-            for (let i = 0; i < fragments.length; i++) {
-                const f = fragments[i];
-                const i9 = i * 9;
-
-                if (f.offset.lengthSq() > 0.0001) {
-                    _rotMatrix.makeRotationFromEuler(f.rotation);
-                    // Vertex A
-                    _v.copy(f.homeA).sub(f.center);
-                    _v.applyMatrix4(_rotMatrix);
-                    _v.add(f.center).add(f.offset);
-                    positions[i9]     = _v.x; positions[i9 + 1] = _v.y; positions[i9 + 2] = _v.z;
-                    // Vertex B
-                    _v.copy(f.homeB).sub(f.center);
-                    _v.applyMatrix4(_rotMatrix);
-                    _v.add(f.center).add(f.offset);
-                    positions[i9 + 3] = _v.x; positions[i9 + 4] = _v.y; positions[i9 + 5] = _v.z;
-                    // Vertex C
-                    _v.copy(f.homeC).sub(f.center);
-                    _v.applyMatrix4(_rotMatrix);
-                    _v.add(f.center).add(f.offset);
-                    positions[i9 + 6] = _v.x; positions[i9 + 7] = _v.y; positions[i9 + 8] = _v.z;
-                } else {
-                    positions[i9]     = f.homeA.x; positions[i9 + 1] = f.homeA.y; positions[i9 + 2] = f.homeA.z;
-                    positions[i9 + 3] = f.homeB.x; positions[i9 + 4] = f.homeB.y; positions[i9 + 5] = f.homeB.z;
-                    positions[i9 + 6] = f.homeC.x; positions[i9 + 7] = f.homeC.y; positions[i9 + 8] = f.homeC.z;
-                }
-
-                // Crack glow color
-                const crackGlow = f.crackDepth > 0 ? Math.max(0, 1 - f.health) * 0.8 : 0;
-                for (let v = 0; v < 3; v++) {
-                    colors[i9 + v * 3]     = 0.12 + crackGlow * 0.3;
-                    colors[i9 + v * 3 + 1] = 0.14 + crackGlow * 0.5;
-                    colors[i9 + v * 3 + 2] = 0.22 + crackGlow * 0.8;
-                }
-            }
-
-            geom.attributes.position.needsUpdate = true;
-            geom.attributes.color.needsUpdate = true;
-            geom.computeVertexNormals();
-
-            // Slow rotation
-            mesh.rotation.y = time * 0.15;
-            mesh.rotation.x = Math.sin(time * 0.2) * 0.1;
-            wireMesh.rotation.copy(mesh.rotation);
-
-            // Bloom ramps up during dust phase
-            if (cycleTime > CRUMBLE_END && cycleTime < DUST_END) {
-                bloomPass.strength = 0.6 + ((cycleTime - CRUMBLE_END) / (DUST_END - CRUMBLE_END)) * 0.6;
-            } else {
-                bloomPass.strength = 0.6;
-            }
-
-            // Camera sway
-            camera.position.x = Math.sin(time * 0.08) * 0.2;
-            camera.position.y = Math.cos(time * 0.06) * 0.15;
-            camera.lookAt(0, 0, 0);
-
-            // Ambient dust
-            const dPos = dustGeom.attributes.position.array as Float32Array;
-            for (let i = 0; i < PARTICLE_COUNT; i++) {
-                dPos[i * 3]     += dustDrifts[i * 2];
-                dPos[i * 3 + 1] += dustSpeeds[i];
-                dPos[i * 3 + 2] += dustDrifts[i * 2 + 1];
-                if (dPos[i * 3 + 1] > 4) {
-                    dPos[i * 3 + 1] = -4;
-                    dPos[i * 3]     = (Math.random() - 0.5) * 8;
-                    dPos[i * 3 + 2] = (Math.random() - 0.5) * 8;
-                }
-            }
-            dustGeom.attributes.position.needsUpdate = true;
-            dustPoints.rotation.y = time * 0.01;
-
-            grainPass.uniforms.time.value = time;
-            composer.render();
+            shakeTime = 0.45;
+            shakeMag = 0.08 + intensity * 0.14;
         };
 
-        animate();
+        // Pre-allocated scratch
+        const _v = new THREE.Vector3();
 
-        // ── Resize ───────────────────────────────────────────────────────
+        // ── Resize handling ──────────────────────────────────────────────
         const handleResize = () => {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
@@ -548,6 +389,145 @@ export const Decay: React.FC = () => {
         };
         window.addEventListener('resize', handleResize);
 
+        // ── Animation loop ───────────────────────────────────────────────
+        let animationId = 0;
+        const animate = () => {
+            if (!isComponentMounted) return;
+            animationId = requestAnimationFrame(animate);
+
+            const time = performance.now() * 0.001;
+            const dt = Math.min(time - lastFrameTime, 0.05);
+            lastFrameTime = time;
+
+            // Panic ambient accumulation; discharges on spasm
+            panicLevel = Math.min(1.0, panicLevel + dt * (0.05 + Math.random() * 0.04));
+            spasmCooldown -= dt;
+
+            if (spasmCooldown <= 0 && Math.random() < dt * panicLevel * 2.4) {
+                triggerSpasm();
+                spasmCooldown = 0.7 + Math.random() * 1.8;
+                panicLevel *= 0.15 + Math.random() * 0.3;
+            }
+
+            // Breath quickens with panic
+            const breathSpeed = 0.38 + panicLevel * 1.05;
+            breathPhase += dt * breathSpeed;
+            const mainBreath = Math.sin(breathPhase * Math.PI * 2);
+            const fastBreath = Math.sin(breathPhase * Math.PI * 6.3) * 0.28;
+
+            // ── Update outer shell fragments ─────────────────────────────
+            let totalStress = 0;
+            for (let i = 0; i < fragments.length; i++) {
+                const f = fragments[i];
+                totalStress += f.stressAccumulator;
+
+                // Synchronized breath
+                let offset = mainBreath * 0.045 + fastBreath * 0.015;
+                // Per-fragment micro-wobble (two octaves out of phase)
+                offset += Math.sin(time * 1.3 + f.noisePhaseA) * 0.009;
+                offset += Math.sin(time * 2.7 + f.noisePhaseB) * 0.006;
+                // Panic amplifies
+                offset *= 1 + panicLevel * 0.7;
+                // Regional phase delay so the shell isn't perfectly uniform
+                offset += Math.sin(time * 1.1 + f.regionSeed * 6.28) * 0.012;
+                // Spasm — sharp outward push
+                offset += f.stressAccumulator * 0.32;
+                // Stress decays fast — plates "slam shut" after straining
+                f.stressAccumulator *= Math.pow(0.08, dt);
+
+                // During strain, shrink each triangle around its centroid
+                // so visible gaps open between neighbors as they bulge out
+                const stressScale = 1 - f.stressAccumulator * 0.38 - panicLevel * 0.05;
+
+                const i9 = i * 9;
+
+                // Vertex A
+                _v.copy(f.homeA).sub(f.center).multiplyScalar(stressScale).add(f.center);
+                _v.addScaledVector(f.normal, offset);
+                positions[i9]     = _v.x; positions[i9 + 1] = _v.y; positions[i9 + 2] = _v.z;
+                // Vertex B
+                _v.copy(f.homeB).sub(f.center).multiplyScalar(stressScale).add(f.center);
+                _v.addScaledVector(f.normal, offset);
+                positions[i9 + 3] = _v.x; positions[i9 + 4] = _v.y; positions[i9 + 5] = _v.z;
+                // Vertex C
+                _v.copy(f.homeC).sub(f.center).multiplyScalar(stressScale).add(f.center);
+                _v.addScaledVector(f.normal, offset);
+                positions[i9 + 6] = _v.x; positions[i9 + 7] = _v.y; positions[i9 + 8] = _v.z;
+
+                // Vertex color — base cool, warm reveals stress
+                const stressLocal = Math.min(1, f.stressAccumulator + panicLevel * 0.22);
+                const r = 0.12 + stressLocal * 0.55;
+                const g = 0.14 + stressLocal * 0.18;
+                const b = 0.22 - stressLocal * 0.12;
+                for (let v = 0; v < 3; v++) {
+                    colors[i9 + v * 3]     = r;
+                    colors[i9 + v * 3 + 1] = g;
+                    colors[i9 + v * 3 + 2] = b;
+                }
+            }
+            const avgStress = totalStress / fragments.length;
+
+            shellGeom.attributes.position.needsUpdate = true;
+            shellGeom.attributes.color.needsUpdate = true;
+            shellGeom.computeVertexNormals();
+
+            // ── Inner core responds to breath + strain ───────────────────
+            const coreBreath = 1 + mainBreath * 0.025 + panicLevel * 0.04;
+            coreMesh.scale.setScalar(coreBreath);
+            coreWireMesh.scale.setScalar(coreBreath * 0.98);
+            coreMat.opacity = 0.2 + avgStress * 0.75 + panicLevel * 0.22;
+            coreWireMat.opacity = 0.18 + avgStress * 0.55;
+
+            // Core light — floods out during strain
+            coreLight.intensity = 0.4 + avgStress * 22 + panicLevel * 2.5;
+
+            // Bloom swells with strain
+            bloomPass.strength = 0.75 + avgStress * 1.4 + panicLevel * 0.35;
+
+            // ── Rotations ────────────────────────────────────────────────
+            shellMesh.rotation.y = time * 0.11;
+            shellMesh.rotation.x = Math.sin(time * 0.17) * 0.08;
+            wireMesh.rotation.copy(shellMesh.rotation);
+            coreMesh.rotation.y = -time * 0.07;
+            coreMesh.rotation.x = time * 0.04;
+            coreWireMesh.rotation.y = time * 0.13;
+            coreWireMesh.rotation.z = time * 0.05;
+
+            // ── Camera — drift + shake on spasm + pull-in on panic ───────
+            const shakeX = shakeTime > 0
+                ? (Math.random() - 0.5) * shakeMag * (shakeTime / 0.45)
+                : 0;
+            const shakeY = shakeTime > 0
+                ? (Math.random() - 0.5) * shakeMag * (shakeTime / 0.45)
+                : 0;
+            shakeTime = Math.max(0, shakeTime - dt);
+
+            camera.position.x = Math.sin(time * 0.08) * 0.25 + shakeX;
+            camera.position.y = Math.cos(time * 0.06) * 0.2 + shakeY;
+            camera.position.z = 7.2 - panicLevel * 0.55 - avgStress * 0.3;
+            camera.lookAt(0, 0, 0);
+
+            // ── Dust drift ───────────────────────────────────────────────
+            const dPos = dustGeom.attributes.position.array as Float32Array;
+            for (let i = 0; i < PARTICLE_COUNT; i++) {
+                dPos[i * 3]     += dustDrifts[i * 2];
+                dPos[i * 3 + 1] += dustSpeeds[i];
+                dPos[i * 3 + 2] += dustDrifts[i * 2 + 1];
+                if (dPos[i * 3 + 1] > 7) {
+                    dPos[i * 3 + 1] = -7;
+                    dPos[i * 3]     = (Math.random() - 0.5) * 14;
+                    dPos[i * 3 + 2] = (Math.random() - 0.5) * 14;
+                }
+            }
+            dustGeom.attributes.position.needsUpdate = true;
+            dustPoints.rotation.y = time * 0.015;
+
+            grainPass.uniforms.time.value = time;
+            composer.render();
+        };
+
+        animate();
+
         // ── Cleanup ──────────────────────────────────────────────────────
         return () => {
             isComponentMounted = false;
@@ -556,14 +536,22 @@ export const Decay: React.FC = () => {
             renderer.domElement.removeEventListener('webglcontextlost', handleContextLost);
             renderer.domElement.removeEventListener('webglcontextrestored', handleContextRestored);
             composer.dispose();
-            geom.dispose();
-            material.dispose();
+            shellGeom.dispose();
+            shellMat.dispose();
             wireMat.dispose();
+            coreGeom.dispose();
+            coreMat.dispose();
+            (coreWireMesh.geometry as THREE.BufferGeometry).dispose();
+            coreWireMat.dispose();
             dustGeom.dispose();
             dustMat.dispose();
             dustSprite.dispose();
             renderer.dispose();
-            if (mountRef.current && renderer.domElement && mountRef.current.contains(renderer.domElement)) {
+            if (
+                mountRef.current &&
+                renderer.domElement &&
+                mountRef.current.contains(renderer.domElement)
+            ) {
                 mountRef.current.removeChild(renderer.domElement);
             }
         };
@@ -581,7 +569,8 @@ export const Decay: React.FC = () => {
                     <span className="record-icon" />
                     {isRecording && (
                         <span className="record-time">
-                            {Math.floor(recordingTime / 60)}:{(recordingTime % 60).toString().padStart(2, '0')}
+                            {Math.floor(recordingTime / 60)}:
+                            {(recordingTime % 60).toString().padStart(2, '0')}
                         </span>
                     )}
                 </button>
