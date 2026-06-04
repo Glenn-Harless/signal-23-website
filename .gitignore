@@ -32,3 +32,8 @@ npm-debug.log*
 .env.production
 
 # push for netlift
+
+# Local agent/tooling state
+.beads/
+.claude/
+docs/plans/

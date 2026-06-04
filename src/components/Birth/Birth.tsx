@@ -5,10 +5,14 @@ import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass';
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass';
+import { ExportFrame } from '../ExportFrame/ExportFrame';
+import { birthVisualExport } from '../../data/transmissions';
+import { useExportSettings } from '../../lib/exportSettings';
 import './Birth.css';
 
 export const Birth: React.FC = () => {
     const mountRef = useRef<HTMLDivElement>(null);
+    const exportSettings = useExportSettings(birthVisualExport);
     const [isRecording, setIsRecording] = useState(false);
     const [recordingTime, setRecordingTime] = useState(0);
     const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -60,6 +64,21 @@ export const Birth: React.FC = () => {
 
     useEffect(() => {
         if (!mountRef.current) return;
+        const mountElement = mountRef.current;
+
+        const getMountSize = () => {
+            const rect = mountElement.getBoundingClientRect();
+            const width = rect.width || mountElement.clientWidth || window.innerWidth;
+            const height = rect.height || mountElement.clientHeight || window.innerHeight;
+
+            return {
+                width: Math.max(1, Math.floor(width)),
+                height: Math.max(1, Math.floor(height)),
+            };
+        };
+
+        const initialSize = getMountSize();
+        let mountAspect = initialSize.width / initialSize.height;
 
         let abortController = new AbortController();
         let loadedGltf: any = null;
@@ -68,15 +87,15 @@ export const Birth: React.FC = () => {
         const scene = new THREE.Scene();
         scene.fog = new THREE.FogExp2(0x000000, 0.035);
 
-        const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
-        camera.position.z = 6;
+        const camera = new THREE.PerspectiveCamera(50, mountAspect, 0.1, 1000);
+        camera.position.z = mountAspect < 0.8 ? 8 : 6;
 
         const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setSize(initialSize.width, initialSize.height);
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         renderer.toneMapping = THREE.ReinhardToneMapping;
         renderer.toneMappingExposure = 1.2;
-        mountRef.current.appendChild(renderer.domElement);
+        mountElement.appendChild(renderer.domElement);
         canvasRef.current = renderer.domElement;
 
         // Post-processing
@@ -84,7 +103,7 @@ export const Birth: React.FC = () => {
         composer.addPass(new RenderPass(scene, camera));
 
         const bloomPass = new UnrealBloomPass(
-            new THREE.Vector2(window.innerWidth, window.innerHeight),
+            new THREE.Vector2(initialSize.width, initialSize.height),
             1.8,   // strength - strong atmospheric glow
             0.9,   // radius - wide, soft spread
             0.15   // threshold - low so even dim elements bloom
@@ -133,6 +152,17 @@ export const Birth: React.FC = () => {
         });
         composer.addPass(grainPass);
 
+        const resizeToMount = () => {
+            const { width, height } = getMountSize();
+            mountAspect = width / height;
+            camera.aspect = mountAspect;
+            camera.position.z = mountAspect < 0.8 ? 8 : 6;
+            camera.updateProjectionMatrix();
+            renderer.setSize(width, height);
+            composer.setSize(width, height);
+            bloomPass.resolution.set(width, height);
+        };
+
         const handleContextLost = (event: Event) => {
             event.preventDefault();
             console.warn('WebGL context lost');
@@ -141,8 +171,7 @@ export const Birth: React.FC = () => {
 
         const handleContextRestored = () => {
             console.log('WebGL context restored');
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            composer.setSize(window.innerWidth, window.innerHeight);
+            resizeToMount();
             if (!animationId && isComponentMounted) animate();
         };
 
@@ -467,20 +496,16 @@ export const Birth: React.FC = () => {
             composer.render();
         };
 
-        const handleResize = () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            composer.setSize(window.innerWidth, window.innerHeight);
-            bloomPass.resolution.set(window.innerWidth, window.innerHeight);
-        };
-        window.addEventListener('resize', handleResize);
+        resizeToMount();
+
+        const resizeObserver = new ResizeObserver(resizeToMount);
+        resizeObserver.observe(mountElement);
 
         return () => {
             isComponentMounted = false;
             abortController.abort();
             if (animationId) cancelAnimationFrame(animationId);
-            window.removeEventListener('resize', handleResize);
+            resizeObserver.disconnect();
 
             // Dispose post-processing
             composer.dispose();
@@ -499,29 +524,31 @@ export const Birth: React.FC = () => {
 
             renderer.dispose();
             if (loadedGltf) { /* dispose traversal */ }
-            if (mountRef.current && renderer.domElement) {
-                if (mountRef.current.contains(renderer.domElement)) {
-                    mountRef.current.removeChild(renderer.domElement);
+            if (mountElement && renderer.domElement) {
+                if (mountElement.contains(renderer.domElement)) {
+                    mountElement.removeChild(renderer.domElement);
                 }
             }
         };
-    }, []);
+    }, [exportSettings.isExportMode]);
 
     return (
-        <div className="birth-container">
-            <div ref={mountRef} className="birth-canvas" />
-            {process.env.NODE_ENV !== 'production' && (
-                <button
-                    className={`record-button ${isRecording ? 'recording' : ''}`}
-                    onClick={toggleRecording}
-                    title={isRecording ? 'Stop Recording' : 'Start Recording'}
-                >
-                    <span className="record-icon" />
-                    {isRecording && <span className="record-time">
-                        {Math.floor(recordingTime / 60)}:{(recordingTime % 60).toString().padStart(2, '0')}
-                    </span>}
-                </button>
-            )}
-        </div>
+        <ExportFrame aspect={exportSettings.aspect} active={exportSettings.isExportMode}>
+            <div className="birth-container">
+                <div ref={mountRef} className="birth-canvas" />
+                {process.env.NODE_ENV !== 'production' && !exportSettings.isExportMode && (
+                    <button
+                        className={`record-button ${isRecording ? 'recording' : ''}`}
+                        onClick={toggleRecording}
+                        title={isRecording ? 'Stop Recording' : 'Start Recording'}
+                    >
+                        <span className="record-icon" />
+                        {isRecording && <span className="record-time">
+                            {Math.floor(recordingTime / 60)}:{(recordingTime % 60).toString().padStart(2, '0')}
+                        </span>}
+                    </button>
+                )}
+            </div>
+        </ExportFrame>
     );
 };

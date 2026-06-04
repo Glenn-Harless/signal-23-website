@@ -8,9 +8,13 @@ import './Forest.css';
 import { createInstancedForest } from './InstancedForest';
 import { createFireflies, updateFireflies } from './Fireflies';
 import { ActiveTreeOverlay } from './ActiveTreeOverlay';
+import { ExportFrame } from '../ExportFrame/ExportFrame';
+import { forestVisualExport } from '../../data/transmissions';
+import { useExportSettings } from '../../lib/exportSettings';
 
 const Forest: React.FC = () => {
     const containerRef = useRef<HTMLDivElement>(null);
+    const exportSettings = useExportSettings(forestVisualExport);
     const sceneRef = useRef<THREE.Scene | null>(null);
 
     const [isRecording, setIsRecording] = React.useState(false);
@@ -90,6 +94,20 @@ const Forest: React.FC = () => {
 
     useEffect(() => {
         if (!containerRef.current) return;
+        const mountElement = containerRef.current;
+
+        const getMountSize = () => {
+            const rect = mountElement.getBoundingClientRect();
+            const width = rect.width || mountElement.clientWidth || window.innerWidth;
+            const height = rect.height || mountElement.clientHeight || window.innerHeight;
+
+            return {
+                width: Math.max(1, Math.floor(width)),
+                height: Math.max(1, Math.floor(height)),
+            };
+        };
+
+        const initialSize = getMountSize();
 
         // SCENE SETUP
         const scene = new THREE.Scene();
@@ -97,13 +115,18 @@ const Forest: React.FC = () => {
         scene.background = new THREE.Color(0x000205); // Very deep blue-black
         scene.fog = new THREE.FogExp2(0x000205, 0.035); // Slightly thicker fog
 
-        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const camera = new THREE.PerspectiveCamera(
+            75,
+            initialSize.width / initialSize.height,
+            0.1,
+            1000
+        );
         camera.position.set(0, 10, 40); // Pull back slightly for more awe
 
         const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setSize(initialSize.width, initialSize.height);
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-        containerRef.current.appendChild(renderer.domElement);
+        mountElement.appendChild(renderer.domElement);
         canvasRef.current = renderer.domElement; // Set canvas ref
 
         // INSTANCED FOREST
@@ -138,7 +161,7 @@ const Forest: React.FC = () => {
 
         // TUNE BLOOM - Lower it significantly
         const bloomPass = new UnrealBloomPass(
-            new THREE.Vector2(window.innerWidth, window.innerHeight),
+            new THREE.Vector2(initialSize.width, initialSize.height),
             0.6, 0.4, 0.85
         );
         composer.addPass(bloomPass);
@@ -203,17 +226,21 @@ const Forest: React.FC = () => {
 
         animate();
 
-        const handleResize = () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
+        const resizeToMount = () => {
+            const { width, height } = getMountSize();
+            camera.aspect = width / height;
             camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            composer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setSize(width, height);
+            composer.setSize(width, height);
         };
-        window.addEventListener('resize', handleResize);
+        resizeToMount();
+
+        const resizeObserver = new ResizeObserver(resizeToMount);
+        resizeObserver.observe(mountElement);
 
         return () => {
             cancelAnimationFrame(animationId);
-            window.removeEventListener('resize', handleResize);
+            resizeObserver.disconnect();
 
             // Dispose scene objects
             scene.traverse((obj) => {
@@ -239,8 +266,8 @@ const Forest: React.FC = () => {
             composer.dispose();
             renderer.dispose();
 
-            if (containerRef.current?.contains(renderer.domElement)) {
-                containerRef.current.removeChild(renderer.domElement);
+            if (mountElement.contains(renderer.domElement)) {
+                mountElement.removeChild(renderer.domElement);
             }
             if (recordingIntervalRef.current) {
                 clearInterval(recordingIntervalRef.current);
@@ -249,22 +276,24 @@ const Forest: React.FC = () => {
                 mediaRecorderRef.current.stop();
             }
         };
-    }, []);
+    }, [exportSettings.isExportMode]);
 
     return (
-        <div ref={containerRef} style={{ width: '100%', height: '100vh', background: 'black', overflow: 'hidden' }}>
-            {/* Record Button - Dev only */}
-            {process.env.NODE_ENV !== 'production' && (
-                <button
-                    className={`record-button ${isRecording ? 'recording' : ''}`}
-                    onClick={toggleRecording}
-                    title={isRecording ? 'Stop Recording' : 'Start Recording'}
-                >
-                    <span className="record-icon" />
-                    {isRecording && <span className="record-time">{formatTime(recordingTime)}</span>}
-                </button>
-            )}
-        </div>
+        <ExportFrame aspect={exportSettings.aspect} active={exportSettings.isExportMode}>
+            <div ref={containerRef} style={{ width: '100%', height: '100%', background: 'black', overflow: 'hidden' }}>
+                {/* Record Button - Dev only */}
+                {process.env.NODE_ENV !== 'production' && !exportSettings.isExportMode && (
+                    <button
+                        className={`record-button ${isRecording ? 'recording' : ''}`}
+                        onClick={toggleRecording}
+                        title={isRecording ? 'Stop Recording' : 'Start Recording'}
+                    >
+                        <span className="record-icon" />
+                        {isRecording && <span className="record-time">{formatTime(recordingTime)}</span>}
+                    </button>
+                )}
+            </div>
+        </ExportFrame>
     );
 };
 

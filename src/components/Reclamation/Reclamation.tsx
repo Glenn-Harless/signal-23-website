@@ -4,6 +4,9 @@ import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass';
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass';
+import { ExportFrame } from '../ExportFrame/ExportFrame';
+import { reclamationVisualExport } from '../../data/transmissions';
+import { useExportSettings } from '../../lib/exportSettings';
 import './Reclamation.css';
 
 // ── Cycle timing ─────────────────────────────────────────────────────────────
@@ -53,6 +56,7 @@ interface VineSegment {
 
 export const Reclamation: React.FC = () => {
     const mountRef = useRef<HTMLDivElement>(null);
+    const exportSettings = useExportSettings(reclamationVisualExport);
     const [logs, setLogs] = useState<string[]>([]);
     const logContainerRef = useRef<HTMLDivElement>(null);
     const [showText, setShowText] = useState(false);
@@ -127,40 +131,51 @@ export const Reclamation: React.FC = () => {
     useEffect(() => {
         if (!mountRef.current) return;
         let isComponentMounted = true;
+        const mountElement = mountRef.current;
 
-        const width = window.innerWidth;
-        const height = window.innerHeight;
-        const isMobile = width < 768;
+        const getMountSize = () => {
+            const rect = mountElement.getBoundingClientRect();
+            const width = rect.width || mountElement.clientWidth || window.innerWidth;
+            const height = rect.height || mountElement.clientHeight || window.innerHeight;
+
+            return {
+                width: Math.max(1, Math.floor(width)),
+                height: Math.max(1, Math.floor(height)),
+            };
+        };
+
+        const initialSize = getMountSize();
+        let mountAspect = initialSize.width / initialSize.height;
+        let isMobile = initialSize.width < 768;
 
         // ── Scene ────────────────────────────────────────────────────────
         const scene = new THREE.Scene();
         scene.fog = new THREE.FogExp2(0x000000, 0.006);
 
-        const camera = new THREE.PerspectiveCamera(55, width / height, 0.1, 2000);
+        const camera = new THREE.PerspectiveCamera(
+            55,
+            initialSize.width / initialSize.height,
+            0.1,
+            2000
+        );
         camera.position.set(0, 30, 180);
 
         const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-        renderer.setSize(width, height);
+        renderer.setSize(initialSize.width, initialSize.height);
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         renderer.toneMapping = THREE.ReinhardToneMapping;
         renderer.toneMappingExposure = 1.1;
-        mountRef.current.appendChild(renderer.domElement);
+        mountElement.appendChild(renderer.domElement);
         canvasRef.current = renderer.domElement;
 
         const handleContextLost = (event: Event) => event.preventDefault();
-        const handleContextRestored = () => {
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            composer.setSize(window.innerWidth, window.innerHeight);
-        };
-        renderer.domElement.addEventListener('webglcontextlost', handleContextLost);
-        renderer.domElement.addEventListener('webglcontextrestored', handleContextRestored);
 
         // ── Post-processing ──────────────────────────────────────────────
         const composer = new EffectComposer(renderer);
         composer.addPass(new RenderPass(scene, camera));
 
         const bloomPass = new UnrealBloomPass(
-            new THREE.Vector2(width, height),
+            new THREE.Vector2(initialSize.width, initialSize.height),
             0.7,
             0.6,
             0.25
@@ -453,16 +468,27 @@ export const Reclamation: React.FC = () => {
         };
 
         // ── Resize ───────────────────────────────────────────────────────
-        const handleResize = () => {
-            const w = window.innerWidth;
-            const h = window.innerHeight;
-            camera.aspect = w / h;
+        const resizeToMount = () => {
+            const { width, height } = getMountSize();
+            mountAspect = width / height;
+            isMobile = width < 768;
+            camera.aspect = mountAspect;
             camera.updateProjectionMatrix();
-            renderer.setSize(w, h);
-            composer.setSize(w, h);
-            bloomPass.resolution.set(w, h);
+            renderer.setSize(width, height);
+            composer.setSize(width, height);
+            bloomPass.resolution.set(width, height);
         };
-        window.addEventListener('resize', handleResize);
+
+        const handleContextRestored = () => {
+            resizeToMount();
+        };
+        renderer.domElement.addEventListener('webglcontextlost', handleContextLost);
+        renderer.domElement.addEventListener('webglcontextrestored', handleContextRestored);
+
+        resizeToMount();
+
+        const resizeObserver = new ResizeObserver(resizeToMount);
+        resizeObserver.observe(mountElement);
 
         // ── Animation ────────────────────────────────────────────────────
         let animationId = 0;
@@ -597,7 +623,7 @@ export const Reclamation: React.FC = () => {
             bloomPass.strength = 0.6 + growthProgress * 0.85;
 
             // Camera — meditative orbit, rises as bloom peaks
-            const orbitRadius = isMobile ? 220 : 175;
+            const orbitRadius = mountAspect < 0.8 ? 300 : isMobile ? 220 : 175;
             const orbitSpeed = 0.045;
             camera.position.x = Math.sin(time * orbitSpeed) * orbitRadius;
             camera.position.z = Math.cos(time * orbitSpeed) * orbitRadius;
@@ -621,7 +647,7 @@ export const Reclamation: React.FC = () => {
         return () => {
             isComponentMounted = false;
             if (animationId) cancelAnimationFrame(animationId);
-            window.removeEventListener('resize', handleResize);
+            resizeObserver.disconnect();
             renderer.domElement.removeEventListener('webglcontextlost', handleContextLost);
             renderer.domElement.removeEventListener('webglcontextrestored', handleContextRestored);
             composer.dispose();
@@ -640,14 +666,14 @@ export const Reclamation: React.FC = () => {
             glowTexture.dispose();
             renderer.dispose();
             if (
-                mountRef.current &&
+                mountElement &&
                 renderer.domElement &&
-                mountRef.current.contains(renderer.domElement)
+                mountElement.contains(renderer.domElement)
             ) {
-                mountRef.current.removeChild(renderer.domElement);
+                mountElement.removeChild(renderer.domElement);
             }
         };
-    }, []);
+    }, [exportSettings.isExportMode]);
 
     // Log simulation (toggle-visible HUD)
     useEffect(() => {
@@ -683,38 +709,44 @@ export const Reclamation: React.FC = () => {
     }, []);
 
     return (
-        <div
-            className="reclamation-container"
-            onClick={() => setShowText((p) => !p)}
-        >
-            <div ref={mountRef} className="reclamation-canvas" />
+        <ExportFrame aspect={exportSettings.aspect} active={exportSettings.isExportMode}>
+            <div
+                className="reclamation-container"
+                onClick={() => {
+                    if (!exportSettings.isExportMode) {
+                        setShowText((p) => !p);
+                    }
+                }}
+            >
+                <div ref={mountRef} className="reclamation-canvas" />
 
-            {process.env.NODE_ENV !== 'production' && (
-                <button
-                    className={`record-button ${isRecording ? 'recording' : ''}`}
-                    onClick={toggleRecording}
-                    title={isRecording ? 'Stop Recording' : 'Start Recording'}
-                >
-                    <span className="record-icon" />
-                    {isRecording && (
-                        <span className="record-time">{formatTime(recordingTime)}</span>
-                    )}
-                </button>
-            )}
+                {process.env.NODE_ENV !== 'production' && !exportSettings.isExportMode && (
+                    <button
+                        className={`record-button ${isRecording ? 'recording' : ''}`}
+                        onClick={toggleRecording}
+                        title={isRecording ? 'Stop Recording' : 'Start Recording'}
+                    >
+                        <span className="record-icon" />
+                        {isRecording && (
+                            <span className="record-time">{formatTime(recordingTime)}</span>
+                        )}
+                    </button>
+                )}
 
-            {showText && (
-                <div className="reclamation-hud">
-                    <div className="reclamation-hud-bottom">
-                        <div className="reclamation-logs" ref={logContainerRef}>
-                            {logs.map((log, i) => (
-                                <div key={i} className="log-entry">
-                                    {log}
-                                </div>
-                            ))}
+                {showText && !exportSettings.isExportMode && (
+                    <div className="reclamation-hud">
+                        <div className="reclamation-hud-bottom">
+                            <div className="reclamation-logs" ref={logContainerRef}>
+                                {logs.map((log, i) => (
+                                    <div key={i} className="log-entry">
+                                        {log}
+                                    </div>
+                                ))}
+                            </div>
                         </div>
                     </div>
-                </div>
-            )}
-        </div>
+                )}
+            </div>
+        </ExportFrame>
     );
 };

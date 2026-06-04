@@ -25,6 +25,16 @@
     [headers.values]
     Cache-Control = "public, max-age=31536000"
 
+[[headers]]
+  for = "/operator"
+    [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
+
+[[headers]]
+  for = "/operator/*"
+    [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
+
 [[redirects]]
   from = "/*"
   to = "/index.html"

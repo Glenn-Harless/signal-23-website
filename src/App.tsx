@@ -29,6 +29,8 @@ import { Birth } from './components/Birth/Birth';
 import { Murmur } from './components/Murmur/Murmur';
 import { Decay } from './components/Decay/Decay';
 import { Reclamation } from './components/Reclamation/Reclamation';
+import { OperatorIndex } from './components/Operator/OperatorIndex';
+import { TransmissionDetail } from './components/Operator/TransmissionDetail';
 
 
 
@@ -186,6 +188,8 @@ const App = () => {
           <Route path="/murmur" element={<Murmur />} />
           <Route path="/decay" element={<Decay />} />
           <Route path="/reclamation" element={<Reclamation />} />
+          <Route path="/operator" element={<OperatorIndex />} />
+          <Route path="/operator/transmissions/:slug" element={<TransmissionDetail />} />
         </Routes>
       </WorkstationShell>
     </BrowserRouter>

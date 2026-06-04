@@ -5,6 +5,9 @@ import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass';
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass';
 import { gsap } from 'gsap';
+import { ExportFrame } from '../ExportFrame/ExportFrame';
+import { stepwellVisualExport } from '../../data/transmissions';
+import { useExportSettings } from '../../lib/exportSettings';
 import './Stepwell.css';
 
 // --- Custom Fog Shader ---
@@ -110,6 +113,7 @@ const WALL_THICKNESS = 15;
 
 export const Stepwell: React.FC = () => {
     const mountRef = useRef<HTMLDivElement>(null);
+    const exportSettings = useExportSettings(stepwellVisualExport);
     const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
     const sceneRef = useRef<THREE.Scene | null>(null);
     const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
@@ -128,30 +132,41 @@ export const Stepwell: React.FC = () => {
 
     useEffect(() => {
         if (!mountRef.current) return;
+        const mountElement = mountRef.current;
 
-        const width = mountRef.current.clientWidth;
-        const height = mountRef.current.clientHeight;
+        const getMountSize = () => {
+            const rect = mountElement.getBoundingClientRect();
+            const width = rect.width || mountElement.clientWidth || window.innerWidth;
+            const height = rect.height || mountElement.clientHeight || window.innerHeight;
+
+            return {
+                width: Math.max(1, Math.floor(width)),
+                height: Math.max(1, Math.floor(height)),
+            };
+        };
+
+        const initialSize = getMountSize();
 
         // --- Renderer ---
         const renderer = new THREE.WebGLRenderer({ antialias: false, powerPreference: "high-performance" });
-        renderer.setSize(width, height);
+        renderer.setSize(initialSize.width, initialSize.height);
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         renderer.setClearColor(0x050505);
-        mountRef.current.appendChild(renderer.domElement);
+        mountElement.appendChild(renderer.domElement);
         rendererRef.current = renderer;
 
         // --- Scene & Camera ---
         const scene = new THREE.Scene();
         sceneRef.current = scene;
 
-        const camera = new THREE.PerspectiveCamera(60, width / height, 0.1, 1000);
+        const camera = new THREE.PerspectiveCamera(60, initialSize.width / initialSize.height, 0.1, 1000);
         camera.position.set(0, 50, 0);
         camera.lookAt(0, 0, 0);
         cameraRef.current = camera;
 
         // Depth texture for custom fog
-        const depthTexture = new THREE.DepthTexture(width, height);
-        const renderTarget = new THREE.WebGLRenderTarget(width, height, {
+        const depthTexture = new THREE.DepthTexture(initialSize.width, initialSize.height);
+        const renderTarget = new THREE.WebGLRenderTarget(initialSize.width, initialSize.height, {
             depthBuffer: true,
             stencilBuffer: false
         });
@@ -168,7 +183,7 @@ export const Stepwell: React.FC = () => {
         fogPass.uniforms.tDepth.value = depthTexture;
         composer.addPass(fogPass);
 
-        const bloomPass = new UnrealBloomPass(new THREE.Vector2(width, height), 1.5, 0.4, 0.85);
+        const bloomPass = new UnrealBloomPass(new THREE.Vector2(initialSize.width, initialSize.height), 1.5, 0.4, 0.85);
         composer.addPass(bloomPass);
 
         const grainPass = new ShaderPass(FilmGrainShader);
@@ -334,18 +349,20 @@ export const Stepwell: React.FC = () => {
 
         requestAnimationFrame(animate);
 
-        const handleResize = () => {
-            const w = mountRef.current?.clientWidth || window.innerWidth;
-            const h = mountRef.current?.clientHeight || window.innerHeight;
-            camera.aspect = w / h;
+        const resizeToMount = () => {
+            const { width, height } = getMountSize();
+            camera.aspect = width / height;
             camera.updateProjectionMatrix();
-            renderer.setSize(w, h);
-            composer.setSize(w, h);
+            renderer.setSize(width, height);
+            composer.setSize(width, height);
         };
-        window.addEventListener('resize', handleResize);
+        resizeToMount();
+
+        const resizeObserver = new ResizeObserver(resizeToMount);
+        resizeObserver.observe(mountElement);
 
         return () => {
-            window.removeEventListener('resize', handleResize);
+            resizeObserver.disconnect();
             cancelAnimationFrame(animId);
             driftTween.kill();
 
@@ -376,12 +393,12 @@ export const Stepwell: React.FC = () => {
             // Dispose post-processing
             composer.dispose();
 
-            if (mountRef.current && renderer.domElement) {
-                mountRef.current.removeChild(renderer.domElement);
+            if (mountElement && renderer.domElement && mountElement.contains(renderer.domElement)) {
+                mountElement.removeChild(renderer.domElement);
             }
             renderer.dispose();
         };
-    }, []);
+    }, [exportSettings.isExportMode]);
 
     // Log simulation
     useEffect(() => {
@@ -396,42 +413,45 @@ export const Stepwell: React.FC = () => {
     }, []);
 
     return (
-        <div className="stepwell-container">
-            <div ref={mountRef} className="stepwell-canvas" />
+        <ExportFrame aspect={exportSettings.aspect} active={exportSettings.isExportMode}>
+            <div className="stepwell-container">
+                <div ref={mountRef} className="stepwell-canvas" />
 
-            <div className="stepwell-ui">
-                <div className="ui-header">
-                    <span className="scrolling-text">STEPWELL // RECURSIVE ARCHITECTURE // DEPTH ANALYSIS // BRUTALIST DESCENT</span>
-                </div>
+                {!exportSettings.isExportMode && (
+                    <div className="stepwell-ui">
+                        <div className="ui-header">
+                            <span className="scrolling-text">STEPWELL // RECURSIVE ARCHITECTURE // DEPTH ANALYSIS // BRUTALIST DESCENT</span>
+                        </div>
 
-                <div className="ui-coords">
-                    <div className="coord-item">
-                        <span className="label">POS_X</span>
-                        <span className="value">{coords.x.toFixed(4)}</span>
+                        <div className="ui-coords">
+                            <div className="coord-item">
+                                <span className="label">POS_X</span>
+                                <span className="value">{coords.x.toFixed(4)}</span>
+                            </div>
+                            <div className="coord-item">
+                                <span className="label">POS_Y</span>
+                                <span className="value">{coords.y.toFixed(4)}</span>
+                            </div>
+                            <div className="coord-item">
+                                <span className="label">POS_Z</span>
+                                <span className="value">{coords.z.toFixed(4)}</span>
+                            </div>
+                        </div>
+
+                        <div className="ui-logs">
+                            {logs.map((log, i) => (
+                                <div key={i} className="log-entry">{log}</div>
+                            ))}
+                        </div>
+
+                        <div className="ui-footer">
+                            SIGNAL-23 SYSTEM STATUS: <span className="status-ok">OPERATIONAL</span>
+                        </div>
                     </div>
-                    <div className="coord-item">
-                        <span className="label">POS_Y</span>
-                        <span className="value">{coords.y.toFixed(4)}</span>
-                    </div>
-                    <div className="coord-item">
-                        <span className="label">POS_Z</span>
-                        <span className="value">{coords.z.toFixed(4)}</span>
-                    </div>
-                </div>
+                )}
 
-                <div className="ui-logs">
-                    {logs.map((log, i) => (
-                        <div key={i} className="log-entry">{log}</div>
-                    ))}
-                </div>
-
-                <div className="ui-footer">
-                    SIGNAL-23 SYSTEM STATUS: <span className="status-ok">OPERATIONAL</span>
-                </div>
+                <div className="vignette" />
             </div>
-
-            <div className="vignette" />
-        </div>
+        </ExportFrame>
     );
 };
-

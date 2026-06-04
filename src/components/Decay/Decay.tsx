@@ -4,6 +4,9 @@ import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass';
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass';
+import { ExportFrame } from '../ExportFrame/ExportFrame';
+import { decayVisualExport } from '../../data/transmissions';
+import { useExportSettings } from '../../lib/exportSettings';
 import './Decay.css';
 
 // ── Shell constants ──────────────────────────────────────────────────────────
@@ -11,6 +14,25 @@ const OUTER_RADIUS = 2.6;
 const INNER_RADIUS = 2.1;
 const SUBDIVISIONS = 3;
 const PARTICLE_COUNT = 260;
+const CAMERA_FOV = 50;
+const BASE_CAMERA_Z = 7.2;
+const EXPORT_FRAMING_RADIUS = OUTER_RADIUS * 1.16;
+const EXPORT_CAMERA_MOTION_ALLOWANCE = 0.75;
+const NARROW_VIEWPORT_FIT_THRESHOLD = 1;
+
+const getCameraBaseZ = (aspect: number, isExportMode: boolean) => {
+    const shouldFitSubject = isExportMode || aspect < NARROW_VIEWPORT_FIT_THRESHOLD;
+
+    if (!shouldFitSubject) {
+        return BASE_CAMERA_Z;
+    }
+
+    const verticalHalfFov = THREE.MathUtils.degToRad(CAMERA_FOV / 2);
+    const verticalDistance = EXPORT_FRAMING_RADIUS / Math.tan(verticalHalfFov);
+    const horizontalDistance = EXPORT_FRAMING_RADIUS / (Math.tan(verticalHalfFov) * aspect);
+
+    return Math.max(BASE_CAMERA_Z, verticalDistance, horizontalDistance) + EXPORT_CAMERA_MOTION_ALLOWANCE;
+};
 
 interface Fragment {
     homeA: THREE.Vector3;
@@ -60,6 +82,7 @@ function buildFragments(geometry: THREE.BufferGeometry): Fragment[] {
 
 export const Decay: React.FC = () => {
     const mountRef = useRef<HTMLDivElement>(null);
+    const exportSettings = useExportSettings(decayVisualExport);
     const [isRecording, setIsRecording] = useState(false);
     const [recordingTime, setRecordingTime] = useState(0);
     const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -122,41 +145,50 @@ export const Decay: React.FC = () => {
     useEffect(() => {
         if (!mountRef.current) return;
         let isComponentMounted = true;
+        const mountElement = mountRef.current;
+
+        const getMountSize = () => {
+            const rect = mountElement.getBoundingClientRect();
+            const width = rect.width || mountElement.clientWidth || window.innerWidth;
+            const height = rect.height || mountElement.clientHeight || window.innerHeight;
+
+            return {
+                width: Math.max(1, Math.floor(width)),
+                height: Math.max(1, Math.floor(height)),
+            };
+        };
+
+        const initialSize = getMountSize();
 
         // ── Scene ────────────────────────────────────────────────────────
         const scene = new THREE.Scene();
         scene.fog = new THREE.FogExp2(0x000000, 0.025);
 
         const camera = new THREE.PerspectiveCamera(
-            50,
-            window.innerWidth / window.innerHeight,
+            CAMERA_FOV,
+            initialSize.width / initialSize.height,
             0.1,
             1000
         );
-        camera.position.z = 7.2;
+        let cameraBaseZ = getCameraBaseZ(camera.aspect, exportSettings.isExportMode);
+        camera.position.z = cameraBaseZ;
 
         const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setSize(initialSize.width, initialSize.height);
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         renderer.toneMapping = THREE.ReinhardToneMapping;
         renderer.toneMappingExposure = 1.05;
-        mountRef.current.appendChild(renderer.domElement);
+        mountElement.appendChild(renderer.domElement);
         canvasRef.current = renderer.domElement;
 
         const handleContextLost = (event: Event) => event.preventDefault();
-        const handleContextRestored = () => {
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            composer.setSize(window.innerWidth, window.innerHeight);
-        };
-        renderer.domElement.addEventListener('webglcontextlost', handleContextLost);
-        renderer.domElement.addEventListener('webglcontextrestored', handleContextRestored);
 
         // ── Post-processing ──────────────────────────────────────────────
         const composer = new EffectComposer(renderer);
         composer.addPass(new RenderPass(scene, camera));
 
         const bloomPass = new UnrealBloomPass(
-            new THREE.Vector2(window.innerWidth, window.innerHeight),
+            new THREE.Vector2(initialSize.width, initialSize.height),
             0.8,
             0.55,
             0.22
@@ -380,14 +412,26 @@ export const Decay: React.FC = () => {
         const _v = new THREE.Vector3();
 
         // ── Resize handling ──────────────────────────────────────────────
-        const handleResize = () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
+        const resizeToMount = () => {
+            const { width, height } = getMountSize();
+            camera.aspect = width / height;
+            cameraBaseZ = getCameraBaseZ(camera.aspect, exportSettings.isExportMode);
             camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            composer.setSize(window.innerWidth, window.innerHeight);
-            bloomPass.resolution.set(window.innerWidth, window.innerHeight);
+            renderer.setSize(width, height);
+            composer.setSize(width, height);
+            bloomPass.resolution.set(width, height);
         };
-        window.addEventListener('resize', handleResize);
+
+        const handleContextRestored = () => {
+            resizeToMount();
+        };
+        renderer.domElement.addEventListener('webglcontextlost', handleContextLost);
+        renderer.domElement.addEventListener('webglcontextrestored', handleContextRestored);
+
+        resizeToMount();
+
+        const resizeObserver = new ResizeObserver(resizeToMount);
+        resizeObserver.observe(mountElement);
 
         // ── Animation loop ───────────────────────────────────────────────
         let animationId = 0;
@@ -504,7 +548,7 @@ export const Decay: React.FC = () => {
 
             camera.position.x = Math.sin(time * 0.08) * 0.25 + shakeX;
             camera.position.y = Math.cos(time * 0.06) * 0.2 + shakeY;
-            camera.position.z = 7.2 - panicLevel * 0.55 - avgStress * 0.3;
+            camera.position.z = cameraBaseZ - panicLevel * 0.55 - avgStress * 0.3;
             camera.lookAt(0, 0, 0);
 
             // ── Dust drift ───────────────────────────────────────────────
@@ -532,7 +576,7 @@ export const Decay: React.FC = () => {
         return () => {
             isComponentMounted = false;
             if (animationId) cancelAnimationFrame(animationId);
-            window.removeEventListener('resize', handleResize);
+            resizeObserver.disconnect();
             renderer.domElement.removeEventListener('webglcontextlost', handleContextLost);
             renderer.domElement.removeEventListener('webglcontextrestored', handleContextRestored);
             composer.dispose();
@@ -548,33 +592,35 @@ export const Decay: React.FC = () => {
             dustSprite.dispose();
             renderer.dispose();
             if (
-                mountRef.current &&
+                mountElement &&
                 renderer.domElement &&
-                mountRef.current.contains(renderer.domElement)
+                mountElement.contains(renderer.domElement)
             ) {
-                mountRef.current.removeChild(renderer.domElement);
+                mountElement.removeChild(renderer.domElement);
             }
         };
-    }, []);
+    }, [exportSettings.isExportMode]);
 
     return (
-        <div className="decay-container">
-            <div ref={mountRef} className="decay-canvas" />
-            {process.env.NODE_ENV !== 'production' && (
-                <button
-                    className={`record-button ${isRecording ? 'recording' : ''}`}
-                    onClick={toggleRecording}
-                    title={isRecording ? 'Stop Recording' : 'Start Recording'}
-                >
-                    <span className="record-icon" />
-                    {isRecording && (
-                        <span className="record-time">
-                            {Math.floor(recordingTime / 60)}:
-                            {(recordingTime % 60).toString().padStart(2, '0')}
-                        </span>
-                    )}
-                </button>
-            )}
-        </div>
+        <ExportFrame aspect={exportSettings.aspect} active={exportSettings.isExportMode}>
+            <div className="decay-container">
+                <div ref={mountRef} className="decay-canvas" />
+                {process.env.NODE_ENV !== 'production' && !exportSettings.isExportMode && (
+                    <button
+                        className={`record-button ${isRecording ? 'recording' : ''}`}
+                        onClick={toggleRecording}
+                        title={isRecording ? 'Stop Recording' : 'Start Recording'}
+                    >
+                        <span className="record-icon" />
+                        {isRecording && (
+                            <span className="record-time">
+                                {Math.floor(recordingTime / 60)}:
+                                {(recordingTime % 60).toString().padStart(2, '0')}
+                            </span>
+                        )}
+                    </button>
+                )}
+            </div>
+        </ExportFrame>
     );
 };
