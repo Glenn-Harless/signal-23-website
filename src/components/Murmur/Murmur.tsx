@@ -4,6 +4,9 @@ import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass';
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass';
+import { ExportFrame } from '../ExportFrame/ExportFrame';
+import { murmurVisualExport } from '../../data/transmissions';
+import { useExportSettings } from '../../lib/exportSettings';
 import './Murmur.css';
 
 const BOID_COUNT = 8000;
@@ -22,7 +25,7 @@ class SpatialHash {
     private activeCells: number[];
     private activeCount: number;
     // Pre-allocated query result buffer
-    private queryBuf: number[];
+    public queryBuf: number[];
     public queryLen: number;
 
     constructor(cellSize: number) {
@@ -179,6 +182,7 @@ function getScatterBurst(phase: number): number {
 
 export const Murmur: React.FC = () => {
     const mountRef = useRef<HTMLDivElement>(null);
+    const exportSettings = useExportSettings(murmurVisualExport);
     const [isRecording, setIsRecording] = useState(false);
     const [recordingTime, setRecordingTime] = useState(0);
     const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -230,6 +234,21 @@ export const Murmur: React.FC = () => {
 
     useEffect(() => {
         if (!mountRef.current) return;
+        const mountElement = mountRef.current;
+
+        const getMountSize = () => {
+            const rect = mountElement.getBoundingClientRect();
+            const width = rect.width || mountElement.clientWidth || window.innerWidth;
+            const height = rect.height || mountElement.clientHeight || window.innerHeight;
+
+            return {
+                width: Math.max(1, Math.floor(width)),
+                height: Math.max(1, Math.floor(height)),
+            };
+        };
+
+        const initialSize = getMountSize();
+        let mountAspect = initialSize.width / initialSize.height;
 
         let isComponentMounted = true;
 
@@ -237,15 +256,15 @@ export const Murmur: React.FC = () => {
         const scene = new THREE.Scene();
         scene.fog = new THREE.FogExp2(0x000000, 0.04);
 
-        const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
-        camera.position.z = 7;
+        const camera = new THREE.PerspectiveCamera(50, mountAspect, 0.1, 1000);
+        camera.position.z = mountAspect < 0.8 ? 9 : 7;
 
         const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setSize(initialSize.width, initialSize.height);
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         renderer.toneMapping = THREE.ReinhardToneMapping;
         renderer.toneMappingExposure = 1.0;
-        mountRef.current.appendChild(renderer.domElement);
+        mountElement.appendChild(renderer.domElement);
         canvasRef.current = renderer.domElement;
 
         // Post-processing
@@ -253,7 +272,7 @@ export const Murmur: React.FC = () => {
         composer.addPass(new RenderPass(scene, camera));
 
         const bloomPass = new UnrealBloomPass(
-            new THREE.Vector2(window.innerWidth, window.innerHeight),
+            new THREE.Vector2(initialSize.width, initialSize.height),
             1.0, 0.6, 0.3
         );
         composer.addPass(bloomPass);
@@ -298,8 +317,7 @@ export const Murmur: React.FC = () => {
             if (animationId) cancelAnimationFrame(animationId);
         };
         const handleContextRestored = () => {
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            composer.setSize(window.innerWidth, window.innerHeight);
+            resizeToMount();
             if (!animationId && isComponentMounted) animate();
         };
         renderer.domElement.addEventListener('webglcontextlost', handleContextLost);
@@ -532,7 +550,8 @@ export const Murmur: React.FC = () => {
             // Camera - mostly head-on to flat logo, gentle sway
             camera.position.x = Math.sin(time * 0.04) * 0.6;
             camera.position.y = Math.cos(time * 0.03) * 0.4;
-            camera.position.z = 7 + Math.sin(time * 0.02) * 0.3;
+            const cameraBaseZ = mountAspect < 0.8 ? 9 : 7;
+            camera.position.z = cameraBaseZ + Math.sin(time * 0.02) * 0.3;
             camera.lookAt(0, 0, 0);
 
             // Update grain
@@ -543,19 +562,24 @@ export const Murmur: React.FC = () => {
 
         animate();
 
-        const handleResize = () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
+        const resizeToMount = () => {
+            const { width, height } = getMountSize();
+            mountAspect = width / height;
+            camera.aspect = mountAspect;
             camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            composer.setSize(window.innerWidth, window.innerHeight);
-            bloomPass.resolution.set(window.innerWidth, window.innerHeight);
+            renderer.setSize(width, height);
+            composer.setSize(width, height);
+            bloomPass.resolution.set(width, height);
         };
-        window.addEventListener('resize', handleResize);
+        resizeToMount();
+
+        const resizeObserver = new ResizeObserver(resizeToMount);
+        resizeObserver.observe(mountElement);
 
         return () => {
             isComponentMounted = false;
             if (animationId) cancelAnimationFrame(animationId);
-            window.removeEventListener('resize', handleResize);
+            resizeObserver.disconnect();
             renderer.domElement.removeEventListener('webglcontextlost', handleContextLost);
             renderer.domElement.removeEventListener('webglcontextrestored', handleContextRestored);
             composer.dispose();
@@ -563,27 +587,29 @@ export const Murmur: React.FC = () => {
             mat.dispose();
             sprite.dispose();
             renderer.dispose();
-            if (mountRef.current && renderer.domElement && mountRef.current.contains(renderer.domElement)) {
-                mountRef.current.removeChild(renderer.domElement);
+            if (mountElement && renderer.domElement && mountElement.contains(renderer.domElement)) {
+                mountElement.removeChild(renderer.domElement);
             }
         };
-    }, []);
+    }, [exportSettings.isExportMode]);
 
     return (
-        <div className="murmur-container">
-            <div ref={mountRef} className="murmur-canvas" />
-            {process.env.NODE_ENV !== 'production' && (
-                <button
-                    className={`record-button ${isRecording ? 'recording' : ''}`}
-                    onClick={toggleRecording}
-                    title={isRecording ? 'Stop Recording' : 'Start Recording'}
-                >
-                    <span className="record-icon" />
-                    {isRecording && <span className="record-time">
-                        {Math.floor(recordingTime / 60)}:{(recordingTime % 60).toString().padStart(2, '0')}
-                    </span>}
-                </button>
-            )}
-        </div>
+        <ExportFrame aspect={exportSettings.aspect} active={exportSettings.isExportMode}>
+            <div className="murmur-container">
+                <div ref={mountRef} className="murmur-canvas" />
+                {process.env.NODE_ENV !== 'production' && !exportSettings.isExportMode && (
+                    <button
+                        className={`record-button ${isRecording ? 'recording' : ''}`}
+                        onClick={toggleRecording}
+                        title={isRecording ? 'Stop Recording' : 'Start Recording'}
+                    >
+                        <span className="record-icon" />
+                        {isRecording && <span className="record-time">
+                            {Math.floor(recordingTime / 60)}:{(recordingTime % 60).toString().padStart(2, '0')}
+                        </span>}
+                    </button>
+                )}
+            </div>
+        </ExportFrame>
     );
 };

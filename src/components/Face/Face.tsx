@@ -1,10 +1,14 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
+import { ExportFrame } from '../ExportFrame/ExportFrame';
+import { faceVisualExport } from '../../data/transmissions';
+import { useExportSettings } from '../../lib/exportSettings';
 import './Face.css';
 
 export const Face: React.FC = () => {
     const mountRef = useRef<HTMLDivElement>(null);
+    const exportSettings = useExportSettings(faceVisualExport);
     const [isRecording, setIsRecording] = useState(false);
     const [recordingTime, setRecordingTime] = useState(0);
     const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -57,6 +61,21 @@ export const Face: React.FC = () => {
 
     useEffect(() => {
         if (!mountRef.current) return;
+        const mountElement = mountRef.current;
+
+        const getMountSize = () => {
+            const rect = mountElement.getBoundingClientRect();
+            const width = rect.width || mountElement.clientWidth || window.innerWidth;
+            const height = rect.height || mountElement.clientHeight || window.innerHeight;
+
+            return {
+                width: Math.max(1, Math.floor(width)),
+                height: Math.max(1, Math.floor(height)),
+            };
+        };
+
+        const initialSize = getMountSize();
+        let mountAspect = initialSize.width / initialSize.height;
 
         // Track resources for cleanup
         let abortController = new AbortController();
@@ -66,14 +85,23 @@ export const Face: React.FC = () => {
         const scene = new THREE.Scene();
         scene.fog = new THREE.FogExp2(0x000000, 0.015);
 
-        const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
-        camera.position.z = 5;  // Pulled back a bit more
+        const camera = new THREE.PerspectiveCamera(50, mountAspect, 0.1, 1000);
+        camera.position.z = mountAspect < 0.8 ? 7 : 5;  // Pulled back a bit more
 
         const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setSize(initialSize.width, initialSize.height);
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-        mountRef.current.appendChild(renderer.domElement);
+        mountElement.appendChild(renderer.domElement);
         canvasRef.current = renderer.domElement;
+
+        const resizeToMount = () => {
+            const { width, height } = getMountSize();
+            mountAspect = width / height;
+            camera.aspect = mountAspect;
+            camera.position.z = mountAspect < 0.8 ? 7 : 5;
+            camera.updateProjectionMatrix();
+            renderer.setSize(width, height);
+        };
 
         // Handle WebGL context loss
         const handleContextLost = (event: Event) => {
@@ -84,7 +112,7 @@ export const Face: React.FC = () => {
 
         const handleContextRestored = () => {
             console.log('WebGL context restored');
-            renderer.setSize(window.innerWidth, window.innerHeight);
+            resizeToMount();
             if (!animationId && isComponentMounted) animate();
         };
 
@@ -368,17 +396,10 @@ export const Face: React.FC = () => {
 
         // Don't start animation yet - wait for model to load
 
-        // Throttled resize handler
-        let resizeTimeout: NodeJS.Timeout | null = null;
-        const handleResize = () => {
-            if (resizeTimeout) clearTimeout(resizeTimeout);
-            resizeTimeout = setTimeout(() => {
-                camera.aspect = window.innerWidth / window.innerHeight;
-                camera.updateProjectionMatrix();
-                renderer.setSize(window.innerWidth, window.innerHeight);
-            }, 150); // Throttle to max once per 150ms
-        };
-        window.addEventListener('resize', handleResize);
+        resizeToMount();
+
+        const resizeObserver = new ResizeObserver(resizeToMount);
+        resizeObserver.observe(mountElement);
 
         return () => {
             // Mark component as unmounted
@@ -390,9 +411,6 @@ export const Face: React.FC = () => {
             // Stop animation
             if (animationId) cancelAnimationFrame(animationId);
 
-            // Clear resize timeout
-            if (resizeTimeout) clearTimeout(resizeTimeout);
-
             // Stop recording if active
             if (recordingIntervalRef.current) {
                 clearInterval(recordingIntervalRef.current);
@@ -403,7 +421,7 @@ export const Face: React.FC = () => {
             }
 
             // Remove event listeners
-            window.removeEventListener('resize', handleResize);
+            resizeObserver.disconnect();
             renderer.domElement.removeEventListener('webglcontextlost', handleContextLost);
             renderer.domElement.removeEventListener('webglcontextrestored', handleContextRestored);
 
@@ -434,8 +452,8 @@ export const Face: React.FC = () => {
             }
 
             // Remove renderer from DOM
-            if (mountRef.current && renderer.domElement && mountRef.current.contains(renderer.domElement)) {
-                mountRef.current.removeChild(renderer.domElement);
+            if (mountElement && renderer.domElement && mountElement.contains(renderer.domElement)) {
+                mountElement.removeChild(renderer.domElement);
             }
 
             // Dispose all geometries and materials
@@ -457,25 +475,27 @@ export const Face: React.FC = () => {
             // Clear recording chunks
             chunksRef.current = [];
         };
-    }, []);
+    }, [exportSettings.isExportMode]);
 
     return (
-        <div className="face-container">
-            <div ref={mountRef} className="face-canvas" />
+        <ExportFrame aspect={exportSettings.aspect} active={exportSettings.isExportMode}>
+            <div className="face-container">
+                <div ref={mountRef} className="face-canvas" />
 
-            {/* Record Button */}
-            {process.env.NODE_ENV !== 'production' && (
-                <button
-                    className={`record-button ${isRecording ? 'recording' : ''}`}
-                    onClick={toggleRecording}
-                    title={isRecording ? 'Stop Recording' : 'Start Recording'}
-                >
-                    <span className="record-icon" />
-                    {isRecording && <span className="record-time">
-                        {Math.floor(recordingTime / 60)}:{(recordingTime % 60).toString().padStart(2, '0')}
-                    </span>}
-                </button>
-            )}
-        </div>
+                {/* Record Button */}
+                {process.env.NODE_ENV !== 'production' && !exportSettings.isExportMode && (
+                    <button
+                        className={`record-button ${isRecording ? 'recording' : ''}`}
+                        onClick={toggleRecording}
+                        title={isRecording ? 'Stop Recording' : 'Start Recording'}
+                    >
+                        <span className="record-icon" />
+                        {isRecording && <span className="record-time">
+                            {Math.floor(recordingTime / 60)}:{(recordingTime % 60).toString().padStart(2, '0')}
+                        </span>}
+                    </button>
+                )}
+            </div>
+        </ExportFrame>
     );
 };

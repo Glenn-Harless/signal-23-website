@@ -1,5 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
+import { ExportFrame } from '../ExportFrame/ExportFrame';
+import { tangleVisualExport } from '../../data/transmissions';
+import { useExportSettings } from '../../lib/exportSettings';
 import './Tangle.css';
 
 const QUANTUM_MESSAGES = [
@@ -29,6 +32,7 @@ const SIGNAL_STATES = [
 
 export const Tangle: React.FC = () => {
   const mountRef = useRef<HTMLDivElement>(null);
+  const exportSettings = useExportSettings(tangleVisualExport);
   const [logs, setLogs] = useState<string[]>([]);
   const logContainerRef = useRef<HTMLDivElement>(null);
   const [quantumState, setQuantumState] = useState(0);
@@ -112,16 +116,28 @@ export const Tangle: React.FC = () => {
   // Three.js visualization
   useEffect(() => {
     if (!mountRef.current) return;
+    const mountElement = mountRef.current;
 
-    const width = window.innerWidth;
-    const height = window.innerHeight;
+    const getMountSize = () => {
+      const rect = mountElement.getBoundingClientRect();
+      const width = rect.width || mountElement.clientWidth || window.innerWidth;
+      const height = rect.height || mountElement.clientHeight || window.innerHeight;
+
+      return {
+        width: Math.max(1, Math.floor(width)),
+        height: Math.max(1, Math.floor(height)),
+      };
+    };
+
+    const initialSize = getMountSize();
+    let mountWidth = initialSize.width;
 
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
+    const camera = new THREE.PerspectiveCamera(75, initialSize.width / initialSize.height, 0.1, 1000);
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-    renderer.setSize(width, height);
+    renderer.setSize(initialSize.width, initialSize.height);
     renderer.setPixelRatio(window.devicePixelRatio);
-    mountRef.current.appendChild(renderer.domElement);
+    mountElement.appendChild(renderer.domElement);
     canvasRef.current = renderer.domElement;
 
     // --- SIGNAL TOPOLOGY (Pure Morphing) ---
@@ -229,14 +245,17 @@ export const Tangle: React.FC = () => {
     }, 4000);
 
     // Resize handler
-    const handleResize = () => {
-      const w = window.innerWidth;
-      const h = window.innerHeight;
-      camera.aspect = w / h;
+    const resizeToMount = () => {
+      const { width, height } = getMountSize();
+      mountWidth = width;
+      camera.aspect = width / height;
       camera.updateProjectionMatrix();
-      renderer.setSize(w, h);
+      renderer.setSize(width, height);
     };
-    window.addEventListener('resize', handleResize);
+    resizeToMount();
+
+    const resizeObserver = new ResizeObserver(resizeToMount);
+    resizeObserver.observe(mountElement);
 
     // Animation
     let animationId: number;
@@ -248,7 +267,7 @@ export const Tangle: React.FC = () => {
       updateGrid(time);
 
       // Camera movement - back to massive wide-angle
-      const isMobile = window.innerWidth < 768;
+      const isMobile = mountWidth < 768;
       const camDist = isMobile ? 220 : 180;
       camera.position.x = Math.sin(time * 0.04) * 60;
       camera.position.y = -80 + Math.cos(time * 0.02) * 20;
@@ -261,7 +280,7 @@ export const Tangle: React.FC = () => {
 
 
     return () => {
-      window.removeEventListener('resize', handleResize);
+      resizeObserver.disconnect();
       cancelAnimationFrame(animationId);
       clearInterval(stateChangeInterval);
 
@@ -277,12 +296,12 @@ export const Tangle: React.FC = () => {
       gridMaterial.dispose();
 
       scene.clear();
-      if (mountRef.current && renderer.domElement) {
-        mountRef.current.removeChild(renderer.domElement);
+      if (mountElement && renderer.domElement && mountElement.contains(renderer.domElement)) {
+        mountElement.removeChild(renderer.domElement);
       }
       renderer.dispose();
     };
-  }, []);
+  }, [exportSettings.isExportMode]);
 
 
   // Quantum channel logs
@@ -317,37 +336,43 @@ export const Tangle: React.FC = () => {
   }, []);
 
   return (
-    <div className="tangle-container">
-      <div
-        ref={mountRef}
-        className="tangle-canvas-container"
-        onClick={() => setShowText(prev => !prev)}
-        style={{ cursor: 'pointer' }}
-      />
+    <ExportFrame aspect={exportSettings.aspect} active={exportSettings.isExportMode}>
+      <div className="tangle-container">
+        <div
+          ref={mountRef}
+          className="tangle-canvas-container"
+          onClick={() => {
+            if (!exportSettings.isExportMode) {
+              setShowText(prev => !prev);
+            }
+          }}
+          style={{ cursor: exportSettings.isExportMode ? 'default' : 'pointer' }}
+        />
 
-      {/* Record Button - Dev only */}
-      {process.env.NODE_ENV !== 'production' && (
-        <button
-          className={`record-button ${isRecording ? 'recording' : ''}`}
-          onClick={toggleRecording}
-          title={isRecording ? 'Stop Recording' : 'Start Recording'}
-        >
-          <span className="record-icon" />
-          {isRecording && <span className="record-time">{formatTime(recordingTime)}</span>}
-        </button>
-      )}
+        {/* Record Button - Dev only */}
+        {process.env.NODE_ENV !== 'production' && !exportSettings.isExportMode && (
+          <button
+            className={`record-button ${isRecording ? 'recording' : ''}`}
+            onClick={toggleRecording}
+            title={isRecording ? 'Stop Recording' : 'Start Recording'}
+          >
+            <span className="record-icon" />
+            {isRecording && <span className="record-time">{formatTime(recordingTime)}</span>}
+          </button>
+        )}
 
-      {/* Quantum Channel - Bottom Left */}
-      {showText && (
-        <div className="tangle-quantum-channel" ref={logContainerRef}>
-          <div className="channel-title">QUANTUM CHANNEL // ENCRYPTED</div>
-          {logs.map((log, i) => (
-            <div key={i} className="channel-entry" style={{ opacity: 0.4 + (i / logs.length) * 0.6 }}>
-              {log}
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
+        {/* Quantum Channel - Bottom Left */}
+        {showText && !exportSettings.isExportMode && (
+          <div className="tangle-quantum-channel" ref={logContainerRef}>
+            <div className="channel-title">QUANTUM CHANNEL // ENCRYPTED</div>
+            {logs.map((log, i) => (
+              <div key={i} className="channel-entry" style={{ opacity: 0.4 + (i / logs.length) * 0.6 }}>
+                {log}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </ExportFrame>
   );
 };

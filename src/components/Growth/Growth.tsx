@@ -1,5 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
+import { ExportFrame } from '../ExportFrame/ExportFrame';
+import { growthVisualExport } from '../../data/transmissions';
+import { useExportSettings } from '../../lib/exportSettings';
 import './Growth.css';
 
 const LOG_MESSAGES = [
@@ -18,6 +21,7 @@ const LOG_MESSAGES = [
 
 export const Growth: React.FC = () => {
     const mountRef = useRef<HTMLDivElement>(null);
+    const exportSettings = useExportSettings(growthVisualExport);
     const [logs, setLogs] = useState<string[]>([]);
     const logContainerRef = useRef<HTMLDivElement>(null);
     const [showText, setShowText] = useState(false);
@@ -100,17 +104,29 @@ export const Growth: React.FC = () => {
     // Neural Network / Tree Simulation Logic
     useEffect(() => {
         if (!mountRef.current) return;
+        const mountElement = mountRef.current;
 
-        const width = window.innerWidth;
-        const height = window.innerHeight;
+        const getMountSize = () => {
+            const rect = mountElement.getBoundingClientRect();
+            const width = rect.width || mountElement.clientWidth || window.innerWidth;
+            const height = rect.height || mountElement.clientHeight || window.innerHeight;
+
+            return {
+                width: Math.max(1, Math.floor(width)),
+                height: Math.max(1, Math.floor(height)),
+            };
+        };
+
+        const initialSize = getMountSize();
+        let mountWidth = initialSize.width;
 
         // Scene setup
         const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
+        const camera = new THREE.PerspectiveCamera(75, initialSize.width / initialSize.height, 0.1, 1000);
         const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-        renderer.setSize(width, height);
+        renderer.setSize(initialSize.width, initialSize.height);
         renderer.setPixelRatio(window.devicePixelRatio);
-        mountRef.current.appendChild(renderer.domElement);
+        mountElement.appendChild(renderer.domElement);
         canvasRef.current = renderer.domElement;
 
         // Disposal Helper
@@ -230,13 +246,14 @@ export const Growth: React.FC = () => {
         const resizeObserver = new ResizeObserver((entries) => {
             for (let entry of entries) {
                 const { width, height } = entry.contentRect;
+                mountWidth = width;
                 camera.aspect = width / height;
                 camera.updateProjectionMatrix();
                 renderer.setSize(width, height);
             }
         });
 
-        if (mountRef.current) resizeObserver.observe(mountRef.current);
+        resizeObserver.observe(mountElement);
 
         // Animation
         let animationId: number;
@@ -251,7 +268,7 @@ export const Growth: React.FC = () => {
             treeMesh.rotation.x = Math.cos(time * 0.3) * swayAmount;
             nodes.rotation.x = Math.cos(time * 0.3) * swayAmount;
 
-            const isMobile = window.innerWidth < 768;
+            const isMobile = mountWidth < 768;
             camera.position.x = Math.sin(time * 0.1) * 60;
             camera.position.y = 10 + Math.cos(time * 0.05) * 10;
             camera.position.z = isMobile ? 140 : 110;
@@ -280,12 +297,12 @@ export const Growth: React.FC = () => {
 
             scene.clear();
 
-            if (mountRef.current && renderer.domElement) {
-                mountRef.current.removeChild(renderer.domElement);
+            if (mountElement && renderer.domElement && mountElement.contains(renderer.domElement)) {
+                mountElement.removeChild(renderer.domElement);
             }
             renderer.dispose();
         };
-    }, []);
+    }, [exportSettings.isExportMode]);
 
     // Algorithm Learning Logs simulation
     useEffect(() => {
@@ -322,33 +339,42 @@ export const Growth: React.FC = () => {
     }, []);
 
     return (
-        <div className="growth-container" onClick={() => setShowText(prev => !prev)}>
-            <div ref={mountRef} className="nn-canvas" />
+        <ExportFrame aspect={exportSettings.aspect} active={exportSettings.isExportMode}>
+            <div
+                className="growth-container"
+                onClick={() => {
+                    if (!exportSettings.isExportMode) {
+                        setShowText(prev => !prev);
+                    }
+                }}
+            >
+                <div ref={mountRef} className="nn-canvas" />
 
-            {/* Record Button - Dev only */}
-            {process.env.NODE_ENV !== 'production' && (
-                <button
-                    className={`record-button ${isRecording ? 'recording' : ''}`}
-                    onClick={toggleRecording}
-                    title={isRecording ? 'Stop Recording' : 'Start Recording'}
-                >
-                    <span className="record-icon" />
-                    {isRecording && <span className="record-time">{formatTime(recordingTime)}</span>}
-                </button>
-            )}
+                {/* Record Button - Dev only */}
+                {process.env.NODE_ENV !== 'production' && !exportSettings.isExportMode && (
+                    <button
+                        className={`record-button ${isRecording ? 'recording' : ''}`}
+                        onClick={toggleRecording}
+                        title={isRecording ? 'Stop Recording' : 'Start Recording'}
+                    >
+                        <span className="record-icon" />
+                        {isRecording && <span className="record-time">{formatTime(recordingTime)}</span>}
+                    </button>
+                )}
 
-            {showText && (
-                <div className="test-hud">
-                    {/* Bottom-Right Logs */}
-                    <div className="test-hud-bottom">
-                        <div className="learning-logs" ref={logContainerRef}>
-                            {logs.map((log, i) => (
-                                <div key={i} className="log-entry">{log}</div>
-                            ))}
+                {showText && !exportSettings.isExportMode && (
+                    <div className="test-hud">
+                        {/* Bottom-Right Logs */}
+                        <div className="test-hud-bottom">
+                            <div className="learning-logs" ref={logContainerRef}>
+                                {logs.map((log, i) => (
+                                    <div key={i} className="log-entry">{log}</div>
+                                ))}
+                            </div>
                         </div>
                     </div>
-                </div>
-            )}
-        </div>
+                )}
+            </div>
+        </ExportFrame>
     );
 };

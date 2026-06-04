@@ -1,5 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
+import { ExportFrame } from '../ExportFrame/ExportFrame';
+import { learningVisualExport } from '../../data/transmissions';
+import { useExportSettings } from '../../lib/exportSettings';
 import './Learning.css';
 
 // Q-Learning Grid World Configuration
@@ -34,6 +37,7 @@ interface TrainingMetrics {
 
 export const Learning: React.FC = () => {
   const mountRef = useRef<HTMLDivElement>(null);
+  const exportSettings = useExportSettings(learningVisualExport);
   const [metrics, setMetrics] = useState<TrainingMetrics>({
     epoch: 0,
     loss: 1.0,
@@ -240,16 +244,27 @@ export const Learning: React.FC = () => {
   // Three.js Loss Landscape Visualization
   useEffect(() => {
     if (!mountRef.current) return;
+    const mountElement = mountRef.current;
 
-    const width = window.innerWidth;
-    const height = window.innerHeight;
+    const getMountSize = () => {
+      const rect = mountElement.getBoundingClientRect();
+      const width = rect.width || mountElement.clientWidth || window.innerWidth;
+      const height = rect.height || mountElement.clientHeight || window.innerHeight;
+
+      return {
+        width: Math.max(1, Math.floor(width)),
+        height: Math.max(1, Math.floor(height)),
+      };
+    };
+
+    const initialSize = getMountSize();
 
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(60, width / height, 0.1, 1000);
+    const camera = new THREE.PerspectiveCamera(60, initialSize.width / initialSize.height, 0.1, 1000);
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-    renderer.setSize(width, height);
+    renderer.setSize(initialSize.width, initialSize.height);
     renderer.setPixelRatio(window.devicePixelRatio);
-    mountRef.current.appendChild(renderer.domElement);
+    mountElement.appendChild(renderer.domElement);
     canvasRef.current = renderer.domElement;
 
     // Loss landscape function - multiple local minima
@@ -389,17 +404,19 @@ export const Learning: React.FC = () => {
     animate();
 
     // Resize handler
-    const handleResize = () => {
-      const w = window.innerWidth;
-      const h = window.innerHeight;
-      camera.aspect = w / h;
+    const resizeToMount = () => {
+      const { width, height } = getMountSize();
+      camera.aspect = width / height;
       camera.updateProjectionMatrix();
-      renderer.setSize(w, h);
+      renderer.setSize(width, height);
     };
-    window.addEventListener('resize', handleResize);
+    resizeToMount();
+
+    const resizeObserver = new ResizeObserver(resizeToMount);
+    resizeObserver.observe(mountElement);
 
     return () => {
-      window.removeEventListener('resize', handleResize);
+      resizeObserver.disconnect();
       cancelAnimationFrame(animationId);
 
       // Dispose of all geometries and materials to prevent GPU memory leaks
@@ -419,12 +436,12 @@ export const Learning: React.FC = () => {
       // Clean up scene
       scene.clear();
 
-      if (mountRef.current && renderer.domElement) {
-        mountRef.current.removeChild(renderer.domElement);
+      if (mountElement && renderer.domElement && mountElement.contains(renderer.domElement)) {
+        mountElement.removeChild(renderer.domElement);
       }
       renderer.dispose();
     };
-  }, []);
+  }, [exportSettings.isExportMode]);
 
   // Get best action for a cell
   const getBestAction = (x: number, y: number): number => {
@@ -458,20 +475,21 @@ export const Learning: React.FC = () => {
   }, []);
 
   return (
-    <div className="learning-container">
-      <div ref={mountRef} className="learning-canvas-container" />
+    <ExportFrame aspect={exportSettings.aspect} active={exportSettings.isExportMode}>
+      <div className="learning-container">
+        <div ref={mountRef} className="learning-canvas-container" />
 
-      {/* Record Button - Dev only */}
-      {process.env.NODE_ENV !== 'production' && (
-        <button
-          className={`record-button ${isRecording ? 'recording' : ''}`}
-          onClick={toggleRecording}
-          title={isRecording ? 'Stop Recording' : 'Start Recording'}
-        >
-          <span className="record-icon" />
-          {isRecording && <span className="record-time">{formatTime(recordingTime)}</span>}
-        </button>
-      )}
+        {/* Record Button - Dev only */}
+        {process.env.NODE_ENV !== 'production' && !exportSettings.isExportMode && (
+          <button
+            className={`record-button ${isRecording ? 'recording' : ''}`}
+            onClick={toggleRecording}
+            title={isRecording ? 'Stop Recording' : 'Start Recording'}
+          >
+            <span className="record-icon" />
+            {isRecording && <span className="record-time">{formatTime(recordingTime)}</span>}
+          </button>
+        )}
 
       {/* Training Metrics - Bottom Left (Commented Out per Request) */}
       {/* 
@@ -504,38 +522,41 @@ export const Learning: React.FC = () => {
       */}
 
       {/* Signal Matrix - Bottom Right */}
-      <div className="learning-grid-container">
-        {/* <div className="matrix-title">SIGNAL MATRIX // Q-POLICY</div> */}
-        <div
-          className="q-matrix"
-          style={{ gridTemplateColumns: `repeat(${GRID_SIZE}, 1fr)` }}
-        >
-          {Array.from({ length: GRID_SIZE * GRID_SIZE }).map((_, idx) => {
-            const x = idx % GRID_SIZE;
-            const y = Math.floor(idx / GRID_SIZE);
-            const isAgent = agentPos.x === x && agentPos.y === y;
-            const isGoal = GOAL_POS.x === x && GOAL_POS.y === y;
-            const isObstacle = OBSTACLES.some(o => o.x === x && o.y === y);
-            const bestAction = getBestAction(x, y);
-            const intensity = getQIntensity(x, y);
+        {!exportSettings.isExportMode && (
+          <div className="learning-grid-container">
+            {/* <div className="matrix-title">SIGNAL MATRIX // Q-POLICY</div> */}
+            <div
+              className="q-matrix"
+              style={{ gridTemplateColumns: `repeat(${GRID_SIZE}, 1fr)` }}
+            >
+              {Array.from({ length: GRID_SIZE * GRID_SIZE }).map((_, idx) => {
+                const x = idx % GRID_SIZE;
+                const y = Math.floor(idx / GRID_SIZE);
+                const isAgent = agentPos.x === x && agentPos.y === y;
+                const isGoal = GOAL_POS.x === x && GOAL_POS.y === y;
+                const isObstacle = OBSTACLES.some(o => o.x === x && o.y === y);
+                const bestAction = getBestAction(x, y);
+                const intensity = getQIntensity(x, y);
 
-            return (
-              <div
-                key={idx}
-                className={`matrix-cell ${isAgent ? 'agent' : ''} ${isGoal ? 'goal' : ''} ${isObstacle ? 'obstacle' : ''}`}
-                style={{
-                  backgroundColor: isObstacle
-                    ? undefined
-                    : `rgba(255, 255, 255, ${intensity * 0.1})`,
-                }}
-              >
-                {isGoal ? <div className="goal-beacon"></div> : isObstacle ? '\u2716' : isAgent ? <div className="agent-beacon"></div> :
-                  bestAction >= 0 ? <span className="matrix-spark">{ACTION_ARROWS[bestAction]}</span> : ''}
-              </div>
-            );
-          })}
-        </div>
+                return (
+                  <div
+                    key={idx}
+                    className={`matrix-cell ${isAgent ? 'agent' : ''} ${isGoal ? 'goal' : ''} ${isObstacle ? 'obstacle' : ''}`}
+                    style={{
+                      backgroundColor: isObstacle
+                        ? undefined
+                        : `rgba(255, 255, 255, ${intensity * 0.1})`,
+                    }}
+                  >
+                    {isGoal ? <div className="goal-beacon"></div> : isObstacle ? '\u2716' : isAgent ? <div className="agent-beacon"></div> :
+                      bestAction >= 0 ? <span className="matrix-spark">{ACTION_ARROWS[bestAction]}</span> : ''}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
-    </div>
+    </ExportFrame>
   );
 };

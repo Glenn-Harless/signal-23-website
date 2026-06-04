@@ -1,0 +1,77 @@
+.export-frame-normal {
+  width: 100%;
+  height: 100%;
+}
+
+.export-frame-active {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  display: grid;
+  place-items: center;
+  width: 100vw;
+  height: 100dvh;
+  overflow: hidden;
+  background: #000;
+}
+
+.export-frame-canvas {
+  width: 100vw;
+  height: 100dvh;
+  max-width: 100vw;
+  max-height: 100dvh;
+  overflow: hidden;
+  background: #000;
+}
+
+.export-frame-aspect-9-16 {
+  aspect-ratio: 9 / 16;
+  width: auto;
+  height: 100dvh;
+}
+
+.export-frame-aspect-16-9 {
+  aspect-ratio: 16 / 9;
+  width: 100vw;
+  height: auto;
+}
+
+.export-frame-aspect-1-1 {
+  aspect-ratio: 1 / 1;
+  width: min(100vw, 100dvh);
+  height: auto;
+}
+
+.export-frame-aspect-4-5 {
+  aspect-ratio: 4 / 5;
+  width: auto;
+  height: 100dvh;
+}
+
+@media (max-aspect-ratio: 9 / 16) {
+  .export-frame-aspect-9-16 {
+    width: 100vw;
+    height: auto;
+  }
+}
+
+@media (max-aspect-ratio: 4 / 5) {
+  .export-frame-aspect-4-5 {
+    width: 100vw;
+    height: auto;
+  }
+}
+
+@media (max-aspect-ratio: 16 / 9) {
+  .export-frame-aspect-16-9 {
+    width: 100vw;
+    height: auto;
+  }
+}
+
+@media (min-aspect-ratio: 16 / 9) {
+  .export-frame-aspect-16-9 {
+    width: auto;
+    height: 100dvh;
+  }
+}

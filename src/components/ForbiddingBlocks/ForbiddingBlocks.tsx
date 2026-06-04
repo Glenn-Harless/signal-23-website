@@ -1,9 +1,13 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
+import { ExportFrame } from '../ExportFrame/ExportFrame';
+import { forbiddingVisualExport } from '../../data/transmissions';
+import { useExportSettings } from '../../lib/exportSettings';
 import './ForbiddingBlocks.css';
 
 export const ForbiddingBlocks: React.FC = () => {
     const mountRef = useRef<HTMLDivElement>(null);
+    const exportSettings = useExportSettings(forbiddingVisualExport);
 
     // Recording state
     const [isRecording, setIsRecording] = useState(false);
@@ -74,19 +78,30 @@ export const ForbiddingBlocks: React.FC = () => {
 
     useEffect(() => {
         if (!mountRef.current) return;
+        const mountElement = mountRef.current;
 
-        const width = mountRef.current.clientWidth || window.innerWidth;
-        const height = mountRef.current.clientHeight || window.innerHeight;
+        const getMountSize = () => {
+            const rect = mountElement.getBoundingClientRect();
+            const width = rect.width || mountElement.clientWidth || window.innerWidth;
+            const height = rect.height || mountElement.clientHeight || window.innerHeight;
+
+            return {
+                width: Math.max(1, Math.floor(width)),
+                height: Math.max(1, Math.floor(height)),
+            };
+        };
+
+        const initialSize = getMountSize();
 
         const scene = new THREE.Scene();
         scene.background = new THREE.Color(0x000000);
         scene.fog = new THREE.FogExp2(0x000000, 0.0008); // Reduced density for better visibility
 
-        const camera = new THREE.PerspectiveCamera(55, width / height, 0.1, 4000);
+        const camera = new THREE.PerspectiveCamera(55, initialSize.width / initialSize.height, 0.1, 4000);
         const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-        renderer.setSize(width, height);
+        renderer.setSize(initialSize.width, initialSize.height);
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-        mountRef.current.appendChild(renderer.domElement);
+        mountElement.appendChild(renderer.domElement);
         canvasRef.current = renderer.domElement;
 
         // --- Cinematic Lighting Orchestration ---
@@ -182,14 +197,12 @@ export const ForbiddingBlocks: React.FC = () => {
         camera.lookAt(0, 0, 0);
 
         const resizeObserver = new ResizeObserver(() => {
-            if (!mountRef.current) return;
-            const w = mountRef.current.clientWidth;
-            const h = mountRef.current.clientHeight;
-            camera.aspect = w / h;
+            const { width, height } = getMountSize();
+            camera.aspect = width / height;
             camera.updateProjectionMatrix();
-            renderer.setSize(w, h);
+            renderer.setSize(width, height);
         });
-        if (mountRef.current) resizeObserver.observe(mountRef.current);
+        resizeObserver.observe(mountElement);
 
         let time = 0;
         let animationId: number;
@@ -262,12 +275,12 @@ export const ForbiddingBlocks: React.FC = () => {
             // Clear scene
             scene.clear();
 
-            if (mountRef.current && renderer.domElement) {
-                mountRef.current.removeChild(renderer.domElement);
+            if (mountElement && renderer.domElement && mountElement.contains(renderer.domElement)) {
+                mountElement.removeChild(renderer.domElement);
             }
             renderer.dispose();
         };
-    }, []);
+    }, [exportSettings.isExportMode]);
 
     useEffect(() => {
         return () => {
@@ -279,23 +292,27 @@ export const ForbiddingBlocks: React.FC = () => {
     }, []);
 
     return (
-        <div className="forbidding-container">
-            <div ref={mountRef} className="blocks-canvas" />
-            <div className="grain-overlay" />
+        <ExportFrame aspect={exportSettings.aspect} active={exportSettings.isExportMode}>
+            <div className="forbidding-container">
+                <div ref={mountRef} className="blocks-canvas" />
+                <div className="grain-overlay" />
 
-            {/* Record Button - Dev only */}
-            {process.env.NODE_ENV !== 'production' && (
-                <button
-                    className={`record-button ${isRecording ? 'recording' : ''}`}
-                    onClick={toggleRecording}
-                    title={isRecording ? 'Stop Recording' : 'Start Recording'}
-                >
-                    <span className="record-icon" />
-                    {isRecording && <span className="record-time">{formatTime(recordingTime)}</span>}
-                </button>
-            )}
+                {/* Record Button - Dev only */}
+                {process.env.NODE_ENV !== 'production' && !exportSettings.isExportMode && (
+                    <button
+                        className={`record-button ${isRecording ? 'recording' : ''}`}
+                        onClick={toggleRecording}
+                        title={isRecording ? 'Stop Recording' : 'Start Recording'}
+                    >
+                        <span className="record-icon" />
+                        {isRecording && <span className="record-time">{formatTime(recordingTime)}</span>}
+                    </button>
+                )}
 
-            <div className="art-piece-watermark">FORBIDDING_BLOCKS // V_01</div>
-        </div>
+                {!exportSettings.isExportMode && (
+                    <div className="art-piece-watermark">FORBIDDING_BLOCKS // V_01</div>
+                )}
+            </div>
+        </ExportFrame>
     );
 };

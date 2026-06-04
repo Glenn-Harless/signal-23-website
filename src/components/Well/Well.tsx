@@ -4,6 +4,9 @@ import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass';
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass';
+import { ExportFrame } from '../ExportFrame/ExportFrame';
+import { wellVisualExport } from '../../data/transmissions';
+import { useExportSettings } from '../../lib/exportSettings';
 import './Well.css';
 
 // Custom Shader for Chromatic Aberration, Grain, and Vignette
@@ -71,6 +74,7 @@ const PostProcessShader = {
 
 export const Well: React.FC = () => {
     const mountRef = useRef<HTMLDivElement>(null);
+    const exportSettings = useExportSettings(wellVisualExport);
 
     // Recording state
     const [isRecording, setIsRecording] = useState(false);
@@ -130,26 +134,37 @@ export const Well: React.FC = () => {
 
     useEffect(() => {
         if (!mountRef.current) return;
+        const mountElement = mountRef.current;
 
-        const width = mountRef.current.clientWidth || window.innerWidth;
-        const height = mountRef.current.clientHeight || window.innerHeight;
+        const getMountSize = () => {
+            const rect = mountElement.getBoundingClientRect();
+            const width = rect.width || mountElement.clientWidth || window.innerWidth;
+            const height = rect.height || mountElement.clientHeight || window.innerHeight;
+
+            return {
+                width: Math.max(1, Math.floor(width)),
+                height: Math.max(1, Math.floor(height)),
+            };
+        };
+
+        const initialSize = getMountSize();
 
         const scene = new THREE.Scene();
         scene.background = new THREE.Color(0x000000);
         scene.fog = new THREE.FogExp2(0x000000, 0.0005);
 
-        const camera = new THREE.PerspectiveCamera(65, width / height, 0.1, 8000);
+        const camera = new THREE.PerspectiveCamera(65, initialSize.width / initialSize.height, 0.1, 8000);
         const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-        renderer.setSize(width, height);
+        renderer.setSize(initialSize.width, initialSize.height);
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-        mountRef.current.appendChild(renderer.domElement);
+        mountElement.appendChild(renderer.domElement);
         canvasRef.current = renderer.domElement;
 
         // --- Composer Setup ---
         const composer = new EffectComposer(renderer);
         composer.addPass(new RenderPass(scene, camera));
 
-        const bloomPass = new UnrealBloomPass(new THREE.Vector2(width, height), 1.5, 0.4, 0.85);
+        const bloomPass = new UnrealBloomPass(new THREE.Vector2(initialSize.width, initialSize.height), 1.5, 0.4, 0.85);
         bloomPass.threshold = 0.15;
         bloomPass.strength = 1.4;
         bloomPass.radius = 0.7;
@@ -353,15 +368,13 @@ export const Well: React.FC = () => {
         camera.lookAt(0, -100, 0);
 
         const resizeObserver = new ResizeObserver(() => {
-            if (!mountRef.current) return;
-            const w = mountRef.current.clientWidth;
-            const h = mountRef.current.clientHeight;
-            camera.aspect = w / h;
+            const { width, height } = getMountSize();
+            camera.aspect = width / height;
             camera.updateProjectionMatrix();
-            renderer.setSize(w, h);
-            composer.setSize(w, h);
+            renderer.setSize(width, height);
+            composer.setSize(width, height);
         });
-        if (mountRef.current) resizeObserver.observe(mountRef.current);
+        resizeObserver.observe(mountElement);
 
         let time = 0;
         let fallProgress = 0;
@@ -461,13 +474,13 @@ export const Well: React.FC = () => {
             // Clear scene
             scene.clear();
 
-            if (mountRef.current && renderer.domElement) {
-                mountRef.current.removeChild(renderer.domElement);
+            if (mountElement && renderer.domElement && mountElement.contains(renderer.domElement)) {
+                mountElement.removeChild(renderer.domElement);
             }
             renderer.dispose();
             composer.dispose();
         };
-    }, []);
+    }, [exportSettings.isExportMode]);
 
     useEffect(() => {
         return () => {
@@ -479,21 +492,25 @@ export const Well: React.FC = () => {
     }, []);
 
     return (
-        <div className="well-container">
-            <div ref={mountRef} className="well-canvas" />
+        <ExportFrame aspect={exportSettings.aspect} active={exportSettings.isExportMode}>
+            <div className="well-container">
+                <div ref={mountRef} className="well-canvas" />
 
-            {process.env.NODE_ENV !== 'production' && (
-                <button
-                    className={`record-button ${isRecording ? 'recording' : ''}`}
-                    onClick={(e) => { e.stopPropagation(); isRecording ? stopRecording() : startRecording(); }}
-                    title={isRecording ? 'Stop Recording' : 'Start Recording'}
-                >
-                    <span className="record-icon" />
-                    {isRecording && <span className="record-time">{formatTime(recordingTime)}</span>}
-                </button>
-            )}
+                {process.env.NODE_ENV !== 'production' && !exportSettings.isExportMode && (
+                    <button
+                        className={`record-button ${isRecording ? 'recording' : ''}`}
+                        onClick={(e) => { e.stopPropagation(); isRecording ? stopRecording() : startRecording(); }}
+                        title={isRecording ? 'Stop Recording' : 'Start Recording'}
+                    >
+                        <span className="record-icon" />
+                        {isRecording && <span className="record-time">{formatTime(recordingTime)}</span>}
+                    </button>
+                )}
 
-            <div className="art-piece-watermark">RECURSIVE_DESCENT // FRACTAL_WELL_03</div>
-        </div>
+                {!exportSettings.isExportMode && (
+                    <div className="art-piece-watermark">RECURSIVE_DESCENT // FRACTAL_WELL_03</div>
+                )}
+            </div>
+        </ExportFrame>
     );
 };

@@ -1,5 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
+import { ExportFrame } from '../ExportFrame/ExportFrame';
+import { nerveVisualExport } from '../../data/transmissions';
+import { useExportSettings } from '../../lib/exportSettings';
 import './Nerve.css';
 
 interface Node {
@@ -18,6 +21,7 @@ interface Pulse {
 
 export const Nerve: React.FC = () => {
     const mountRef = useRef<HTMLDivElement>(null);
+    const exportSettings = useExportSettings(nerveVisualExport);
     const [isRecording, setIsRecording] = useState(false);
     const [recordingTime, setRecordingTime] = useState(0);
     const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -72,13 +76,28 @@ export const Nerve: React.FC = () => {
 
     useEffect(() => {
         if (!mountRef.current) return;
+        const mountElement = mountRef.current;
+
+        const getMountSize = () => {
+            const rect = mountElement.getBoundingClientRect();
+            const width = rect.width || mountElement.clientWidth || window.innerWidth;
+            const height = rect.height || mountElement.clientHeight || window.innerHeight;
+
+            return {
+                width: Math.max(1, Math.floor(width)),
+                height: Math.max(1, Math.floor(height)),
+            };
+        };
+
+        const initialSize = getMountSize();
+        let mountAspect = initialSize.width / initialSize.height;
 
         const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const camera = new THREE.PerspectiveCamera(75, mountAspect, 0.1, 1000);
         const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setSize(initialSize.width, initialSize.height);
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-        mountRef.current.appendChild(renderer.domElement);
+        mountElement.appendChild(renderer.domElement);
         canvasRef.current = renderer.domElement;
 
         // --- Geometries and Materials ---
@@ -326,7 +345,8 @@ export const Nerve: React.FC = () => {
                 pulseMaterial.opacity = 0.8 + Math.sin(time * 1.5) * 0.2;
             }
 
-            camera.position.z = 115 + Math.sin(time * 0.4) * 15;
+            const cameraBaseZ = mountAspect < 0.8 ? 155 : 115;
+            camera.position.z = cameraBaseZ + Math.sin(time * 0.4) * 15;
             camera.lookAt(0, 0, 0);
 
             renderer.render(scene, camera);
@@ -334,16 +354,21 @@ export const Nerve: React.FC = () => {
         animate();
 
         // Handle resize
-        const handleResize = () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
+        const resizeToMount = () => {
+            const { width, height } = getMountSize();
+            mountAspect = width / height;
+            camera.aspect = mountAspect;
             camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setSize(width, height);
         };
-        window.addEventListener('resize', handleResize);
+        resizeToMount();
+
+        const resizeObserver = new ResizeObserver(resizeToMount);
+        resizeObserver.observe(mountElement);
 
         return () => {
             cancelAnimationFrame(animationId);
-            window.removeEventListener('resize', handleResize);
+            resizeObserver.disconnect();
 
             // Clear seizure timeout
             if (seizureTimeoutId) clearTimeout(seizureTimeoutId);
@@ -356,8 +381,8 @@ export const Nerve: React.FC = () => {
                 mediaRecorderRef.current.stop();
             }
 
-            if (mountRef.current && renderer.domElement) {
-                mountRef.current.removeChild(renderer.domElement);
+            if (mountElement && renderer.domElement && mountElement.contains(renderer.domElement)) {
+                mountElement.removeChild(renderer.domElement);
             }
             // Disposal
             lineGeom.dispose();
@@ -371,24 +396,26 @@ export const Nerve: React.FC = () => {
             nodeSprite.dispose();
             renderer.dispose();
         };
-    }, []);
+    }, [exportSettings.isExportMode]);
 
     return (
-        <div className="nerve-container">
-            <div ref={mountRef} className="nerve-canvas" />
+        <ExportFrame aspect={exportSettings.aspect} active={exportSettings.isExportMode}>
+            <div className="nerve-container">
+                <div ref={mountRef} className="nerve-canvas" />
 
-            {/* Record Button */}
-            {process.env.NODE_ENV !== 'production' && (
-                <button
-                    className={`nerve-record-button ${isRecording ? 'recording' : ''}`}
-                    onClick={toggleRecording}
-                >
-                    <span className="nerve-record-icon" />
-                    {isRecording && <span className="nerve-record-time">
-                        {Math.floor(recordingTime / 60)}:{(recordingTime % 60).toString().padStart(2, '0')}
-                    </span>}
-                </button>
-            )}
-        </div>
+                {/* Record Button */}
+                {process.env.NODE_ENV !== 'production' && !exportSettings.isExportMode && (
+                    <button
+                        className={`nerve-record-button ${isRecording ? 'recording' : ''}`}
+                        onClick={toggleRecording}
+                    >
+                        <span className="nerve-record-icon" />
+                        {isRecording && <span className="nerve-record-time">
+                            {Math.floor(recordingTime / 60)}:{(recordingTime % 60).toString().padStart(2, '0')}
+                        </span>}
+                    </button>
+                )}
+            </div>
+        </ExportFrame>
     );
 };

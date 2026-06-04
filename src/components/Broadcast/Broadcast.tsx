@@ -11,6 +11,9 @@ import { WaveRingSystem } from './WaveRingSystem';
 import { NumbersStation } from './NumbersStation';
 import { BroadcastPostShader } from './BroadcastPostShader';
 import { RingParams } from './types';
+import { ExportFrame } from '../ExportFrame/ExportFrame';
+import { broadcastVisualExport } from '../../data/transmissions';
+import { useExportSettings } from '../../lib/exportSettings';
 
 
 
@@ -29,6 +32,7 @@ const dataPayloads = [
 
 const Broadcast: React.FC = () => {
     const containerRef = useRef<HTMLDivElement>(null);
+    const exportSettings = useExportSettings(broadcastVisualExport);
     const clockRef = useRef(new THREE.Clock());
     const [rings, setRings] = useState<RingParams[]>([]);
     const stateRef = useRef({
@@ -39,24 +43,43 @@ const Broadcast: React.FC = () => {
     const systems = useMemo(() => ({
         ringSystem: new WaveRingSystem(),
         audioSystem: new NumbersStation(),
-    }), []);
+    }), [exportSettings.isExportMode]);
 
     useEffect(() => {
         if (!containerRef.current) return;
+        const mountElement = containerRef.current;
+
+        const getMountSize = () => {
+            const rect = mountElement.getBoundingClientRect();
+            const width = rect.width || mountElement.clientWidth || window.innerWidth;
+            const height = rect.height || mountElement.clientHeight || window.innerHeight;
+
+            return {
+                width: Math.max(1, Math.floor(width)),
+                height: Math.max(1, Math.floor(height)),
+            };
+        };
+
+        const initialSize = getMountSize();
 
         // SCENE SETUP
         const scene = new THREE.Scene();
         scene.background = new THREE.Color(0x000000);
         scene.fog = new THREE.Fog(0x000000, 5, 50);
 
-        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const camera = new THREE.PerspectiveCamera(
+            75,
+            initialSize.width / initialSize.height,
+            0.1,
+            1000
+        );
         camera.position.set(0, 5, 20);
         camera.lookAt(0, 8, 0);
 
         const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setSize(initialSize.width, initialSize.height);
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-        containerRef.current.appendChild(renderer.domElement);
+        mountElement.appendChild(renderer.domElement);
 
         // TOWER
         const tower = createTowerGeometry();
@@ -82,7 +105,7 @@ const Broadcast: React.FC = () => {
         composer.addPass(new RenderPass(scene, camera));
 
         const bloomPass = new UnrealBloomPass(
-            new THREE.Vector2(window.innerWidth, window.innerHeight),
+            new THREE.Vector2(initialSize.width, initialSize.height),
             0.6, 0.4, 0.85
         );
         composer.addPass(bloomPass);
@@ -92,7 +115,7 @@ const Broadcast: React.FC = () => {
 
 
         // ANIMATION LOOP
-        const isMobileRef = { current: window.innerWidth < 768 };
+        const isMobileRef = { current: initialSize.width < 768 };
         let animationId: number;
 
         const animate = () => {
@@ -131,19 +154,23 @@ const Broadcast: React.FC = () => {
 
         animate();
 
-        const handleResize = () => {
-            isMobileRef.current = window.innerWidth < 768;
-            camera.aspect = window.innerWidth / window.innerHeight;
+        const resizeToMount = () => {
+            const { width, height } = getMountSize();
+            isMobileRef.current = width < 768;
+            camera.aspect = width / height;
             camera.updateProjectionMatrix();
 
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            composer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setSize(width, height);
+            composer.setSize(width, height);
         };
-        window.addEventListener('resize', handleResize);
+        resizeToMount();
+
+        const resizeObserver = new ResizeObserver(resizeToMount);
+        resizeObserver.observe(mountElement);
 
         return () => {
             cancelAnimationFrame(animationId);
-            window.removeEventListener('resize', handleResize);
+            resizeObserver.disconnect();
 
             // Kill any active gsap animations
             gsap.killTweensOf(systems.ringSystem);
@@ -172,8 +199,11 @@ const Broadcast: React.FC = () => {
             composer.dispose();
             renderer.dispose();
             systems.audioSystem.stop();
+            if (mountElement.contains(renderer.domElement)) {
+                mountElement.removeChild(renderer.domElement);
+            }
         };
-    }, [systems]);
+    }, [systems, exportSettings.isExportMode]);
 
     const spawnRing = async () => {
         if (stateRef.current.audioPaused) {
@@ -208,12 +238,18 @@ const Broadcast: React.FC = () => {
     };
 
     return (
-        <div
-            ref={containerRef}
-            style={{ width: '100%', height: '100vh', background: 'black', overflow: 'hidden', position: 'relative' }}
-            onClick={spawnRing}
-        >
-        </div>
+        <ExportFrame aspect={exportSettings.aspect} active={exportSettings.isExportMode}>
+            <div
+                ref={containerRef}
+                style={{ width: '100%', height: '100%', background: 'black', overflow: 'hidden', position: 'relative' }}
+                onClick={() => {
+                    if (!exportSettings.isExportMode) {
+                        spawnRing();
+                    }
+                }}
+            >
+            </div>
+        </ExportFrame>
     );
 };
 
