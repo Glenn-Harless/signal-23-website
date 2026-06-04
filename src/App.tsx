@@ -31,6 +31,7 @@ import { Decay } from './components/Decay/Decay';
 import { Reclamation } from './components/Reclamation/Reclamation';
 import { OperatorIndex } from './components/Operator/OperatorIndex';
 import { TransmissionDetail } from './components/Operator/TransmissionDetail';
+import { Atlas } from './components/Atlas/Atlas';
 
 
 
@@ -190,6 +191,7 @@ const App = () => {
           <Route path="/reclamation" element={<Reclamation />} />
           <Route path="/operator" element={<OperatorIndex />} />
           <Route path="/operator/transmissions/:slug" element={<TransmissionDetail />} />
+          <Route path="/deaddrop" element={<Atlas />} />
         </Routes>
       </WorkstationShell>
     </BrowserRouter>
