@@ -6,50 +6,55 @@
     overflow: hidden;
 }
 
-/* Dev-only record button (hidden in production + export mode); self-contained
-   so it styles correctly even when this route is loaded on its own. */
-.streamfront-stage .record-button {
+/* Record button — matches the other visual routes (Well/Forest/Decay/etc.). */
+.record-button {
     position: absolute;
-    bottom: 22px;
-    right: 22px;
-    z-index: 6;
+    top: 2rem;
+    right: 2rem;
+    z-index: 100;
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 9px 12px;
-    background: rgba(0, 0, 0, 0.45);
-    border: 1px solid rgba(121, 227, 255, 0.35);
-    border-radius: 999px;
-    color: rgba(220, 240, 255, 0.85);
-    font-family: 'IBM Plex Mono', ui-monospace, monospace;
-    font-size: 11px;
-    letter-spacing: 0.1em;
+    gap: 0.5rem;
+    padding: 0.6rem 0.8rem;
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 4px;
     cursor: pointer;
-    transition: border-color 0.2s ease, background 0.2s ease;
+    transition: all 0.2s ease;
+    backdrop-filter: blur(8px);
 }
 
-.streamfront-stage .record-button:hover {
-    border-color: rgba(121, 227, 255, 0.7);
-    background: rgba(0, 0, 0, 0.65);
+.record-button:hover {
+    background: rgba(0, 0, 0, 0.8);
+    border-color: rgba(255, 255, 255, 0.3);
 }
 
-.streamfront-stage .record-icon {
-    width: 11px;
-    height: 11px;
+.record-icon {
+    width: 10px;
+    height: 10px;
     border-radius: 50%;
-    background: #ff4b4b;
-    box-shadow: 0 0 8px rgba(255, 75, 75, 0.8);
+    background: rgba(255, 255, 255, 0.6);
 }
 
-.streamfront-stage .record-button.recording .record-icon {
-    animation: streamfront-rec-pulse 1s ease-in-out infinite;
+.record-button.recording .record-icon {
+    background: #ff3333;
+    box-shadow: 0 0 10px rgba(255, 51, 51, 0.6);
+    animation: streamfront-pulse-record 1s ease-in-out infinite;
 }
 
-.streamfront-stage .record-time {
-    font-variant-numeric: tabular-nums;
+.record-time {
+    font-size: 0.7rem;
+    color: #ff3333;
+    font-weight: 500;
 }
 
-@keyframes streamfront-rec-pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.3; }
+@keyframes streamfront-pulse-record {
+    0%, 100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.6;
+        transform: scale(0.9);
+    }
 }

@@ -238,6 +238,7 @@ export const Streamfront: React.FC = () => {
         );
         composer.addPass(bloom);
 
+        const GLITCH_DUR = 0.35;
         let glitch = 0; // seconds of glitch burst remaining
 
         // Draw a brand-new delta — this is what "refresh" does, on a timer.
@@ -271,7 +272,7 @@ export const Streamfront: React.FC = () => {
             (moteGeo.attributes.position as THREE.BufferAttribute).needsUpdate = true;
             (moteGeo.attributes.color as THREE.BufferAttribute).needsUpdate = true;
 
-            if (withGlitch) glitch = 0.5;
+            if (withGlitch) glitch = GLITCH_DUR;
         };
 
         regenerate(false); // initial draw, no glitch
@@ -307,15 +308,11 @@ export const Streamfront: React.FC = () => {
 
             if (glitch > 0) {
                 glitch = Math.max(0, glitch - dt);
-                const g = glitch / 0.5;
-                channelMat.opacity = 0.15 + Math.random() * 0.75;
-                bloom.strength = 1.05 + g * 2.6;
-                deltaGroup.position.x = (Math.random() - 0.5) * 9 * g;
-                deltaGroup.position.y = (Math.random() - 0.5) * 5 * g;
-                if (glitch === 0) {
-                    deltaGroup.position.set(0, 0, 0);
-                    bloom.strength = 1.05;
-                }
+                const g = glitch / GLITCH_DUR;
+                // a gentle shimmer as the fresh delta settles in — no jump, soft bloom lift
+                channelMat.opacity = 0.34 + Math.random() * 0.12;
+                bloom.strength = 1.05 + g * 0.45;
+                if (glitch === 0) bloom.strength = 1.05;
             } else {
                 channelMat.opacity = 0.36 + Math.sin(t * 0.6) * 0.07;
             }
