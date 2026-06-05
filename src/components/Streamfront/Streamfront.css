@@ -6,19 +6,6 @@
     overflow: hidden;
 }
 
-.streamfront-hud {
-    position: absolute;
-    top: 18px;
-    left: 20px;
-    z-index: 5;
-    font-family: 'IBM Plex Mono', ui-monospace, monospace;
-    font-size: 11px;
-    letter-spacing: 0.32em;
-    color: rgba(121, 227, 255, 0.5);
-    pointer-events: none;
-    user-select: none;
-}
-
 /* Dev-only record button (hidden in production + export mode); self-contained
    so it styles correctly even when this route is loaded on its own. */
 .streamfront-stage .record-button {

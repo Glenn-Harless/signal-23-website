@@ -31,7 +31,7 @@ type Node = { x: number; y: number; children: Node[] };
 // A river delta: one channel up top that fans into many distributaries as it
 // nears the "front" (the sea, at the bottom). The downward mirror of a tree.
 const buildDelta = (halfH: number) => {
-    const segments: number[] = []; // flat [x1,y1,0, x2,y2,0, ...] for LineSegments
+    const segments: number[] = [];
     const root: Node = { x: 0, y: halfH, children: [] };
     let nodeCount = 0;
     const MAX_NODES = 3200;
@@ -39,9 +39,7 @@ const buildDelta = (halfH: number) => {
     const grow = (node: Node, dirX: number, dirY: number, stepsFromSplit: number) => {
         if (node.y <= -halfH || nodeCount > MAX_NODES) return;
 
-        // yf = 1 at the source, 0 at the front. Splitting ramps up toward the sea
-        // so the upstream stays a river and the mouth fans into a delta.
-        const yf = (node.y + halfH) / (2 * halfH);
+        const yf = (node.y + halfH) / (2 * halfH); // 1 at source, 0 at the front
         const widthFrac = Math.min(1, Math.abs(node.x) / (halfH * 0.95));
         const splittable = stepsFromSplit >= 2 && node.y < halfH - 10;
         const splitProb = 0.66 * Math.pow(1 - yf, 1.25) * (1 - widthFrac * 0.45);
@@ -54,7 +52,7 @@ const buildDelta = (halfH: number) => {
             nx += (Math.random() - 0.5) * (yf > 0.55 ? 0.07 : 0.2); // calm trunk, lively mouth
             nx -= node.x * 0.011 * yf;        // keep the upstream channel centered
             nx += node.x * 0.004 * (1 - yf);  // fan outward as it nears the sea
-            let ny = -(0.6 + Math.random() * 0.32); // always flowing down
+            let ny = -(0.6 + Math.random() * 0.32);
             const len = Math.hypot(nx, ny) || 1;
             nx /= len; ny /= len;
 
@@ -69,7 +67,6 @@ const buildDelta = (halfH: number) => {
 
     grow(root, 0, -1, 99);
 
-    // Collect every source->leaf path (point lists) for the flowing motes.
     const paths: THREE.Vector2[][] = [];
     const walk = (node: Node, trail: THREE.Vector2[]) => {
         const next = [...trail, new THREE.Vector2(node.x, node.y)];
@@ -156,41 +153,11 @@ export const Streamfront: React.FC = () => {
         };
 
         const initialSize = getMountSize();
+        const HALF_H = 120;
 
         const scene = new THREE.Scene();
         scene.background = new THREE.Color(0x02060c);
         scene.fog = new THREE.FogExp2(0x02060c, 0.0016);
-
-        const HALF_H = 120;
-        const { segments, paths } = buildDelta(HALF_H);
-
-        // Fit an orthographic camera to the generated delta bounds for any aspect.
-        let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
-        for (let i = 0; i < segments.length; i += 3) {
-            minX = Math.min(minX, segments[i]); maxX = Math.max(maxX, segments[i]);
-            minY = Math.min(minY, segments[i + 1]); maxY = Math.max(maxY, segments[i + 1]);
-        }
-        const cx = (minX + maxX) / 2;
-        const cy = (minY + maxY) / 2;
-        const boundW = (maxX - minX) || 1;
-        const boundH = (maxY - minY) || 1;
-
-        const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 1000);
-        camera.position.set(cx, cy, 100);
-        camera.lookAt(cx, cy, 0);
-
-        const fitCamera = (aspect: number) => {
-            const pad = 1.16;
-            const worldW = boundW * pad;
-            const worldH = boundH * pad;
-            let viewW: number, viewH: number;
-            if (aspect >= worldW / worldH) { viewH = worldH; viewW = viewH * aspect; }
-            else { viewW = worldW; viewH = viewW / aspect; }
-            camera.left = -viewW / 2; camera.right = viewW / 2;
-            camera.top = viewH / 2; camera.bottom = -viewH / 2;
-            camera.updateProjectionMatrix();
-        };
-        fitCamera(initialSize.width / initialSize.height);
 
         const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
         renderer.setSize(initialSize.width, initialSize.height);
@@ -198,37 +165,45 @@ export const Streamfront: React.FC = () => {
         mountElement.appendChild(renderer.domElement);
         canvasRef.current = renderer.domElement;
 
-        // Static channel map — dim glowing distributaries.
-        const channelGeo = new THREE.BufferGeometry();
-        channelGeo.setAttribute('position', new THREE.BufferAttribute(segments, 3));
+        const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 1000);
+        let currentAspect = initialSize.width / initialSize.height;
+        const bounds = { cx: 0, cy: 0, boundW: 1, boundH: 1 };
+
+        const fitCamera = () => {
+            const pad = 1.16;
+            const worldW = bounds.boundW * pad;
+            const worldH = bounds.boundH * pad;
+            let viewW: number, viewH: number;
+            if (currentAspect >= worldW / worldH) { viewH = worldH; viewW = viewH * currentAspect; }
+            else { viewW = worldW; viewH = viewW / currentAspect; }
+            camera.left = -viewW / 2; camera.right = viewW / 2;
+            camera.top = viewH / 2; camera.bottom = -viewH / 2;
+            camera.position.set(bounds.cx, bounds.cy, 100);
+            camera.lookAt(bounds.cx, bounds.cy, 0);
+            camera.updateProjectionMatrix();
+        };
+
+        // The whole delta lives in a group so the glitch can jitter it as a unit.
+        const deltaGroup = new THREE.Group();
+        scene.add(deltaGroup);
+
         const channelMat = new THREE.LineBasicMaterial({
             color: 0x3d86ad, transparent: true, opacity: 0.42,
             blending: THREE.AdditiveBlending, depthWrite: false,
         });
-        const channels = new THREE.LineSegments(channelGeo, channelMat);
-        scene.add(channels);
+        const channels = new THREE.LineSegments(new THREE.BufferGeometry(), channelMat);
+        deltaGroup.add(channels);
 
-        // The "front" — a soft band where the delta meets the sea.
-        const frontGeo = new THREE.PlaneGeometry(boundW * 1.5, 14);
-        const frontMat = new THREE.MeshBasicMaterial({
-            color: 0x0c3d5c, transparent: true, opacity: 0.2,
-            blending: THREE.AdditiveBlending, depthWrite: false,
-        });
-        const front = new THREE.Mesh(frontGeo, frontMat);
-        front.position.set(cx, minY + 4, -1);
-        scene.add(front);
-
-        // Flowing motes that trace the branching as they run to the sea.
-        const COUNT = Math.min(1700, paths.length * 8);
+        // Fixed-size mote pool; paths get reassigned each regeneration.
+        const COUNT = 1400;
         const dotTex = makeDotTexture();
         const posArr = new Float32Array(COUNT * 3);
         const colArr = new Float32Array(COUNT * 3);
-        const flow = new Array(COUNT).fill(0).map(() => ({
-            path: paths[(Math.random() * paths.length) | 0],
-            t: Math.random(),
-            speed: 0.05 + Math.random() * 0.09,
-        }));
         const baseCol = new THREE.Color(0x86e6ff);
+        let paths: THREE.Vector2[][] = [[new THREE.Vector2(0, 0), new THREE.Vector2(0, -1)]];
+        const flow = new Array(COUNT).fill(0).map(() => ({
+            path: paths[0], t: Math.random(), speed: 0.05 + Math.random() * 0.09,
+        }));
 
         const writeParticle = (i: number) => {
             const f = flow[i];
@@ -240,13 +215,11 @@ export const Streamfront: React.FC = () => {
             posArr[i * 3] = a.x + (b.x - a.x) * frac;
             posArr[i * 3 + 1] = a.y + (b.y - a.y) * frac;
             posArr[i * 3 + 2] = 0;
-            // fade in at the source, dissolve into the sea near the front
             const bright = Math.min(1, f.t * 6) * (1 - Math.max(0, (f.t - 0.84) / 0.16) * 0.8);
             colArr[i * 3] = baseCol.r * bright;
             colArr[i * 3 + 1] = baseCol.g * bright;
             colArr[i * 3 + 2] = baseCol.b * bright;
         };
-        for (let i = 0; i < COUNT; i++) writeParticle(i);
 
         const moteGeo = new THREE.BufferGeometry();
         moteGeo.setAttribute('position', new THREE.BufferAttribute(posArr, 3));
@@ -256,7 +229,7 @@ export const Streamfront: React.FC = () => {
             blending: THREE.AdditiveBlending, depthWrite: false, sizeAttenuation: true,
         });
         const motes = new THREE.Points(moteGeo, moteMat);
-        scene.add(motes);
+        deltaGroup.add(motes);
 
         const composer = new EffectComposer(renderer);
         composer.addPass(new RenderPass(scene, camera));
@@ -264,6 +237,53 @@ export const Streamfront: React.FC = () => {
             new THREE.Vector2(initialSize.width, initialSize.height), 1.05, 0.78, 0.13,
         );
         composer.addPass(bloom);
+
+        let glitch = 0; // seconds of glitch burst remaining
+
+        // Draw a brand-new delta — this is what "refresh" does, on a timer.
+        const regenerate = (withGlitch: boolean) => {
+            const built = buildDelta(HALF_H);
+            paths = built.paths.length ? built.paths : paths;
+            const segs = built.segments;
+
+            let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+            for (let i = 0; i < segs.length; i += 3) {
+                minX = Math.min(minX, segs[i]); maxX = Math.max(maxX, segs[i]);
+                minY = Math.min(minY, segs[i + 1]); maxY = Math.max(maxY, segs[i + 1]);
+            }
+            bounds.cx = (minX + maxX) / 2;
+            bounds.cy = (minY + maxY) / 2;
+            bounds.boundW = (maxX - minX) || 1;
+            bounds.boundH = (maxY - minY) || 1;
+            fitCamera();
+
+            channels.geometry.dispose();
+            const geo = new THREE.BufferGeometry();
+            geo.setAttribute('position', new THREE.BufferAttribute(segs, 3));
+            channels.geometry = geo;
+
+            for (let i = 0; i < COUNT; i++) {
+                flow[i].path = paths[(Math.random() * paths.length) | 0];
+                flow[i].t = Math.random();
+                flow[i].speed = 0.05 + Math.random() * 0.09;
+                writeParticle(i);
+            }
+            (moteGeo.attributes.position as THREE.BufferAttribute).needsUpdate = true;
+            (moteGeo.attributes.color as THREE.BufferAttribute).needsUpdate = true;
+
+            if (withGlitch) glitch = 0.5;
+        };
+
+        regenerate(false); // initial draw, no glitch
+
+        let regenTimer: ReturnType<typeof setTimeout>;
+        const scheduleRegen = () => {
+            regenTimer = setTimeout(() => {
+                regenerate(true);
+                scheduleRegen();
+            }, 5000 + Math.random() * 3000);
+        };
+        scheduleRegen();
 
         const clock = new THREE.Clock();
         let animationId = 0;
@@ -285,8 +305,20 @@ export const Streamfront: React.FC = () => {
             (moteGeo.attributes.position as THREE.BufferAttribute).needsUpdate = true;
             (moteGeo.attributes.color as THREE.BufferAttribute).needsUpdate = true;
 
-            channelMat.opacity = 0.36 + Math.sin(t * 0.6) * 0.07;
-            frontMat.opacity = 0.18 + Math.sin(t * 0.9) * 0.07;
+            if (glitch > 0) {
+                glitch = Math.max(0, glitch - dt);
+                const g = glitch / 0.5;
+                channelMat.opacity = 0.15 + Math.random() * 0.75;
+                bloom.strength = 1.05 + g * 2.6;
+                deltaGroup.position.x = (Math.random() - 0.5) * 9 * g;
+                deltaGroup.position.y = (Math.random() - 0.5) * 5 * g;
+                if (glitch === 0) {
+                    deltaGroup.position.set(0, 0, 0);
+                    bloom.strength = 1.05;
+                }
+            } else {
+                channelMat.opacity = 0.36 + Math.sin(t * 0.6) * 0.07;
+            }
 
             composer.render();
         };
@@ -294,7 +326,8 @@ export const Streamfront: React.FC = () => {
 
         const resizeToMount = () => {
             const { width, height } = getMountSize();
-            fitCamera(width / height);
+            currentAspect = width / height;
+            fitCamera();
             renderer.setSize(width, height);
             composer.setSize(width, height);
         };
@@ -304,10 +337,10 @@ export const Streamfront: React.FC = () => {
 
         return () => {
             cancelAnimationFrame(animationId);
+            clearTimeout(regenTimer);
             resizeObserver.disconnect();
-            channelGeo.dispose(); channelMat.dispose();
+            channels.geometry.dispose(); channelMat.dispose();
             moteGeo.dispose(); moteMat.dispose(); dotTex.dispose();
-            frontGeo.dispose(); frontMat.dispose();
             scene.clear();
             composer.dispose();
             renderer.dispose();
@@ -323,9 +356,6 @@ export const Streamfront: React.FC = () => {
         <ExportFrame aspect={exportSettings.aspect} active={exportSettings.isExportMode}>
             <div ref={containerRef} className="streamfront-stage">
                 {!exportSettings.isExportMode && (
-                    <div className="streamfront-hud">STREAMFRONT // DELTA</div>
-                )}
-                {process.env.NODE_ENV !== 'production' && !exportSettings.isExportMode && (
                     <button
                         className={`record-button ${isRecording ? 'recording' : ''}`}
                         onClick={toggleRecording}
