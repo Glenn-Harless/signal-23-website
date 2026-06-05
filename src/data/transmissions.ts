@@ -290,6 +290,20 @@ export const murmurVisualExport: VisualExportCapability = {
   operatorNotes: 'Non-deterministic flocking cycle. Full logo convergence cycle is about 26 seconds.',
 };
 
+export const streamfrontVisualExport: VisualExportCapability = {
+  supportedTargets: ['canvas', 'reel', 'hardware-feed', 'still', 'loop'],
+  defaultTarget: 'canvas',
+  seed: { supported: false, defaultMode: 'random' },
+  duration: { supported: true, defaultSeconds: 12, minSeconds: 4, maxSeconds: 60 },
+  aspectRatios: {
+    supported: ['9:16', '16:9', '1:1', '4:5'],
+    default: '9:16',
+  },
+  capture: 'browser-source',
+  hardwareFeedSafe: true,
+  operatorNotes: 'Non-deterministic delta. Flows unattended after load; allow a few seconds for motes to populate the distributaries.',
+};
+
 export const transmissions: Transmission[] = [
   {
     slug: 'home',
@@ -556,6 +570,18 @@ export const transmissions: Transmission[] = [
     exportUse: ['canvas', 'reel', 'hardware-feed', 'still', 'loop'],
     visualExport: murmurVisualExport,
     addedAt: '2026-05-07',
+  },
+  {
+    slug: 'streamfront',
+    route: '/streamfront',
+    title: 'STREAMFRONT DELTA',
+    type: 'visual',
+    status: 'active',
+    visibility: 'soft-secret',
+    tags: ['stream', 'delta', 'branching', 'flow', 'water'],
+    exportUse: ['canvas', 'reel', 'hardware-feed', 'still', 'loop'],
+    visualExport: streamfrontVisualExport,
+    addedAt: '2026-06-05',
   },
 ];
 
