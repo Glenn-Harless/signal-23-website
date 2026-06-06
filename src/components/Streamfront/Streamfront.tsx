@@ -9,7 +9,6 @@ import { ExportFrame } from '../ExportFrame/ExportFrame';
 import { streamfrontVisualExport } from '../../data/transmissions';
 import { useExportSettings } from '../../lib/exportSettings';
 
-// Soft round sprite so the flowing motes read as glowing dots, not squares.
 const makeDotTexture = () => {
     const size = 64;
     const canvas = document.createElement('canvas');
@@ -26,50 +25,74 @@ const makeDotTexture = () => {
     return tex;
 };
 
-type Node = { x: number; y: number; children: Node[] };
+type Node = { x: number; y: number; z: number; children: Node[] };
 
-// A river delta: one channel up top that fans into many distributaries as it
-// nears the "front" (the sea, at the bottom). The downward mirror of a tree.
+// A 3D river-delta funnel: one channel at the top that fans radially outward and
+// down into branching distributaries — a cone of glowing water you look into.
 const buildDelta = (halfH: number) => {
     const segments: number[] = [];
-    const root: Node = { x: 0, y: halfH, children: [] };
+    const root: Node = { x: 0, y: halfH, z: 0, children: [] };
     let nodeCount = 0;
-    const MAX_NODES = 3200;
+    const MAX_NODES = 3400;
 
-    const grow = (node: Node, dirX: number, dirY: number, stepsFromSplit: number) => {
+    const grow = (node: Node, dx: number, dy: number, dz: number, stepsFromSplit: number) => {
         if (node.y <= -halfH || nodeCount > MAX_NODES) return;
 
-        const yf = (node.y + halfH) / (2 * halfH); // 1 at source, 0 at the front
-        const widthFrac = Math.min(1, Math.abs(node.x) / (halfH * 0.95));
+        const yf = (node.y + halfH) / (2 * halfH); // 1 at source, 0 at the sea
+        const radius = Math.hypot(node.x, node.z);
+        const widthFrac = Math.min(1, radius / (halfH * 0.95));
         const splittable = stepsFromSplit >= 2 && node.y < halfH - 10;
-        const splitProb = 0.66 * Math.pow(1 - yf, 1.25) * (1 - widthFrac * 0.45);
+        const splitProb = 0.6 * Math.pow(1 - yf, 1.2) * (1 - widthFrac * 0.4);
         const willSplit = splittable && Math.random() < splitProb;
         const kids = willSplit ? 2 : 1;
 
+        // radial-out + tangential basis in the XZ plane
+        let ox = node.x, oz = node.z;
+        const orad = Math.hypot(ox, oz);
+        if (orad < 1e-3) {
+            const dl = Math.hypot(dx, dz);
+            if (dl > 1e-3) { ox = dx / dl; oz = dz / dl; } // follow the seed's heading off-axis
+            else { const a = Math.random() * Math.PI * 2; ox = Math.cos(a); oz = Math.sin(a); }
+        } else { ox /= orad; oz /= orad; }
+        const tx = -oz, tz = ox;
+
         for (let k = 0; k < kids; k++) {
-            let nx = dirX;
-            if (willSplit) nx += (k === 0 ? -1 : 1) * (0.42 + Math.random() * 0.32);
-            nx += (Math.random() - 0.5) * (yf > 0.55 ? 0.07 : 0.2); // calm trunk, lively mouth
-            nx -= node.x * 0.011 * yf;        // keep the upstream channel centered
-            nx += node.x * 0.004 * (1 - yf);  // fan outward as it nears the sea
-            let ny = -(0.6 + Math.random() * 0.32);
-            const len = Math.hypot(nx, ny) || 1;
-            nx /= len; ny /= len;
+            let ndx = dx, ndz = dz;
+            const out = (willSplit ? 0.32 + Math.random() * 0.2 : 0.05) + 0.1;
+            ndx = dx + ox * out * (1 - yf * 0.5);
+            ndz = dz + oz * out * (1 - yf * 0.5);
+            const swirl = 0.14 * (1 - yf);
+            ndx += tx * swirl; ndz += tz * swirl;
+            if (willSplit) { const s = k === 0 ? -1 : 1; ndx += tx * s * 0.26; ndz += tz * s * 0.26; }
+            ndx += (Math.random() - 0.5) * 0.12; ndz += (Math.random() - 0.5) * 0.12;
+            ndx -= node.x * 0.01 * yf; ndz -= node.z * 0.01 * yf; // center the upstream channel
+            const ndy = -(0.6 + Math.random() * 0.3);
+            const len = Math.hypot(ndx, ndy, ndz) || 1;
+            ndx /= len; const ny = ndy / len; ndz /= len;
 
             const step = 5 + Math.random() * 5;
-            const child: Node = { x: node.x + nx * step, y: node.y + ny * step, children: [] };
+            const child: Node = {
+                x: node.x + ndx * step, y: node.y + ny * step, z: node.z + ndz * step, children: [],
+            };
             nodeCount++;
             node.children.push(child);
-            segments.push(node.x, node.y, 0, child.x, child.y, 0);
-            grow(child, nx, ny, willSplit ? 0 : stepsFromSplit + 1);
+            segments.push(node.x, node.y, node.z, child.x, child.y, child.z);
+            grow(child, ndx, ny, ndz, willSplit ? 0 : stepsFromSplit + 1);
         }
     };
 
-    grow(root, 0, -1, 99);
+    // Seed several distributaries around the full circle → a complete 360° funnel.
+    const SEEDS = 5 + ((Math.random() * 3) | 0);
+    for (let s = 0; s < SEEDS; s++) {
+        const a = (s / SEEDS) * Math.PI * 2 + (Math.random() - 0.5) * 0.5;
+        const dx0 = Math.cos(a) * 0.32, dz0 = Math.sin(a) * 0.32, dy0 = -0.92;
+        const l = Math.hypot(dx0, dy0, dz0);
+        grow(root, dx0 / l, dy0 / l, dz0 / l, 99);
+    }
 
-    const paths: THREE.Vector2[][] = [];
-    const walk = (node: Node, trail: THREE.Vector2[]) => {
-        const next = [...trail, new THREE.Vector2(node.x, node.y)];
+    const paths: THREE.Vector3[][] = [];
+    const walk = (node: Node, trail: THREE.Vector3[]) => {
+        const next = [...trail, new THREE.Vector3(node.x, node.y, node.z)];
         if (node.children.length === 0) {
             if (next.length > 2) paths.push(next);
             return;
@@ -157,7 +180,7 @@ export const Streamfront: React.FC = () => {
 
         const scene = new THREE.Scene();
         scene.background = new THREE.Color(0x02060c);
-        scene.fog = new THREE.FogExp2(0x02060c, 0.0016);
+        scene.fog = new THREE.FogExp2(0x02060c, 0.0014);
 
         const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
         renderer.setSize(initialSize.width, initialSize.height);
@@ -165,25 +188,29 @@ export const Streamfront: React.FC = () => {
         mountElement.appendChild(renderer.domElement);
         canvasRef.current = renderer.domElement;
 
-        const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 1000);
+        const camera = new THREE.PerspectiveCamera(42, initialSize.width / initialSize.height, 0.1, 4000);
         let currentAspect = initialSize.width / initialSize.height;
-        const bounds = { cx: 0, cy: 0, boundW: 1, boundH: 1 };
+        const ELEV = (42 * Math.PI) / 180; // camera angle above horizontal — looking down into the funnel
+        const center = new THREE.Vector3(0, 0, 0);
+        let boundR = HALF_H * 1.4;
 
         const fitCamera = () => {
-            const pad = 1.16;
-            const worldW = bounds.boundW * pad;
-            const worldH = bounds.boundH * pad;
-            let viewW: number, viewH: number;
-            if (currentAspect >= worldW / worldH) { viewH = worldH; viewW = viewH * currentAspect; }
-            else { viewW = worldW; viewH = viewW / currentAspect; }
-            camera.left = -viewW / 2; camera.right = viewW / 2;
-            camera.top = viewH / 2; camera.bottom = -viewH / 2;
-            camera.position.set(bounds.cx, bounds.cy, 100);
-            camera.lookAt(bounds.cx, bounds.cy, 0);
+            const fovY = (camera.fov * Math.PI) / 180;
+            const fovX = 2 * Math.atan(Math.tan(fovY / 2) * currentAspect);
+            const half = Math.min(fovY, fovX) / 2;
+            const dist = (boundR / Math.sin(half)) * 0.9;
+            camera.position.set(
+                center.x,
+                center.y + Math.sin(ELEV) * dist,
+                center.z + Math.cos(ELEV) * dist,
+            );
+            camera.lookAt(center);
+            camera.near = Math.max(0.1, dist - boundR * 2);
+            camera.far = dist + boundR * 3;
             camera.updateProjectionMatrix();
         };
 
-        // The whole delta lives in a group so the glitch can jitter it as a unit.
+        // The funnel spins around its vertical axis.
         const deltaGroup = new THREE.Group();
         scene.add(deltaGroup);
 
@@ -194,27 +221,28 @@ export const Streamfront: React.FC = () => {
         const channels = new THREE.LineSegments(new THREE.BufferGeometry(), channelMat);
         deltaGroup.add(channels);
 
-        // Fixed-size mote pool; paths get reassigned each regeneration.
         const COUNT = 1400;
         const dotTex = makeDotTexture();
         const posArr = new Float32Array(COUNT * 3);
         const colArr = new Float32Array(COUNT * 3);
         const baseCol = new THREE.Color(0x86e6ff);
-        let paths: THREE.Vector2[][] = [[new THREE.Vector2(0, 0), new THREE.Vector2(0, -1)]];
+        let paths: THREE.Vector3[][] = [[new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, -1, 0)]];
         const flow = new Array(COUNT).fill(0).map(() => ({
             path: paths[0], t: Math.random(), speed: 0.05 + Math.random() * 0.09,
         }));
 
+        let skipQuant = 0; // >0 during the dissolve makes the mote flow stutter
         const writeParticle = (i: number) => {
             const f = flow[i];
             const p = f.path;
-            const seg = f.t * (p.length - 1);
+            const tt = skipQuant > 0 ? Math.round(f.t / skipQuant) * skipQuant : f.t;
+            const seg = tt * (p.length - 1);
             const idx = Math.min(p.length - 2, Math.floor(seg));
             const frac = seg - idx;
             const a = p[idx], b = p[idx + 1];
             posArr[i * 3] = a.x + (b.x - a.x) * frac;
             posArr[i * 3 + 1] = a.y + (b.y - a.y) * frac;
-            posArr[i * 3 + 2] = 0;
+            posArr[i * 3 + 2] = a.z + (b.z - a.z) * frac;
             const bright = Math.min(1, f.t * 6) * (1 - Math.max(0, (f.t - 0.84) / 0.16) * 0.8);
             colArr[i * 3] = baseCol.r * bright;
             colArr[i * 3 + 1] = baseCol.g * bright;
@@ -225,7 +253,7 @@ export const Streamfront: React.FC = () => {
         moteGeo.setAttribute('position', new THREE.BufferAttribute(posArr, 3));
         moteGeo.setAttribute('color', new THREE.BufferAttribute(colArr, 3));
         const moteMat = new THREE.PointsMaterial({
-            size: 3.6, map: dotTex, vertexColors: true, transparent: true,
+            size: 4.2, map: dotTex, vertexColors: true, transparent: true,
             blending: THREE.AdditiveBlending, depthWrite: false, sizeAttenuation: true,
         });
         const motes = new THREE.Points(moteGeo, moteMat);
@@ -234,28 +262,24 @@ export const Streamfront: React.FC = () => {
         const composer = new EffectComposer(renderer);
         composer.addPass(new RenderPass(scene, camera));
         const bloom = new UnrealBloomPass(
-            new THREE.Vector2(initialSize.width, initialSize.height), 1.05, 0.78, 0.13,
+            new THREE.Vector2(initialSize.width, initialSize.height), 1.45, 0.8, 0.12,
         );
         composer.addPass(bloom);
 
-        const GLITCH_DUR = 0.35;
-        let glitch = 0; // seconds of glitch burst remaining
-
-        // Draw a brand-new delta — this is what "refresh" does, on a timer.
-        const regenerate = (withGlitch: boolean) => {
+        const regenerate = () => {
             const built = buildDelta(HALF_H);
             paths = built.paths.length ? built.paths : paths;
             const segs = built.segments;
 
-            let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+            let minY = Infinity, maxY = -Infinity, maxR2 = 0;
             for (let i = 0; i < segs.length; i += 3) {
-                minX = Math.min(minX, segs[i]); maxX = Math.max(maxX, segs[i]);
                 minY = Math.min(minY, segs[i + 1]); maxY = Math.max(maxY, segs[i + 1]);
+                const r2 = segs[i] * segs[i] + segs[i + 2] * segs[i + 2];
+                if (r2 > maxR2) maxR2 = r2;
             }
-            bounds.cx = (minX + maxX) / 2;
-            bounds.cy = (minY + maxY) / 2;
-            bounds.boundW = (maxX - minX) || 1;
-            bounds.boundH = (maxY - minY) || 1;
+            center.set(0, (minY + maxY) / 2, 0);
+            const halfSpanY = (maxY - minY) / 2;
+            boundR = Math.max(1, Math.hypot(Math.sqrt(maxR2), halfSpanY));
             fitCamera();
 
             channels.geometry.dispose();
@@ -271,20 +295,16 @@ export const Streamfront: React.FC = () => {
             }
             (moteGeo.attributes.position as THREE.BufferAttribute).needsUpdate = true;
             (moteGeo.attributes.color as THREE.BufferAttribute).needsUpdate = true;
-
-            if (withGlitch) glitch = GLITCH_DUR;
         };
 
-        regenerate(false); // initial draw, no glitch
+        regenerate();
 
-        let regenTimer: ReturnType<typeof setTimeout>;
-        const scheduleRegen = () => {
-            regenTimer = setTimeout(() => {
-                regenerate(true);
-                scheduleRegen();
-            }, 5000 + Math.random() * 3000);
-        };
-        scheduleRegen();
+        // Transition state machine: flow → dissolve (stutter + fade out) → reform (fade in).
+        const OUT_DUR = 0.75;
+        const IN_DUR = 0.9;
+        let phase: 'flow' | 'out' | 'in' = 'flow';
+        let phaseT = 0;
+        let nextShiftIn = 6 + Math.random() * 4;
 
         const clock = new THREE.Clock();
         let animationId = 0;
@@ -292,6 +312,26 @@ export const Streamfront: React.FC = () => {
             animationId = requestAnimationFrame(animate);
             const dt = Math.min(0.05, clock.getDelta());
             const t = clock.elapsedTime;
+
+            // slow rotation, always — keeps it alive so a redraw never feels static
+            deltaGroup.rotation.y += 0.16 * dt;
+
+            let alpha = 1;
+            phaseT += dt;
+            if (phase === 'flow') {
+                skipQuant = 0;
+                if (phaseT >= nextShiftIn) { phase = 'out'; phaseT = 0; }
+            } else if (phase === 'out') {
+                const k = Math.min(1, phaseT / OUT_DUR);
+                alpha = 1 - k;
+                skipQuant = 0.04 + k * 0.14; // increasingly stuttery as it fades
+                if (phaseT >= OUT_DUR) { regenerate(); phase = 'in'; phaseT = 0; }
+            } else { // 'in'
+                const k = Math.min(1, phaseT / IN_DUR);
+                alpha = k;
+                skipQuant = (1 - k) * 0.08;
+                if (phaseT >= IN_DUR) { phase = 'flow'; phaseT = 0; nextShiftIn = 6 + Math.random() * 4; }
+            }
 
             for (let i = 0; i < COUNT; i++) {
                 const f = flow[i];
@@ -306,16 +346,8 @@ export const Streamfront: React.FC = () => {
             (moteGeo.attributes.position as THREE.BufferAttribute).needsUpdate = true;
             (moteGeo.attributes.color as THREE.BufferAttribute).needsUpdate = true;
 
-            if (glitch > 0) {
-                glitch = Math.max(0, glitch - dt);
-                const g = glitch / GLITCH_DUR;
-                // a gentle shimmer as the fresh delta settles in — no jump, soft bloom lift
-                channelMat.opacity = 0.34 + Math.random() * 0.12;
-                bloom.strength = 1.05 + g * 0.45;
-                if (glitch === 0) bloom.strength = 1.05;
-            } else {
-                channelMat.opacity = 0.36 + Math.sin(t * 0.6) * 0.07;
-            }
+            channelMat.opacity = (0.5 + Math.sin(t * 0.6) * 0.08) * alpha;
+            moteMat.opacity = alpha;
 
             composer.render();
         };
@@ -324,6 +356,7 @@ export const Streamfront: React.FC = () => {
         const resizeToMount = () => {
             const { width, height } = getMountSize();
             currentAspect = width / height;
+            camera.aspect = currentAspect;
             fitCamera();
             renderer.setSize(width, height);
             composer.setSize(width, height);
@@ -334,7 +367,6 @@ export const Streamfront: React.FC = () => {
 
         return () => {
             cancelAnimationFrame(animationId);
-            clearTimeout(regenTimer);
             resizeObserver.disconnect();
             channels.geometry.dispose(); channelMat.dispose();
             moteGeo.dispose(); moteMat.dispose(); dotTex.dispose();
