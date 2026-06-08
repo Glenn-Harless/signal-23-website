@@ -304,6 +304,20 @@ export const streamfrontVisualExport: VisualExportCapability = {
   operatorNotes: 'Non-deterministic delta. Flows unattended after load; allow a few seconds for motes to populate the distributaries.',
 };
 
+export const rivuletVisualExport: VisualExportCapability = {
+  supportedTargets: ['canvas', 'reel', 'hardware-feed', 'still', 'loop'],
+  defaultTarget: 'canvas',
+  seed: { supported: false, defaultMode: 'random' },
+  duration: { supported: true, defaultSeconds: 12, minSeconds: 4, maxSeconds: 60 },
+  aspectRatios: {
+    supported: ['9:16', '16:9', '1:1', '4:5'],
+    default: '9:16',
+  },
+  capture: 'browser-source',
+  hardwareFeedSafe: true,
+  operatorNotes: 'Non-deterministic minimal node-edge stream; a pulse flows the graph. Settles after load.',
+};
+
 export const transmissions: Transmission[] = [
   {
     slug: 'home',
@@ -582,6 +596,18 @@ export const transmissions: Transmission[] = [
     exportUse: ['canvas', 'reel', 'hardware-feed', 'still', 'loop'],
     visualExport: streamfrontVisualExport,
     addedAt: '2026-06-05',
+  },
+  {
+    slug: 'rivulet',
+    route: '/rivulet',
+    title: 'RIVULET',
+    type: 'visual',
+    status: 'active',
+    visibility: 'soft-secret',
+    tags: ['stream', 'graph', 'nodes', 'minimal', 'flow'],
+    exportUse: ['canvas', 'reel', 'hardware-feed', 'still', 'loop'],
+    visualExport: rivuletVisualExport,
+    addedAt: '2026-06-06',
   },
 ];
 
