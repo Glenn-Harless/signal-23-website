@@ -318,6 +318,20 @@ export const rivuletVisualExport: VisualExportCapability = {
   operatorNotes: 'Non-deterministic minimal node-edge stream; a pulse flows the graph. Settles after load.',
 };
 
+export const mountainVisualExport: VisualExportCapability = {
+  supportedTargets: ['canvas', 'reel', 'hardware-feed', 'still', 'loop'],
+  defaultTarget: 'canvas',
+  seed: { supported: false, defaultMode: 'random' },
+  duration: { supported: true, defaultSeconds: 12, minSeconds: 4, maxSeconds: 60 },
+  aspectRatios: {
+    supported: ['9:16', '16:9', '1:1', '4:5'],
+    default: '9:16',
+  },
+  capture: 'browser-source',
+  hardwareFeedSafe: true,
+  operatorNotes: 'Non-deterministic contour-lattice peak on a build/hold/erode cycle; rotates continuously. A new massif is surveyed each cycle.',
+};
+
 export const transmissions: Transmission[] = [
   {
     slug: 'home',
@@ -608,6 +622,18 @@ export const transmissions: Transmission[] = [
     exportUse: ['canvas', 'reel', 'hardware-feed', 'still', 'loop'],
     visualExport: rivuletVisualExport,
     addedAt: '2026-06-06',
+  },
+  {
+    slug: 'mountain',
+    route: '/mountain',
+    title: 'MOUNTAIN',
+    type: 'visual',
+    status: 'active',
+    visibility: 'soft-secret',
+    tags: ['mountain', 'contour', 'lattice', 'nodes', 'crystalline'],
+    exportUse: ['canvas', 'reel', 'hardware-feed', 'still', 'loop'],
+    visualExport: mountainVisualExport,
+    addedAt: '2026-07-05',
   },
 ];
 
