@@ -1,53 +1,13 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass';
-import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass';
+import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass';
 import './Mycelium.css';
 
 import { ExportFrame } from '../ExportFrame/ExportFrame';
 import { myceliumVisualExport } from '../../data/transmissions';
 import { useExportSettings } from '../../lib/exportSettings';
-
-// Glitch-art post pass: persistent RGB split + scanlines, with horizontal
-// tearing and block corruption driven by uAmount (bursts on node events).
-const GlitchArtShader = {
-    uniforms: {
-        tDiffuse: { value: null as THREE.Texture | null },
-        uTime: { value: 0 },
-        uAmount: { value: 0 },
-        uResolution: { value: new THREE.Vector2() },
-    },
-    vertexShader: `
-        varying vec2 vUv;
-        void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }
-    `,
-    fragmentShader: `
-        uniform sampler2D tDiffuse;
-        uniform float uTime;
-        uniform float uAmount;
-        uniform vec2 uResolution;
-        varying vec2 vUv;
-        float hash(float n){ return fract(sin(n) * 43758.5453123); }
-        void main() {
-            vec2 uv = vUv;
-            float band = floor(uv.y * 26.0);
-            float tq = floor(uTime * 11.0);
-            float r = hash(band * 1.3 + tq * 2.1);
-            float shift = 0.0;
-            if (r > 0.9) { shift = (hash(band * 4.7 + tq) - 0.5) * (0.02 + uAmount * 0.3); }
-            uv.x += shift;
-            float ca = 0.0012 + uAmount * 0.004 + abs(shift) * 0.4;
-            float cr = texture2D(tDiffuse, vec2(uv.x + ca, uv.y)).r;
-            float cg = texture2D(tDiffuse, uv).g;
-            float cb = texture2D(tDiffuse, vec2(uv.x - ca, uv.y)).b;
-            vec3 col = vec3(cr, cg, cb);
-            if (r > 0.94) { col += vec3(hash(band + tq * 5.0), hash(band + tq * 9.0), hash(band + tq * 13.0)) * uAmount * 0.22; }
-            col *= 0.92 + 0.08 * sin(uv.y * uResolution.y * 3.14159);
-            gl_FragColor = vec4(col, 1.0);
-        }
-    `,
-};
 
 // Physarum step: each agent senses the trail ahead / left / right, steers
 // toward the strongest signal (pheromone + weighted food), advances, wraps.
@@ -182,6 +142,9 @@ const displayFrag = `
                 col += cyan * s * pulse * 0.35 * exp(-d2 / 260.0);
             }
         }
+        // soft vignette to settle the organism into the dark
+        vec2 vc = vUv - 0.5;
+        col *= mix(0.68, 1.0, smoothstep(0.85, 0.25, length(vc)));
         gl_FragColor = vec4(col, 1.0);
     }
 `;
@@ -203,9 +166,7 @@ type FoodNode = {
     energy: number;            // 1 → 0
     drainMul: number;          // per-node consumption variance
     phase: number;             // display pulse offset
-    colonizing: boolean;
     linked: boolean;
-    depleting: boolean;
     lastSampleT: number;
     slot: number;              // index into the uNodes uniform array
 };
@@ -215,10 +176,9 @@ const NODE_SLOTS = 10;
 export const Mycelium: React.FC = () => {
     const containerRef = useRef<HTMLDivElement>(null);
     const exportSettings = useExportSettings(myceliumVisualExport);
-    const [logs, setLogs] = useState<string[]>([]);
 
-    const [isRecording, setIsRecording] = useState(false);
-    const [recordingTime, setRecordingTime] = useState(0);
+    const [isRecording, setIsRecording] = React.useState(false);
+    const [recordingTime, setRecordingTime] = React.useState(0);
     const mediaRecorderRef = useRef<MediaRecorder | null>(null);
     const chunksRef = useRef<Blob[]>([]);
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -405,18 +365,16 @@ export const Mycelium: React.FC = () => {
         renderer.setRenderTarget(trailB); renderer.clear();
         renderer.setRenderTarget(null);
 
-        // Post chain
+        // Post chain — bloom gives the filaments a bioluminescent glow.
+        const BASE_BLOOM = 1.0;
         const composer = new EffectComposer(renderer);
         composer.addPass(new RenderPass(displayScene, passCam));
-        const glitchPass = new ShaderPass(GlitchArtShader);
-        glitchPass.uniforms.uResolution.value.set(simW, simH);
-        composer.addPass(glitchPass);
+        // high threshold → only the bright filament cores bloom, background stays black
+        const bloomPass = new UnrealBloomPass(new THREE.Vector2(simW, simH), BASE_BLOOM, 0.55, 0.22);
+        composer.addPass(bloomPass);
         composer.setSize(simW, simH);
 
         // ── Node lifecycle (CPU) ────────────────────────────────────────────
-        const pushLog = (msg: string) => setLogs((prev) => [...prev.slice(-8), msg]);
-        const fmtId = (id: number) => String(id).padStart(2, '0');
-
         const nodes: FoodNode[] = [];
         const respawnQueue: { at: number; slot: number }[] = [];
         let nextId = 1;
@@ -438,39 +396,32 @@ export const Mycelium: React.FC = () => {
                 energy: 0.8 + Math.random() * 0.2,
                 drainMul: 0.7 + Math.random() * 0.45,
                 phase: Math.random(),
-                colonizing: false, linked: false, depleting: false,
+                linked: false,
                 lastSampleT: t, slot,
             };
             nodes.push(node);
             nodeUniform[slot].set(x, y, 1, node.phase);
-            pushLog(`> NODE_${fmtId(node.id)} DETECTED [${x.toFixed(2)}, ${y.toFixed(2)}]`);
         };
 
         const killNode = (node: FoodNode, t: number) => {
             nodeUniform[node.slot].set(0, 0, 0, 0);
             nodes.splice(nodes.indexOf(node), 1);
-            pushLog(`> SOURCE_${fmtId(node.id)} EXHAUSTED`);
-            pushLog('> REROUTING FLOW...');
-            glitchBoost = Math.max(glitchBoost, 0.6);
+            bloomPulse = Math.max(bloomPulse, 0.5); // soft flare as the source dies
             respawnQueue.push({ at: t + 3 + Math.random() * 5, slot: node.slot });
         };
 
         // Stagger initial nodes over the first seconds — a slow reveal.
-        pushLog('> SUBSTRATE MAPPED');
-        pushLog(`> DEPLOYING SPORES: ${AGENT_COUNT}`);
         for (let s = 0; s < NODE_COUNT; s++) {
             respawnQueue.push({ at: 0.6 + s * 0.7, slot: s });
         }
 
-        // Density thresholds (pheromone units at the node's pixel)
-        const COLONIZE_D = 0.25;
+        // Density threshold (pheromone units at the node's pixel)
         const LINK_D = 0.8;
         const DRAIN_RATE = 0.018; // energy/sec at full density once linked → ~45-80s per node
         const SAMPLE_INTERVAL = 0.15;
         let sampleCursor = 0;
         let lastSampleAt = 0;
-        let lastEfficiencyAt = 12;
-        let glitchBoost = 0;
+        let bloomPulse = 0;
 
         const sampleNode = (node: FoodNode, t: number, trail: THREE.WebGLRenderTarget) => {
             const px = Math.min(simW - 1, Math.max(0, Math.floor(node.x * simW)));
@@ -480,23 +431,13 @@ export const Mycelium: React.FC = () => {
             const dtNode = Math.min(5, t - node.lastSampleT);
             node.lastSampleT = t;
 
-            if (!node.colonizing && density > COLONIZE_D) {
-                node.colonizing = true;
-                pushLog(`> COLONIZING NODE_${fmtId(node.id)}...`);
-                glitchBoost = Math.max(glitchBoost, 0.12);
-            }
             if (!node.linked && density > LINK_D) {
                 node.linked = true;
-                pushLog(`> LINK ESTABLISHED <-> NODE_${fmtId(node.id)}`);
-                glitchBoost = Math.max(glitchBoost, 0.25);
+                bloomPulse = Math.max(bloomPulse, 0.35); // gentle flare as the link forms
             }
             // sources are only consumed once the network reaches them
             if (node.linked) {
                 node.energy -= Math.min(1, density / 1.5) * DRAIN_RATE * node.drainMul * dtNode;
-            }
-            if (!node.depleting && node.linked && node.energy < 0.3) {
-                node.depleting = true;
-                pushLog(`> SOURCE_${fmtId(node.id)} DEPLETING (${Math.round(node.energy * 100)}%)`);
             }
             if (node.energy <= 0) {
                 killNode(node, t);
@@ -548,19 +489,11 @@ export const Mycelium: React.FC = () => {
                 sampleNode(nodes[sampleCursor], t, trailA);
             }
 
-            if (t > lastEfficiencyAt) {
-                lastEfficiencyAt = t + 25;
-                const linked = nodes.filter((n) => n.linked).length;
-                const eff = nodes.length ? linked / nodes.length : 0;
-                pushLog(`> NETWORK EFFICIENCY ${(0.52 + eff * 0.46).toFixed(2)}`);
-            }
-
-            // 4. display + glitch to screen
+            // 4. display + bloom to screen
             displayMat.uniforms.uTrail.value = trailA.texture;
             displayMat.uniforms.uTime.value = t;
-            glitchBoost *= Math.exp(-dt * 2.2);
-            glitchPass.uniforms.uTime.value = t;
-            glitchPass.uniforms.uAmount.value = 0.03 + glitchBoost;
+            bloomPulse *= Math.exp(-dt * 2.0);
+            bloomPass.strength = BASE_BLOOM + bloomPulse;
             renderer.setRenderTarget(null);
             composer.render();
         };
@@ -583,8 +516,8 @@ export const Mycelium: React.FC = () => {
             trailMat.uniforms.uTrailSize.value.set(simW, simH);
             agentMat.uniforms.uTrailSize.value.set(simW, simH);
             displayMat.uniforms.uTrailSize.value.set(simW, simH);
-            glitchPass.uniforms.uResolution.value.set(simW, simH);
-            glitchBoost = 1; // mask the re-condensation
+            bloomPass.setSize(simW, simH);
+            bloomPulse = 0.6; // brief flare masks the re-condensation
         };
         const resizeObserver = new ResizeObserver(resizeToMount);
         resizeObserver.observe(mountElement);
@@ -612,21 +545,14 @@ export const Mycelium: React.FC = () => {
         <ExportFrame aspect={exportSettings.aspect} active={exportSettings.isExportMode}>
             <div ref={containerRef} className="mycelium-stage">
                 {!exportSettings.isExportMode && (
-                    <>
-                        <button
-                            className={`record-button ${isRecording ? 'recording' : ''}`}
-                            onClick={toggleRecording}
-                            title={isRecording ? 'Stop Recording' : 'Start Recording'}
-                        >
-                            <span className="record-icon" />
-                            {isRecording && <span className="record-time">{formatTime(recordingTime)}</span>}
-                        </button>
-                        <div className="mycelium-log">
-                            {logs.map((line, i) => (
-                                <div key={`${i}-${line}`} className="mycelium-log-line">{line}</div>
-                            ))}
-                        </div>
-                    </>
+                    <button
+                        className={`record-button ${isRecording ? 'recording' : ''}`}
+                        onClick={toggleRecording}
+                        title={isRecording ? 'Stop Recording' : 'Start Recording'}
+                    >
+                        <span className="record-icon" />
+                        {isRecording && <span className="record-time">{formatTime(recordingTime)}</span>}
+                    </button>
                 )}
             </div>
         </ExportFrame>

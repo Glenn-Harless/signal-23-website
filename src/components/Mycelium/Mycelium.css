@@ -6,52 +6,6 @@
     overflow: hidden;
 }
 
-/* Event-driven telemetry log */
-.mycelium-log {
-    position: absolute;
-    bottom: 1.5rem;
-    left: 1.5rem;
-    z-index: 90;
-    max-width: 320px;
-    padding: 0.6rem 0.8rem;
-    background: rgba(2, 6, 12, 0.55);
-    border: 1px solid rgba(134, 230, 255, 0.12);
-    border-radius: 3px;
-    backdrop-filter: blur(6px);
-    pointer-events: none;
-    font-family: 'Courier New', monospace;
-    font-size: 0.62rem;
-    letter-spacing: 0.06em;
-    line-height: 1.6;
-    color: rgba(134, 230, 255, 0.75);
-    text-transform: uppercase;
-}
-
-.mycelium-log-line {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    animation: mycelium-log-in 0.25s ease-out;
-}
-
-.mycelium-log-line:last-child {
-    color: rgba(230, 236, 242, 0.95);
-}
-
-@keyframes mycelium-log-in {
-    from { opacity: 0; transform: translateY(3px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-@media (max-width: 600px) {
-    .mycelium-log {
-        max-width: 220px;
-        font-size: 0.55rem;
-        bottom: 1rem;
-        left: 1rem;
-    }
-}
-
 /* Record button — matches the other visual routes. */
 .record-button {
     position: absolute;
