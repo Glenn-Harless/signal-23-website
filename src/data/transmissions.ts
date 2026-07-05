@@ -318,6 +318,20 @@ export const rivuletVisualExport: VisualExportCapability = {
   operatorNotes: 'Non-deterministic minimal node-edge stream; a pulse flows the graph. Settles after load.',
 };
 
+export const cloudVisualExport: VisualExportCapability = {
+  supportedTargets: ['canvas', 'reel', 'hardware-feed', 'still', 'loop'],
+  defaultTarget: 'canvas',
+  seed: { supported: false, defaultMode: 'random' },
+  duration: { supported: true, defaultSeconds: 12, minSeconds: 4, maxSeconds: 60 },
+  aspectRatios: {
+    supported: ['9:16', '16:9', '1:1', '4:5'],
+    default: '9:16',
+  },
+  capture: 'browser-source',
+  hardwareFeedSafe: true,
+  operatorNotes: 'Non-deterministic metaball cumulus; a marching-squares membrane billows and sheds wisps. Runs unattended after load.',
+};
+
 export const transmissions: Transmission[] = [
   {
     slug: 'home',
@@ -608,6 +622,18 @@ export const transmissions: Transmission[] = [
     exportUse: ['canvas', 'reel', 'hardware-feed', 'still', 'loop'],
     visualExport: rivuletVisualExport,
     addedAt: '2026-06-06',
+  },
+  {
+    slug: 'cloud',
+    route: '/cloud',
+    title: 'CLOUD',
+    type: 'visual',
+    status: 'active',
+    visibility: 'soft-secret',
+    tags: ['cloud', 'metaball', 'membrane', 'nodes', 'ephemeral'],
+    exportUse: ['canvas', 'reel', 'hardware-feed', 'still', 'loop'],
+    visualExport: cloudVisualExport,
+    addedAt: '2026-07-05',
   },
 ];
 
