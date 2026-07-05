@@ -1,0 +1,106 @@
+.mycelium-stage {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    background: #02060c;
+    overflow: hidden;
+}
+
+/* Event-driven telemetry log */
+.mycelium-log {
+    position: absolute;
+    bottom: 1.5rem;
+    left: 1.5rem;
+    z-index: 90;
+    max-width: 320px;
+    padding: 0.6rem 0.8rem;
+    background: rgba(2, 6, 12, 0.55);
+    border: 1px solid rgba(134, 230, 255, 0.12);
+    border-radius: 3px;
+    backdrop-filter: blur(6px);
+    pointer-events: none;
+    font-family: 'Courier New', monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.06em;
+    line-height: 1.6;
+    color: rgba(134, 230, 255, 0.75);
+    text-transform: uppercase;
+}
+
+.mycelium-log-line {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    animation: mycelium-log-in 0.25s ease-out;
+}
+
+.mycelium-log-line:last-child {
+    color: rgba(230, 236, 242, 0.95);
+}
+
+@keyframes mycelium-log-in {
+    from { opacity: 0; transform: translateY(3px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 600px) {
+    .mycelium-log {
+        max-width: 220px;
+        font-size: 0.55rem;
+        bottom: 1rem;
+        left: 1rem;
+    }
+}
+
+/* Record button — matches the other visual routes. */
+.record-button {
+    position: absolute;
+    top: 2rem;
+    right: 2rem;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 0.8rem;
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    backdrop-filter: blur(8px);
+}
+
+.record-button:hover {
+    background: rgba(0, 0, 0, 0.8);
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+.record-icon {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.6);
+}
+
+.record-button.recording .record-icon {
+    background: #ff3333;
+    box-shadow: 0 0 10px rgba(255, 51, 51, 0.6);
+    animation: mycelium-pulse-record 1s ease-in-out infinite;
+}
+
+.record-time {
+    font-size: 0.7rem;
+    color: #ff3333;
+    font-weight: 500;
+}
+
+@keyframes mycelium-pulse-record {
+    0%, 100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.6;
+        transform: scale(0.9);
+    }
+}
