@@ -20,9 +20,10 @@ const BASE_R = 96; // base radius
 
 type Ridge = { m: number; amp: number; phase: number };
 type Spur = { angle: number; aw: number; amp: number; lo: number; hi: number; sharp: number };
+type SubPeak = { angle: number; tk: number; aw: number; tw: number; amp: number; rw: number };
 type MountainParams = {
-    ridges: Ridge[]; spurs: Spur[]; noiseAmp: number; sharpness: number;
-    gully: number; benchAmp: number; benchFreq: number; benchPhase: number;
+    ridges: Ridge[]; spurs: Spur[]; subpeaks: SubPeak[]; noiseAmp: number; sharpness: number;
+    gully: number; benchAmp: number; benchFreq: number; benchPhase: number; baseAmp: number;
     twist: number; seed: number; leanX: number; leanZ: number;
 };
 
@@ -42,6 +43,19 @@ const makeParams = (): MountainParams => {
             sharp: 1.3 + Math.random() * 1.8,  // crest tightness
         });
     }
+    // 1–2 subordinate summits standing proud of the flank, below the main peak
+    const nSub = 1 + Math.floor(Math.random() * 2);
+    const subpeaks: SubPeak[] = [];
+    for (let i = 0; i < nSub; i++) {
+        subpeaks.push({
+            angle: Math.random() * 6.283,
+            tk: 0.52 + Math.random() * 0.20,   // sits mid-high, kept under the summit
+            aw: 0.16 + Math.random() * 0.14,   // angular spread
+            tw: 0.10 + Math.random() * 0.08,   // vertical spread
+            amp: 0.12 + Math.random() * 0.12,  // height it rears up (fraction of H)
+            rw: 0.10 + Math.random() * 0.14,   // radial mass so it's a peak, not a spike
+        });
+    }
     return {
         // harmonics for all-around crag texture; spurs carry the silhouette
         ridges: [
@@ -50,12 +64,14 @@ const makeParams = (): MountainParams => {
             { m: 13, amp: 0.03 + Math.random() * 0.04, phase: Math.random() * 6.283 },
         ],
         spurs,
+        subpeaks,
         noiseAmp: 0.05 + Math.random() * 0.05,
         sharpness: 0.8 + Math.random() * 0.4,
         gully: 0.10 + Math.random() * 0.08,       // radius pulled in between spurs
         benchAmp: 0.06 + Math.random() * 0.06,    // vertical terracing of the flank
         benchFreq: 2 + Math.floor(Math.random() * 3),
         benchPhase: Math.random() * 6.283,
+        baseAmp: 0.05 + Math.random() * 0.05,     // foothill relief at the base
         twist: (Math.random() - 0.5) * 1.2,       // spurs spiral slightly with height
         seed: Math.floor(Math.random() * 100000),
         leanX: (Math.random() - 0.5) * 0.55,
@@ -302,13 +318,27 @@ export const Mountain: React.FC = () => {
                             (1 - sstep(sp.hi - 0.06, sp.hi + 0.12, tk));
                         crest += sp.amp * Math.pow(ang, sp.sharp) * vwin;
                     }
-                    let rr = 1 - p.gully + crest + rough * ampFade;
+                    // subordinate summits: gaussian bumps in angle × height
+                    let subLift = 0, subR = 0;
+                    for (const sp of p.subpeaks) {
+                        const da = wrapAngle(th - sp.angle);
+                        const dt = tk - sp.tk;
+                        const g = Math.exp(-(da * da) / (2 * sp.aw * sp.aw)) *
+                            Math.exp(-(dt * dt) / (2 * sp.tw * sp.tw));
+                        subLift += sp.amp * g;
+                        subR += sp.rw * g;
+                    }
+                    let rr = 1 - p.gully + crest + subR + rough * ampFade;
                     rr += (hash(k, seg, p.seed) - 0.5) * p.noiseAmp;
                     const r = Math.max(0, prof * rr);
                     // ridgelines rise (some into sub-peaks), gullies sink — jagged
-                    // silhouette. Faded near base (stays grounded) and apex (clean tip).
-                    const liftWin = sstep(0.05, 0.25, tk) * (1 - sstep(0.86, 1.0, tk));
-                    const yy = y + ((crest - p.gully * 0.6) * 0.30 + rough * 0.10) * H * liftWin;
+                    // silhouette. Faded near base and apex (clean tip).
+                    const liftWin = sstep(0.04, 0.22, tk) * (1 - sstep(0.86, 1.0, tk));
+                    // foothill relief so the base reads as terrain, not a flat plate
+                    const foothill = p.baseAmp * H * Math.pow(1 - tk, 2.0) *
+                        (Math.sin(2 * th + p.benchPhase) * 0.6 + Math.sin(5 * th + p.seed * 0.01) * 0.4);
+                    const yy = y + ((crest - p.gully * 0.6) * 0.38 + rough * 0.10) * H * liftWin
+                        + subLift * H + foothill;
                     const idx = gi(k, seg);
                     gridXYZ[idx] = cxk + r * Math.cos(th);
                     gridXYZ[idx + 1] = yy;
