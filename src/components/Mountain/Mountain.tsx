@@ -19,29 +19,60 @@ const H = 120;     // summit height
 const BASE_R = 96; // base radius
 
 type Ridge = { m: number; amp: number; phase: number };
+type Spur = { angle: number; aw: number; amp: number; lo: number; hi: number; sharp: number };
 type MountainParams = {
-    ridges: Ridge[]; noiseAmp: number; sharpness: number; seed: number;
-    leanX: number; leanZ: number;
+    ridges: Ridge[]; spurs: Spur[]; noiseAmp: number; sharpness: number;
+    gully: number; benchAmp: number; benchFreq: number; benchPhase: number;
+    twist: number; seed: number; leanX: number; leanZ: number;
 };
 
-const makeParams = (): MountainParams => ({
-    ridges: [
-        { m: 2, amp: 0.20 + Math.random() * 0.18, phase: Math.random() * 6.283 },
-        { m: 3, amp: 0.16 + Math.random() * 0.14, phase: Math.random() * 6.283 },
-        { m: 5, amp: 0.10 + Math.random() * 0.10, phase: Math.random() * 6.283 },
-        { m: 8, amp: 0.05 + Math.random() * 0.07, phase: Math.random() * 6.283 },
-    ],
-    noiseAmp: 0.07 + Math.random() * 0.06,
-    sharpness: 0.68 + Math.random() * 0.28,
-    seed: Math.floor(Math.random() * 100000),
-    leanX: (Math.random() - 0.5) * 0.5,
-    leanZ: (Math.random() - 0.5) * 0.5,
-});
+const makeParams = (): MountainParams => {
+    const nSpur = 5 + Math.floor(Math.random() * 3); // 5–7 ridgelines / buttresses
+    const spurs: Spur[] = [];
+    for (let i = 0; i < nSpur; i++) {
+        // most spurs run high as aretes descending from the summit; a couple die
+        // mid-flank as buttresses/shoulders
+        const buttress = i >= nSpur - 2;
+        spurs.push({
+            angle: Math.random() * 6.283,
+            aw: 0.13 + Math.random() * 0.16,   // tighter azimuthal crest
+            amp: 0.16 + Math.random() * 0.22,  // how far the spur juts out
+            lo: Math.random() * 0.10,          // where it takes off up the flank
+            hi: buttress ? 0.45 + Math.random() * 0.25 : 0.85 + Math.random() * 0.16,
+            sharp: 1.3 + Math.random() * 1.8,  // crest tightness
+        });
+    }
+    return {
+        // harmonics for all-around crag texture; spurs carry the silhouette
+        ridges: [
+            { m: 3, amp: 0.07 + Math.random() * 0.06, phase: Math.random() * 6.283 },
+            { m: 7, amp: 0.05 + Math.random() * 0.05, phase: Math.random() * 6.283 },
+            { m: 13, amp: 0.03 + Math.random() * 0.04, phase: Math.random() * 6.283 },
+        ],
+        spurs,
+        noiseAmp: 0.05 + Math.random() * 0.05,
+        sharpness: 0.8 + Math.random() * 0.4,
+        gully: 0.10 + Math.random() * 0.08,       // radius pulled in between spurs
+        benchAmp: 0.06 + Math.random() * 0.06,    // vertical terracing of the flank
+        benchFreq: 2 + Math.floor(Math.random() * 3),
+        benchPhase: Math.random() * 6.283,
+        twist: (Math.random() - 0.5) * 1.2,       // spurs spiral slightly with height
+        seed: Math.floor(Math.random() * 100000),
+        leanX: (Math.random() - 0.5) * 0.55,
+        leanZ: (Math.random() - 0.5) * 0.55,
+    };
+};
 
 const hash = (a: number, b: number, seed: number) => {
     const s = Math.sin(a * 127.1 + b * 311.7 + seed * 0.017) * 43758.5453;
     return s - Math.floor(s);
 };
+
+const sstep = (a: number, b: number, x: number) => {
+    const t = Math.min(1, Math.max(0, (x - a) / (b - a)));
+    return t * t * (3 - 2 * t);
+};
+const wrapAngle = (d: number) => Math.atan2(Math.sin(d), Math.cos(d));
 
 // Reveal-driven fade so the lattice builds/erodes across a moving front.
 const revealChunk = `
@@ -78,7 +109,7 @@ const nodeMat = () => new THREE.ShaderMaterial({
             if (dot(d, d) > 0.25) discard;
             float summit = smoothstep(0.35, 1.0, vH / uH);
             // fade the pile-up of nodes converging on the summit point
-            float conv = 1.0 - smoothstep(0.9, 1.0, vH / uH);
+            float conv = 1.0 - smoothstep(0.8, 0.97, vH / uH);
             vec3 c = mix(vec3(0.50, 0.74, 0.92), vec3(0.86, 0.92, 0.98), summit);
             c += vec3(0.6, 0.78, 0.95) * vFront * 0.8;
             gl_FragColor = vec4(c, (0.5 + 0.28 * summit + vFront * 0.3) * conv);
@@ -106,7 +137,7 @@ const edgeMat = () => new THREE.ShaderMaterial({
         void main() {
             if (vH > uReveal) discard;
             float summit = smoothstep(0.3, 1.0, vH / uH);
-            float conv = 1.0 - smoothstep(0.9, 1.0, vH / uH);
+            float conv = 1.0 - smoothstep(0.8, 0.97, vH / uH);
             vec3 c = vec3(0.28, 0.58, 0.78) * (0.55 + 0.4 * summit);
             c += vec3(0.55, 0.75, 0.95) * vFront * 0.7;
             gl_FragColor = vec4(c, ((0.30 + 0.32 * summit) + vFront * 0.4) * conv);
@@ -249,21 +280,38 @@ export const Mountain: React.FC = () => {
             for (let k = 0; k < NLEV; k++) {
                 const tk = k / (NLEV - 1);
                 const y = H * tk;
-                const prof = BASE_R * Math.pow(1 - tk, p.sharpness);
-                const ampFade = 0.35 + 0.65 * (1 - tk);
+                // broad cone envelope, terraced by vertical benches (cliffs & shoulders)
+                const bench = 1 + p.benchAmp * Math.sin(p.benchFreq * tk * 6.283 + p.benchPhase) * (1 - tk);
+                const prof = BASE_R * Math.pow(1 - tk, p.sharpness) * bench;
+                const ampFade = 0.6 + 0.4 * (1 - tk);
                 // the peak axis leans with height, so the summit sits off-centre
                 const lean = Math.pow(tk, 1.4) * BASE_R;
                 const cxk = p.leanX * lean;
                 const czk = p.leanZ * lean;
                 for (let seg = 0; seg < NSEG; seg++) {
                     const th = (seg / NSEG) * Math.PI * 2;
-                    let rr = 1;
-                    for (const rg of p.ridges) rr += rg.amp * ampFade * Math.sin(rg.m * th + rg.phase);
+                    // fine all-around roughness
+                    let rough = 0;
+                    for (const rg of p.ridges) rough += rg.amp * Math.sin(rg.m * th + rg.phase + p.twist * tk);
+                    // dominant spurs: asymmetric ridgelines juting out, buttresses that die mid-flank
+                    let crest = 0;
+                    for (const sp of p.spurs) {
+                        const da = wrapAngle(th - sp.angle - p.twist * tk * 0.4);
+                        const ang = Math.exp(-(da * da) / (2 * sp.aw * sp.aw));
+                        const vwin = sstep(sp.lo - 0.08, sp.lo + 0.06, tk) *
+                            (1 - sstep(sp.hi - 0.06, sp.hi + 0.12, tk));
+                        crest += sp.amp * Math.pow(ang, sp.sharp) * vwin;
+                    }
+                    let rr = 1 - p.gully + crest + rough * ampFade;
                     rr += (hash(k, seg, p.seed) - 0.5) * p.noiseAmp;
                     const r = Math.max(0, prof * rr);
+                    // ridgelines rise (some into sub-peaks), gullies sink — jagged
+                    // silhouette. Faded near base (stays grounded) and apex (clean tip).
+                    const liftWin = sstep(0.05, 0.25, tk) * (1 - sstep(0.86, 1.0, tk));
+                    const yy = y + ((crest - p.gully * 0.6) * 0.30 + rough * 0.10) * H * liftWin;
                     const idx = gi(k, seg);
                     gridXYZ[idx] = cxk + r * Math.cos(th);
-                    gridXYZ[idx + 1] = y;
+                    gridXYZ[idx + 1] = yy;
                     gridXYZ[idx + 2] = czk + r * Math.sin(th);
                 }
             }
