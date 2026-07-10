@@ -49,11 +49,11 @@ const makeParams = (): MountainParams => {
     for (let i = 0; i < nSub; i++) {
         subpeaks.push({
             angle: Math.random() * 6.283,
-            tk: 0.52 + Math.random() * 0.20,   // sits mid-high, kept under the summit
-            aw: 0.16 + Math.random() * 0.14,   // angular spread
-            tw: 0.10 + Math.random() * 0.08,   // vertical spread
-            amp: 0.12 + Math.random() * 0.12,  // height it rears up (fraction of H)
-            rw: 0.10 + Math.random() * 0.14,   // radial mass so it's a peak, not a spike
+            tk: 0.48 + Math.random() * 0.18,   // 0.48–0.66: headroom to rear up under the summit
+            aw: 0.14 + Math.random() * 0.12,   // tighter angular spread → sharper horn
+            tw: 0.09 + Math.random() * 0.07,   // vertical spread
+            amp: 0.18 + Math.random() * 0.16,  // 0.18–0.34: rears up near the main summit
+            rw: 0.12 + Math.random() * 0.16,   // radial mass so it's a peak, not a spike
         });
     }
     return {
@@ -100,7 +100,7 @@ const revealChunk = `
 `;
 
 const nodeMat = () => new THREE.ShaderMaterial({
-    uniforms: { uReveal: { value: 0 }, uH: { value: H }, uSize: { value: 3.2 } },
+    uniforms: { uReveal: { value: 0 }, uH: { value: H }, uSize: { value: 3.2 }, uSnow: { value: 0.6 } },
     transparent: true, depthWrite: false, depthTest: true,
     blending: THREE.AdditiveBlending,
     vertexShader: `
@@ -119,14 +119,18 @@ const nodeMat = () => new THREE.ShaderMaterial({
         varying float vFront;
         uniform float uReveal;
         uniform float uH;
+        uniform float uSnow;
         void main() {
             if (vH > uReveal) discard;
             vec2 d = gl_PointCoord - 0.5;
             if (dot(d, d) > 0.25) discard;
             float summit = smoothstep(0.35, 1.0, vH / uH);
+            // ragged snowline (follows the warped terrain height)
+            float snow = smoothstep(uSnow - 0.05, uSnow + 0.08, vH / uH);
             // fade the pile-up of nodes converging on the summit point
             float conv = 1.0 - smoothstep(0.8, 0.97, vH / uH);
             vec3 c = mix(vec3(0.50, 0.74, 0.92), vec3(0.86, 0.92, 0.98), summit);
+            c = mix(c, vec3(0.82, 0.90, 0.98), snow * 0.35); // keep the lattice icy on the cap
             c += vec3(0.6, 0.78, 0.95) * vFront * 0.8;
             gl_FragColor = vec4(c, (0.5 + 0.28 * summit + vFront * 0.3) * conv);
         }
@@ -134,7 +138,7 @@ const nodeMat = () => new THREE.ShaderMaterial({
 });
 
 const edgeMat = () => new THREE.ShaderMaterial({
-    uniforms: { uReveal: { value: 0 }, uH: { value: H } },
+    uniforms: { uReveal: { value: 0 }, uH: { value: H }, uSnow: { value: 0.6 } },
     transparent: true, depthWrite: false, depthTest: true,
     blending: THREE.AdditiveBlending,
     vertexShader: `
@@ -150,11 +154,14 @@ const edgeMat = () => new THREE.ShaderMaterial({
         varying float vFront;
         uniform float uReveal;
         uniform float uH;
+        uniform float uSnow;
         void main() {
             if (vH > uReveal) discard;
             float summit = smoothstep(0.3, 1.0, vH / uH);
+            float snow = smoothstep(uSnow - 0.05, uSnow + 0.08, vH / uH);
             float conv = 1.0 - smoothstep(0.8, 0.97, vH / uH);
             vec3 c = vec3(0.28, 0.58, 0.78) * (0.55 + 0.4 * summit);
+            c = mix(c, vec3(0.66, 0.80, 0.94), snow * 0.3);
             c += vec3(0.55, 0.75, 0.95) * vFront * 0.7;
             gl_FragColor = vec4(c, ((0.30 + 0.32 * summit) + vFront * 0.4) * conv);
         }
@@ -162,7 +169,7 @@ const edgeMat = () => new THREE.ShaderMaterial({
 });
 
 const faceMat = () => new THREE.ShaderMaterial({
-    uniforms: { uReveal: { value: 0 }, uH: { value: H } },
+    uniforms: { uReveal: { value: 0 }, uH: { value: H }, uSnow: { value: 0.6 } },
     transparent: false, depthWrite: true, depthTest: true,
     polygonOffset: true, polygonOffsetFactor: 1.2, polygonOffsetUnits: 1.2,
     vertexShader: `
@@ -181,15 +188,18 @@ const faceMat = () => new THREE.ShaderMaterial({
         varying vec3 vN;
         uniform float uReveal;
         uniform float uH;
+        uniform float uSnow;
         void main() {
             if (vH > uReveal) discard;
             vec3 lightDir = normalize(vec3(0.35, 0.8, 0.45));
             float ndl = clamp(dot(normalize(vN), lightDir), 0.0, 1.0);
-            float summit = smoothstep(0.4, 1.0, vH / uH);
-            vec3 dark = vec3(0.02, 0.05, 0.09);
-            vec3 lit = vec3(0.16, 0.30, 0.44);
-            vec3 c = mix(dark, lit, ndl);
-            c += vec3(0.12, 0.16, 0.22) * summit; // snowlit crown
+            // ragged snowline: warped terrain height means it laps up ridges
+            // and stops short in gullies rather than a flat ring
+            float snow = smoothstep(uSnow - 0.04, uSnow + 0.10, vH / uH);
+            vec3 rock = mix(vec3(0.02, 0.05, 0.09), vec3(0.16, 0.30, 0.44), ndl);
+            // muted cool-white so the cap reads as snow without blooming out
+            vec3 snowLit = mix(vec3(0.30, 0.36, 0.46), vec3(0.62, 0.71, 0.84), ndl);
+            vec3 c = mix(rock, snowLit, snow);
             gl_FragColor = vec4(c, 1.0);
         }
     `,
@@ -479,7 +489,7 @@ export const Mountain: React.FC = () => {
         const composer = new EffectComposer(renderer);
         composer.addPass(new RenderPass(scene, camera));
         const bloomPass = new UnrealBloomPass(
-            new THREE.Vector2(initialSize.width, initialSize.height), 0.55, 0.55, 0.35);
+            new THREE.Vector2(initialSize.width, initialSize.height), 0.45, 0.5, 0.5);
         composer.addPass(bloomPass);
         composer.setSize(initialSize.width, initialSize.height);
 
