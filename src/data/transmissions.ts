@@ -304,6 +304,20 @@ export const streamfrontVisualExport: VisualExportCapability = {
   operatorNotes: 'Non-deterministic delta. Flows unattended after load; allow a few seconds for motes to populate the distributaries.',
 };
 
+export const myceliumVisualExport: VisualExportCapability = {
+  supportedTargets: ['canvas', 'reel', 'hardware-feed', 'still', 'loop'],
+  defaultTarget: 'canvas',
+  seed: { supported: false, defaultMode: 'random' },
+  duration: { supported: true, defaultSeconds: 12, minSeconds: 4, maxSeconds: 60 },
+  aspectRatios: {
+    supported: ['9:16', '16:9', '1:1', '4:5'],
+    default: '9:16',
+  },
+  capture: 'browser-source',
+  hardwareFeedSafe: true,
+  operatorNotes: 'Non-deterministic slime-mold transport network. Filaments condense within ~15s of load and rewire continuously as sources exhaust; runs unattended.',
+};
+
 export const rivuletVisualExport: VisualExportCapability = {
   supportedTargets: ['canvas', 'reel', 'hardware-feed', 'still', 'loop'],
   defaultTarget: 'canvas',
@@ -622,6 +636,18 @@ export const transmissions: Transmission[] = [
     exportUse: ['canvas', 'reel', 'hardware-feed', 'still', 'loop'],
     visualExport: rivuletVisualExport,
     addedAt: '2026-06-06',
+  },
+  {
+    slug: 'mycelium',
+    route: '/mycelium',
+    title: 'MYCELIUM',
+    type: 'visual',
+    status: 'active',
+    visibility: 'soft-secret',
+    tags: ['mycelium', 'network', 'nodes', 'slime-mold', 'emergence'],
+    exportUse: ['canvas', 'reel', 'hardware-feed', 'still', 'loop'],
+    visualExport: myceliumVisualExport,
+    addedAt: '2026-07-05',
   },
   {
     slug: 'mountain',

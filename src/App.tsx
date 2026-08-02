@@ -34,6 +34,7 @@ import { TransmissionDetail } from './components/Operator/TransmissionDetail';
 import { Atlas } from './components/Atlas/Atlas';
 import { Streamfront } from './components/Streamfront/Streamfront';
 import { Rivulet } from './components/Rivulet/Rivulet';
+import { Mycelium } from './components/Mycelium/Mycelium';
 import { Mountain } from './components/Mountain/Mountain';
 
 
@@ -197,6 +198,7 @@ const App = () => {
           <Route path="/deaddrop" element={<Atlas />} />
           <Route path="/streamfront" element={<Streamfront />} />
           <Route path="/rivulet" element={<Rivulet />} />
+          <Route path="/mycelium" element={<Mycelium />} />
           <Route path="/mountain" element={<Mountain />} />
         </Routes>
       </WorkstationShell>
