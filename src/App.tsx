@@ -36,6 +36,7 @@ import { Streamfront } from './components/Streamfront/Streamfront';
 import { Rivulet } from './components/Rivulet/Rivulet';
 import { Mycelium } from './components/Mycelium/Mycelium';
 import { Mountain } from './components/Mountain/Mountain';
+import { Cloudform } from './components/Cloudform/Cloudform';
 
 
 
@@ -200,6 +201,7 @@ const App = () => {
           <Route path="/rivulet" element={<Rivulet />} />
           <Route path="/mycelium" element={<Mycelium />} />
           <Route path="/mountain" element={<Mountain />} />
+          <Route path="/cloudform" element={<Cloudform />} />
         </Routes>
       </WorkstationShell>
     </BrowserRouter>
