@@ -37,6 +37,7 @@ import { Rivulet } from './components/Rivulet/Rivulet';
 import { Mycelium } from './components/Mycelium/Mycelium';
 import { Mountain } from './components/Mountain/Mountain';
 import { Cloudform } from './components/Cloudform/Cloudform';
+import { Torchrite } from './components/Torchrite/Torchrite';
 
 
 
@@ -202,6 +203,7 @@ const App = () => {
           <Route path="/mycelium" element={<Mycelium />} />
           <Route path="/mountain" element={<Mountain />} />
           <Route path="/cloudform" element={<Cloudform />} />
+          <Route path="/torchrite" element={<Torchrite />} />
         </Routes>
       </WorkstationShell>
     </BrowserRouter>

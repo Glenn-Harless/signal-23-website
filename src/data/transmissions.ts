@@ -360,6 +360,20 @@ export const cloudformVisualExport: VisualExportCapability = {
   operatorNotes: 'Non-deterministic volumetric mote field on a form/hold/dissipate cycle; rotates continuously. Flat base sits at the condensation level; a new cumulus is sampled each cycle.',
 };
 
+export const torchriteVisualExport: VisualExportCapability = {
+  supportedTargets: ['canvas', 'reel', 'hardware-feed', 'still', 'loop'],
+  defaultTarget: 'canvas',
+  seed: { supported: false, defaultMode: 'random' },
+  duration: { supported: true, defaultSeconds: 12, minSeconds: 4, maxSeconds: 60 },
+  aspectRatios: {
+    supported: ['9:16', '16:9', '1:1', '4:5'],
+    default: '9:16',
+  },
+  capture: 'browser-source',
+  hardwareFeedSafe: true,
+  operatorNotes: 'Non-deterministic contact-propagation rite on a roughly 50-second cycle: reveal, ignition, spread, full congregation, then extinction in ignition order. A new congregation is scattered each cycle and a few unreachable bearers never light. Camera orbits continuously; portrait frames drop the camera into the crowd rather than shrinking the wide composition.',
+};
+
 export const transmissions: Transmission[] = [
   {
     slug: 'home',
@@ -686,6 +700,20 @@ export const transmissions: Transmission[] = [
     exportUse: ['canvas', 'reel', 'hardware-feed', 'still', 'loop'],
     visualExport: cloudformVisualExport,
     addedAt: '2026-08-04',
+  },
+  {
+    slug: 'torchrite',
+    route: '/torchrite',
+    title: 'TORCHRITE',
+    type: 'visual',
+    status: 'active',
+    visibility: 'soft-secret',
+    release: 'Torchrite',
+    tags: ['torchrite', 'fire', 'propagation', 'congregation', 'percolation'],
+    exportUse: ['canvas', 'reel', 'hardware-feed', 'still', 'loop'],
+    visualExport: torchriteVisualExport,
+    notes: 'A congregation of cold staffs in the dark. One catches, and the flame travels by contact alone — down the dense lanes, stalling where the crowd opens wider than a reach — until the field burns, then goes out in the order it lit.',
+    addedAt: '2026-08-17',
   },
 ];
 
