@@ -1,145 +1,102 @@
-# **AGENTS.md**
+# AGENTS.md
 
-We track work in **Beads**, not in Markdown.
-Run `bd quickstart` for usage, epic/ticket conventions, and tooling.
-Do **not** store task lists or epics inside Markdown files.
-
----
-
-# **Living Documentation Rules**
+## Living Documentation Rules
 
 These rules define how agents must behave when reading, generating, or modifying code in this repository.
 
-### **1. Markdown Is the Single Source of Truth**
+### 1. Markdown Is the Source of Product Truth
 
-* All requirements, architectural reasoning, and behavioral expectations must live in Markdown files inside the repo.
-* Code and documentation evolve **atomically** with each commit.
-* The Markdown files must always reflect the *current* state of the system.
+- All requirements, architectural reasoning, and behavioral expectations must live in Markdown files inside the repository.
+- Code and documentation evolve atomically with each commit.
+- Markdown must describe the current state of the system.
+- Temporary plans, task lists, backlogs, and implementation handoffs do not belong in product documentation.
+- Create a new `feature-dev-{X}` folder only for a new conceptual feature, subsystem, or capability. Changes to an existing feature belong in its existing folder.
 
-Agents must not create new feature-dev-{X} folders for Beads tickets.
-Tickets map to changes within existing features, not new folders.
-New feature-dev-{X} folders are created only when a new conceptual feature is introduced.
+### 2. Requirements Must Stay Current
 
+When code behavior changes, update the feature's `requirements.md` immediately. Include:
 
-### **2. Requirements Must Stay Current**
+- high-level summary
+- inputs and outputs
+- constraints
+- edge cases
+- user flows
+- implementation-agnostic behavior
 
-* When code behavior changes, update the feature’s `requirements.md` immediately.
-* Include:
+Remove or replace deprecated behavior so requirements never describe a superseded state.
 
-  * high-level summary
-  * inputs/outputs
-  * constraints
-  * edge cases
-  * user flows
-  * implementation-agnostic behavior
+### 3. Decisions Must Be Logged
 
-### **3. Decisions Must Be Logged**
+Update `decisions.md` for any architectural tradeoff, design change, or intentionally selected approach.
 
-* Update `decisions.md` for any architectural tradeoff, design change, or intentionally selected approach.
-* Use an **append-only log** (include timestamp + agent name).
-* Focus on *why* something changed, not what changed.
+- Keep the log append-only.
+- Include a timestamp and agent name.
+- Explain why the approach was selected, not merely what files changed.
 
-### **4. Tests Must Describe Behavior**
+### 4. Tests Must Describe Behavior
 
-* Update `tests.md` whenever behavior, constraints, or flows evolve.
-* Define:
+Update `tests.md` whenever behavior, constraints, or flows evolve. Define:
 
-  * acceptance criteria
-  * unit test expectations
-  * integration paths
-  * relevant edge cases
-* Tests describe *observable behavior*, not implementation specifics.
+- acceptance criteria
+- unit test expectations
+- integration paths
+- relevant edge cases
 
----
+Tests describe observable behavior, not implementation details or future work queues.
 
-# **Directory Convention**
+## Directory Convention
 
-All feature-level documentation must live under:
+Feature-level documentation lives under:
 
-```
+```text
 feature-dev-docs/
     feature-dev-{X}/
         requirements.md
-        decisions.md    # auto-updated by agents + commits
+        decisions.md
         tests.md
-        feature-spec.md # Manually enterred by myself, includes plans on what feature we are looking to build
+        feature-spec.md
 ```
 
-Where:
+- `feature-dev-{X}` is a unique namespace for a feature, subsystem, or capability.
+- `feature-spec.md` is optional and may contain owner-authored product direction that complements the living requirements.
+- Subfolders may be added for deep features when they follow existing repository patterns.
 
-* `feature-dev-{X}` is a unique namespace for the feature, subsystem, or capability.
-* Subfolders may be added for deep features if needed (agents should infer structure from existing patterns).
+## Agent Behavior Model
 
----
-
-# **Agent Behavior Model**
-
-Agents must follow these rules during any operation:
-
-### **1. Read Before Acting**
+### Read Before Acting
 
 Before generating or modifying code:
 
-* Always read the closest `requirements.md`, `decisions.md`, and `tests.md`.
-* Consider parent directories and cascading context.
-* Treat these files as authoritative.
+- Read the closest `requirements.md`, `decisions.md`, and `tests.md` in full.
+- Consider parent directories and cascading context.
+- Treat these files as authoritative descriptions of current behavior.
 
-### **2. Update After Acting**
+### Update After Acting
 
-After any meaningful code change:
+After a meaningful code change:
 
-* Update `requirements.md` if the behavior changed.
-* Append to `decisions.md` if the architecture evolved.
-* Update `tests.md` to ensure coverage matches behavior.
+- Update `requirements.md` when behavior changed.
+- Append to `decisions.md` when architecture or an intentional design choice changed.
+- Update `tests.md` so expected coverage matches the resulting behavior.
+- Commit documentation with the corresponding code change.
 
-Documentation should be updated in the **same commit** as the code change.
+### Keep Documentation Focused
 
-### **3. Never Create Stale Docs**
+- Do not leave outdated expectations, flows, or assumptions.
+- Do not copy source trees or generated code dumps into Markdown.
+- Do not use product documentation as a task tracker.
+- Keep documentation concise enough to read in full.
 
-* Do not leave outdated expectations, flows, or assumptions.
-* Remove deprecated sections when behavior is removed or replaced.
-* Keep documentation concise and accurate.
+## Hierarchy and Context
 
----
+- Structure Markdown in a hierarchy that mirrors the feature tree.
+- Resolve documentation context from closest to broadest: feature, parent directory, then repository-wide guidance.
+- When documents disagree, update the stale document rather than preserving contradictory descriptions.
 
-# **Beads Integration Rules**
+## Philosophy
 
-Beads is the system of record for work tracking.
-Markdown is *not* for tasks.
-
-Agents must follow these constraints:
-
-### **Allowed**
-
-* Read epics/tickets directly from Beads.
-* Use Beads to determine the next step of work.
-* Generate/update code/documentation in response to Beads tasks.
-
-### **Not Allowed**
-
-* No copying ticket descriptions into Markdown.
-* No storing to-do lists, epics, backlogs, or checklists in Markdown.
-* No duplicating Beads state anywhere in the repo.
-
-### **Rationale**
-
-* Markdown captures *product truth*.
-* Beads captures *work to be done*.
-* Mixing the two creates drift, duplication, and confusion.
-
----
-
-# **Hierarchy & Context Rules**
-
-* Markdown files should be structured in a hierarchy that mirrors the feature tree.
-* Agents should rely on cascading context: **closest → parent directory → global**.
-* Keep Markdown succinct; agents must always read it in full.
-
----
-
-# **Philosophy**
-
-* Code and documentation are inseparable.
-* Requirements are *living* and evolve with the code.
-* Every change is committed with updated documentation.
-* There is no PRD, no separate spec — the Markdown *is* the product.
+- Code and documentation are inseparable.
+- Requirements are living descriptions of the product.
+- Architectural decisions retain their historical rationale through append-only logs.
+- Tests state observable promises.
+- The repository should contain current product truth, not stale planning artifacts.

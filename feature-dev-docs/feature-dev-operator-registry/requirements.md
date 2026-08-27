@@ -2,7 +2,7 @@
 
 ## Summary
 
-The operator registry is a hidden internal map for Signal-23 routes and transmissions. It gives operators a structured view of public routes, soft-secret art routes, commerce routes, and deprecated routes without adding public navigation or changing the terminal command directory.
+The operator registry is the internal metadata map for Signal-23 routes and transmissions. It gives operators a structured view of public routes, soft-secret art routes, commerce routes, and deprecated routes without adding public navigation or changing the terminal command directory. The same registry supplies the hidden `/deaddrop` visual index.
 
 ## Inputs
 
@@ -30,11 +30,15 @@ Each entry includes:
 
 Both operator routes set a client-side `robots` meta tag with `noindex,nofollow`. Netlify also sends `X-Robots-Tag: noindex, nofollow` for `/operator` and `/operator/*`.
 
+`/deaddrop` derives its collection from registry entries whose type is `visual` and visibility is `soft-secret`. The registry currently contains 22 such visual routes. Deaddrop sorts them newest-first by `addedAt`, features the newest entry when no search is active, and exposes the remaining entries as an archive. Its complete behavior is defined in `feature-dev-docs/feature-dev-deaddrop/`.
+
 ## Constraints
 
 The operator layer is hidden for presentation, not secured for privacy. It must not be linked from the homepage, public navigation, or terminal command list.
 
 The registry is the source of truth for operator route metadata. New transmission routes should be added to the registry when they become meaningful operator surfaces.
+
+Every soft-secret visual route in the router must have exactly one matching registry entry and complete `visualExport` metadata. The current set includes the original 16 routes plus `/streamfront`, `/rivulet`, `/mycelium`, `/mountain`, `/cloudform`, and `/torchrite`.
 
 Public routes and soft-secret routes may appear inside the operator UI, but the operator UI itself remains reachable only by direct URL.
 
@@ -50,6 +54,8 @@ Deprecated compatibility routes can remain in the registry when they still exist
 
 Long tags, routes, and titles must wrap or scroll without overlapping surrounding controls.
 
+Missing Deaddrop thumbnail files or failed image loads must leave a visible fallback rather than an empty or broken tile.
+
 The desktop operator table must occupy the full operator shell width and distribute columns across the available space.
 
 ## User Flows
@@ -59,3 +65,5 @@ An operator visits `/operator`, searches or filters by type, status, visibility,
 An operator visits `/operator/transmissions/decay` directly and sees route metadata, export intent, tags, notes, and adjacent registry navigation.
 
 Search engines and crawlers that respect standard hints receive both `robots.txt` disallow rules and `noindex,nofollow` headers for operator routes.
+
+A visitor opens `/deaddrop` directly, sees the newest visual highlighted above the archive, searches registry metadata, and follows any result to its normal visual route. Deaddrop remains absent from public navigation and crawler indexes.

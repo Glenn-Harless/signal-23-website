@@ -3,6 +3,7 @@
 ## Acceptance Criteria
 
 - Visiting `/operator` displays every entry from `src/data/transmissions.ts`.
+- The registry contains exactly 22 soft-secret visual entries, including `/streamfront`, `/rivulet`, `/mycelium`, `/mountain`, `/cloudform`, and `/torchrite`.
 - The homepage and terminal command list do not link to `/operator`.
 - Search matches title, slug, route, type, status, visibility, release, notes, tags, and export targets.
 - Type, status, and visibility filters narrow the table without changing the registry data.
@@ -14,10 +15,12 @@
 - Entries without export targets display `NONE`.
 - `/operator` and `/operator/*` receive `X-Robots-Tag: noindex, nofollow` in Netlify configuration.
 - `public/robots.txt` disallows `/operator` and `/operator/`.
+- `/deaddrop` derives its cards from soft-secret visual registry entries instead of maintaining a separate route list or hiding entries by status.
+- `/deaddrop` and `/deaddrop/*` receive the same crawler-discovery protections as the operator surface.
 
 ## Unit Test Expectations
 
-Registry data should contain unique slugs and routes for all current router paths that need operator visibility.
+Registry data should contain unique slugs and routes for all current router paths that need operator visibility. Each of the 22 visual routes should have `visualExport` metadata whose supported targets agree with `exportUse`.
 
 Filtering behavior should be deterministic for empty queries, case-insensitive text queries, and combined type/status/visibility filters.
 
@@ -47,6 +50,14 @@ Path 3: Discovery controls
 2. Confirm `public/robots.txt` is copied into the build output.
 3. Confirm `netlify.toml` defines noindex headers for `/operator` and `/operator/*`.
 
+Path 4: Registry consumers
+
+1. Load `/deaddrop` with no query.
+2. Confirm all 22 soft-secret visual entries are represented once across the latest feature and archive.
+3. Search for `Torchrite`, a release, a status, and an `addedAt` date.
+4. Confirm matches come from registry metadata and link to the matching visual route.
+5. Confirm no public, commerce, deprecated, or operator-only entry appears.
+
 ## Edge Case Tests
 
 Long route and tag values should wrap or scroll without overlapping other UI.
@@ -54,3 +65,5 @@ Long route and tag values should wrap or scroll without overlapping other UI.
 Mobile widths should render table rows as stacked label/value pairs.
 
 Deprecated routes should stay visible in the registry but clearly show deprecated visibility and archived status.
+
+Adding a new registry-backed soft-secret visual should make it available to both `/operator` and `/deaddrop` without a second hard-coded catalog.

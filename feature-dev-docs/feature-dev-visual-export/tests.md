@@ -2,7 +2,7 @@
 
 ## Acceptance Criteria
 
-- All 16 visual routes expose complete export capability metadata.
+- All 22 visual routes expose complete export capability metadata.
 - Supported target IDs match the shared export target vocabulary.
 - All visual routes open normally with no export parameters.
 - All visual routes can open in export mode through query parameters without public navigation changes.
@@ -87,21 +87,34 @@ Path 7: Remaining visual route smoke test
 2. Confirm the scene renders inside the export frame.
 3. Confirm no development recording control or HUD overlay appears over the captured viewport.
 
-Path 8: Operator visibility
+Path 8: Expanded route scope
+
+1. Load `/streamfront`, `/rivulet`, `/mycelium`, `/mountain`, `/cloudform`, and `/torchrite` with no query parameters and confirm normal behavior.
+2. Load each route with `?target=canvas` and confirm a clean `9:16` capture frame.
+3. Load each route with `?target=hardware-feed&aspect=16:9` and confirm unattended output with no required visible controls.
+4. Confirm each route remains non-deterministic and reports seed replay as unsupported.
+
+Path 9: Operator visibility
 
 1. Load `/operator`.
-2. Confirm the operator index shows an export column populated for all visual routes.
+2. Confirm the operator index shows an export column populated for all 22 visual routes.
 3. Open `/operator/transmissions/decay`.
 4. Confirm the detail view shows export capability metadata and five launch links.
 5. Open `/operator/transmissions/reclamation`.
 6. Confirm the detail view shows export capability metadata and four launch links.
 
-Path 9: Public surface preservation
+Path 10: Public surface preservation
 
 1. Load `/`.
 2. Confirm the homepage does not link to export mode or `/operator`.
 3. Load `/terminal` and run the command directory.
 4. Confirm no export or operator command appears unless intentionally introduced by a future documented change.
+
+Path 11: Deaddrop alignment
+
+1. Load `/deaddrop`.
+2. Confirm all 22 registry-backed soft-secret visuals are represented once across the latest feature and archive.
+3. Open a card and confirm it launches the normal route without adding export query parameters.
 
 ## Edge Case Tests
 

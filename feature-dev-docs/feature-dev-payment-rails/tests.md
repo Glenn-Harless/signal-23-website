@@ -4,145 +4,110 @@
 
 ### Free Download Flow
 
-- [ ] User can enter $0 and click download
-- [ ] System generates signed URL without Stripe interaction
-- [ ] Signed URL works for download
-- [ ] Signed URL expires after configured time
-- [ ] Expired URL returns 403/404
+- Entering `$0` for each mapped pack calls `/.netlify/functions/free-download` without creating a Stripe session.
+- A successful response displays a download link on `/instruments`.
+- The signed URL retrieves the mapped private R2 object before expiry and is rejected after its 30-minute lifetime.
+- The response identifies the selected pack ID in `packTitle`.
 
 ### Paid Download Flow
 
-- [ ] User can enter custom amount ($1+)
-- [ ] System redirects to Stripe Checkout
-- [ ] Stripe Checkout shows correct amount and product name
-- [ ] Successful payment redirects to success page
-- [ ] Success page displays download link
-- [ ] Download link works
-- [ ] Download link expires after configured time
+- Entering an amount of at least `$0.50` calls `/.netlify/functions/create-checkout` and redirects to hosted Stripe Checkout.
+- Checkout displays the caller-provided pack title and exact amount in USD.
+- Successful payment redirects to `/instruments/success` with a `session_id` query parameter.
+- The success page verifies that session before displaying a signed R2 link, amount, title, and customer email returned by Stripe.
+- Canceling checkout returns to `/instruments` without exposing a download link.
 
-### Stripe Webhook
+### Webhook Flow
 
-- [ ] Webhook receives checkout.session.completed event
-- [ ] Webhook verifies Stripe signature
-- [ ] Invalid signature returns 400
-- [ ] Valid signature triggers download URL generation
+- A valid `checkout.session.completed` event is acknowledged and logs the session, pack, amount, and customer metadata.
+- A valid `checkout.session.expired` event is acknowledged and logs the session ID.
+- A missing or invalid Stripe signature returns `400`.
+- A missing `STRIPE_WEBHOOK_SECRET` returns `500`.
+- Webhook processing does not generate a download URL or become a prerequisite for browser delivery.
 
 ### Error Handling
 
-- [ ] Invalid packId returns 400
-- [ ] Missing required fields return 400
-- [ ] Invalid session_id on success page shows error
-- [ ] Network errors show user-friendly message
+- Missing request bodies and required fields return `400` where explicitly validated.
+- Unknown pack IDs return `404` from both free-download and create-checkout.
+- Paid amounts below `$0.50`, including negative values, return `400`.
+- An unpaid Stripe session returns `402` and no download URL.
+- A missing session ID returns `400`, an unknown session ID returns `404`, and an existing unpaid or expired session returns `402`.
+- Unsupported HTTP methods return `405`.
+- Network and provider failures produce a visible error state in the instrument or success page.
 
 ## Unit Test Expectations
 
-### `create-checkout` Function
+### Storage Utility
 
-```typescript
-describe('create-checkout', () => {
-  it('creates Stripe session for valid $5 purchase', async () => {
-    const response = await handler({
-      body: JSON.stringify({ packId: 'S23-01', packTitle: 'Test', amount: 5 })
-    });
-    expect(response.statusCode).toBe(200);
-    expect(JSON.parse(response.body).checkoutUrl).toMatch(/checkout\.stripe\.com/);
-  });
+- `generateSignedUrl` rejects IDs absent from `PACK_FILES`.
+- Each allowed ID maps to the exact expected R2 object key.
+- The returned expiry is approximately 1,800 seconds after signing.
+- The R2 client uses region `auto`, the configured endpoint and credentials, and the configured/default bucket.
 
-  it('returns 400 for missing packId', async () => {
-    const response = await handler({
-      body: JSON.stringify({ amount: 5 })
-    });
-    expect(response.statusCode).toBe(400);
-  });
+### Checkout Utility and Function
 
-  it('returns 400 for $0 amount', async () => {
-    const response = await handler({
-      body: JSON.stringify({ packId: 'S23-01', amount: 0 })
-    });
-    expect(response.statusCode).toBe(400);
-    // $0 should use free-download endpoint instead
-  });
-});
-```
+- Dollar amounts are rounded to integer cents before Stripe session creation.
+- Checkout uses USD, card payment, payment mode, quantity one, and stores `packId` and `packTitle` in metadata.
+- A valid `$5` request returns a Stripe-hosted checkout URL.
+- `$0` is rejected with guidance to use `free-download`.
+- Redirect origins are derived from `x-forwarded-proto` and `host`.
 
-### `free-download` Function
+### Verification Function
 
-```typescript
-describe('free-download', () => {
-  it('generates signed URL for valid packId', async () => {
-    const response = await handler({
-      body: JSON.stringify({ packId: 'S23-01' })
-    });
-    expect(response.statusCode).toBe(200);
-    const body = JSON.parse(response.body);
-    expect(body.downloadUrl).toContain('supabase');
-    expect(body.expiresAt).toBeDefined();
-  });
+- A paid session with a mapped pack ID returns an R2 signed URL and Stripe metadata.
+- An unpaid session returns `402`.
+- A session without pack metadata returns `400`.
+- Stripe's missing-session error maps to `404`.
 
-  it('returns 404 for non-existent pack', async () => {
-    const response = await handler({
-      body: JSON.stringify({ packId: 'INVALID' })
-    });
-    expect(response.statusCode).toBe(404);
-  });
-});
-```
+### Webhook Function
 
-### `stripe-webhook` Function
+- Signature verification uses the raw event body, `stripe-signature`, and `STRIPE_WEBHOOK_SECRET`.
+- Invalid signatures return `400` and valid events return `200`.
+- Completed and expired sessions follow their respective logging branches.
 
-```typescript
-describe('stripe-webhook', () => {
-  it('returns 400 for invalid signature', async () => {
-    const response = await handler({
-      headers: { 'stripe-signature': 'invalid' },
-      body: '{}'
-    });
-    expect(response.statusCode).toBe(400);
-  });
+## Integration Paths
 
-  it('processes valid checkout.session.completed event', async () => {
-    // Mock valid Stripe event with proper signature
-    const response = await handler(validWebhookEvent);
-    expect(response.statusCode).toBe(200);
-  });
-});
-```
+### Path 1: Complete Free Acquisition
 
-## Integration Test Paths
+1. Open `/instruments` and select each of `arps`, `audio-fx`, `bass`, and `keys` in turn.
+2. Enter `$0` and initiate acquisition.
+3. Confirm the page receives and displays a signed R2 URL without navigating to Stripe.
+4. Fetch the URL before expiry and verify the correct archive downloads.
+5. Fetch the same URL after expiry and verify R2 rejects it.
 
-### Path 1: Complete Free Download
+### Path 2: Complete Paid Acquisition
 
-1. POST `/api/free-download` with `{ packId: 'S23-01' }`
-2. Receive signed URL
-3. GET signed URL
-4. Verify file downloads correctly
-5. Wait for expiry
-6. GET signed URL again
-7. Verify 403/404 response
+1. Submit a mapped pack at `$0.50`, then repeat at another custom amount.
+2. Confirm Stripe Checkout shows the matching pack title and amount.
+3. Complete payment with Stripe test credentials.
+4. Confirm the return URL contains `session_id` and the success page verifies it.
+5. Confirm the returned signed URL downloads the mapped R2 archive.
 
-### Path 2: Complete Paid Download
+### Path 3: Checkout Cancellation
 
-1. POST `/api/create-checkout` with `{ packId: 'S23-01', amount: 5 }`
-2. Receive Stripe checkout URL
-3. Complete Stripe test payment
-4. Verify redirect to success page with session_id
-5. POST `/api/verify-payment` with session_id
-6. Receive signed download URL
-7. Verify file downloads correctly
+1. Begin a paid checkout from `/instruments`.
+2. Cancel on Stripe's hosted page.
+3. Confirm the browser returns to `/instruments` and no download link is shown.
 
-### Path 3: Webhook Flow (E2E)
+### Path 4: Webhook Validation
 
-1. Trigger Stripe test webhook for checkout.session.completed
-2. Verify webhook handler processes event
-3. Verify download URL can be retrieved for that session
+1. Send a Stripe-signed `checkout.session.completed` test event to `/.netlify/functions/stripe-webhook`.
+2. Confirm the handler acknowledges it and logs the expected session metadata.
+3. Repeat with an invalid signature and confirm a `400` response.
 
 ## Edge Case Tests
 
-| Scenario | Expected Behavior |
-|----------|-------------------|
-| $0.30 payment (below Stripe min) | Treat as free OR return error |
-| Malformed JSON body | Return 400 |
-| Missing Stripe signature header | Return 400 |
-| Expired Stripe session | Return 400 with message |
-| Rate limiting (100+ requests/min) | Return 429 |
-| Pack file missing from Supabase | Return 500 with logging |
+| Scenario | Expected behavior |
+| --- | --- |
+| Positive amount below `$0.50` | `create-checkout` returns `400` |
+| Unknown pack ID | Free or paid endpoint returns `404` |
+| Missing request body or required field | Endpoint returns `400` |
+| Malformed JSON | Current endpoint error boundary returns `500` |
+| Unpaid Checkout Session | `verify-payment` returns `402` |
+| Missing Checkout Session ID | `verify-payment` returns `400` |
+| Unknown Checkout Session ID | `verify-payment` returns `404` |
+| Existing unpaid or expired session | `verify-payment` returns `402` |
+| R2 object missing despite a mapped ID | Signing may succeed; object fetch fails |
+| Expired signed URL | R2 rejects the object request |
+| Missing webhook signature | Webhook returns `400` |
+| Missing webhook secret | Webhook returns `500` |
