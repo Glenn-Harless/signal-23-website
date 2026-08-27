@@ -145,3 +145,15 @@ Append-only log of architectural decisions.
 **Decision:** Wire every visual route in the canonical route scope with `visualExport` metadata, `ExportFrame` export mode, mount-container renderer sizing, hidden export-mode controls/overlays, and operator UI surfacing. Keep all routes seed-unsupported. Mark `/broadcast` and `/reclamation` as not hardware-feed-safe; mark the remaining visual routes as hardware-feed-safe after route audit.
 
 **Rationale:** Completing the fan-out makes visual export a consistent platform capability instead of a pilot-only path. Keeping seed support deferred avoids fake determinism, while explicit hardware-feed safety values make operator launch decisions honest.
+
+---
+
+## 2026-08-27 09:17 PDT - Codex GPT-5
+
+### Decision: Expand the canonical visual-export scope to 22 routes
+
+**Context:** Six registry-backed visuals were added after the original 16-route v1 fan-out: Streamfront, Rivulet, Mycelium, Mountain, Cloudform, and Torchrite. Each already implements the shared export contract and exposes complete capability metadata.
+
+**Decision:** Add the six routes to the canonical scope in `feature-spec.md`, bringing visual export to 22 routes. All six support `canvas`, `reel`, `hardware-feed`, `still`, and `loop`, remain explicitly seed-unsupported, and are classified as hardware-feed-safe.
+
+**Rationale:** The living documentation should follow the implemented registry rather than freeze the launch-day route count. Keeping the current soft-secret visuals inside the same contract preserves consistent operator launch links, capture behavior, and Deaddrop discovery.

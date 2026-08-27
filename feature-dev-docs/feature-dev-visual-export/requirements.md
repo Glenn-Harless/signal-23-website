@@ -6,7 +6,7 @@ Signal-23 hidden visual routes must become reusable export engines without becom
 
 The v1 export contract supports Spotify Canvas, Instagram/TikTok reels, stills, loops, and Evan's hardware-feed workflow through metadata and route-level export behavior. V1 produces browser-rendered source output for external capture or downstream processing; it does not define in-page recording transports or final transcoded delivery formats.
 
-Visual export v1 applies the contract to all 16 soft-secret visual routes in the operator registry. `/operator` surfaces each route's export capability, and route detail pages expose preset launch links.
+Visual export v1 applies the contract to all 22 soft-secret visual routes in the operator registry. `/operator` surfaces each route's export capability, route detail pages expose preset launch links, and `/deaddrop` provides registry-derived links to their normal presentation mode.
 
 ## Export Targets
 
@@ -80,6 +80,8 @@ Aspect-framed routes must preserve the intended subject inside the frame. `/deca
 `/reclamation` supports `canvas`, `reel`, `still`, and `loop` exports. It remains seed-unsupported and non-deterministic. Export mode hides the development recording button and click-toggled HUD so the captured viewport stays clean. Narrow aspect ratios use a wider camera orbit to keep the city and bloom structure inside frame.
 
 All v1 visual routes remain seed-unsupported and non-deterministic. `/broadcast` and `/reclamation` are not hardware-feed-safe in v1; the other visual routes expose `hardware-feed` because they render useful unattended visual output and hide controls or HUD overlays in export mode.
+
+`/streamfront`, `/rivulet`, `/mycelium`, `/mountain`, `/cloudform`, and `/torchrite` extend the original 16-route scope. Each supports all five v1 targets, remains seed-unsupported, and is marked hardware-feed-safe.
 
 The operator index must display an export column sourced from `visualExport`. The operator detail page must display capability metadata and launch links of the form `<route>?target=<target>` for every supported target.
 

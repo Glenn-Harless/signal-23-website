@@ -6,13 +6,13 @@ Signal-23 visual routes should operate as reusable visual engines for release as
 
 ## Route Scope
 
-Visual export applies to soft-secret visual routes tracked by the operator registry, including `/decay`, `/reclamation`, `/broadcast`, `/forest`, `/stepwell`, `/forbidding`, `/well`, `/tangle`, `/learning`, `/nerve`, `/face`, `/hand`, `/birth`, `/murmur`, `/growth`, and `/resonance`.
+Visual export applies to soft-secret visual routes tracked by the operator registry, including `/decay`, `/reclamation`, `/broadcast`, `/forest`, `/stepwell`, `/forbidding`, `/well`, `/tangle`, `/learning`, `/nerve`, `/face`, `/hand`, `/birth`, `/murmur`, `/growth`, `/resonance`, `/streamfront`, `/rivulet`, `/mycelium`, `/mountain`, `/cloudform`, and `/torchrite`.
 
 This list is the canonical v1 route scope for visual export documentation.
 
 ## V1 Implementation
 
-The v1 implementation wires all 16 soft-secret visual routes. It adds shared export settings parsing, an aspect-locked `ExportFrame`, runtime capability validation, visual export metadata for every visual route, and container-based Three.js sizing for the wired routes.
+The v1 implementation wires all 22 soft-secret visual routes. It adds shared export settings parsing, an aspect-locked `ExportFrame`, runtime capability validation, visual export metadata for every visual route, and container-based Three.js sizing for the wired routes.
 
 Each route remains normal when opened without a `target` query parameter and enters export mode when `target` is present.
 

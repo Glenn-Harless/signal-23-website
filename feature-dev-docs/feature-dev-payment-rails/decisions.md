@@ -87,3 +87,21 @@ Append-only log of architectural decisions.
 - Built-in environment variable management
 - Automatic HTTPS
 - Sufficient for expected traffic volume
+
+---
+
+## 2026-08-27 09:17 PDT - Codex GPT-5
+
+### Decision: Use Cloudflare R2 as the active private download store
+
+**Context:** The deployed payment rail now signs private rack archives from Cloudflare R2 through its S3-compatible API. The earlier Supabase decision no longer describes the implementation, environment variables, pack IDs, or object mapping.
+
+**Options Considered:**
+
+1. Restore the documented Supabase Storage integration.
+2. Keep the implemented Cloudflare R2 storage layer and update the living documentation.
+3. Place rack archives on a public static host.
+
+**Decision:** Cloudflare R2 supersedes Supabase Storage for rack delivery. Netlify Functions use the AWS S3 client and presigner with `R2_ENDPOINT`, R2 credentials, and a private `signal23-racks` bucket by default.
+
+**Rationale:** R2 is already the working server-side integration, preserves time-limited private delivery, uses a standard S3-compatible signing path, and avoids exposing rack archives as public site assets. Recording this as a superseding decision preserves the historical log while making the current architecture unambiguous.

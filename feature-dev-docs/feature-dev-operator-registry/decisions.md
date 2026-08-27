@@ -50,3 +50,15 @@ Append-only log of architectural decisions.
 **Decision:** Treat every soft-secret visualization route from `decay` onward as `visual`. Keep `interactive` available for command/workflow surfaces such as the public terminal.
 
 **Rationale:** The operator map should answer what a route is used for. The hidden art routes are visual systems, even when they include motion, capture, or reactive logic.
+
+---
+
+## 2026-08-27 09:17 PDT - Codex GPT-5
+
+### Decision: Reuse the registry as the Deaddrop catalog
+
+**Context:** The hidden art index has grown from the original visual set to 22 routes. A separate card list would drift from operator metadata as new visual transmissions such as Streamfront, Rivulet, Mycelium, Mountain, Cloudform, and Torchrite are added.
+
+**Decision:** `/deaddrop` derives its catalog from entries classified as soft-secret visuals in `src/data/transmissions.ts`, sorts them newest-first by `addedAt`, and uses the same title, route, release, status, tags, notes, and date metadata for presentation and search. Status is presentation/search metadata, not an additional catalog filter.
+
+**Rationale:** One registry keeps the operator console, visual export layer, and hidden audience-facing index aligned. New visual transmissions require one metadata entry instead of parallel route catalogs.
