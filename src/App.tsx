@@ -38,6 +38,9 @@ import { Mycelium } from './components/Mycelium/Mycelium';
 import { Mountain } from './components/Mountain/Mountain';
 import { Cloudform } from './components/Cloudform/Cloudform';
 import { Torchrite } from './components/Torchrite/Torchrite';
+import { SignalMemory } from './components/SignalMemory/SignalMemory';
+import { ListenRoute } from './components/Listen/ListenRoute';
+import { PrivacyPolicy } from './components/Legal/PrivacyPolicy';
 
 
 
@@ -204,6 +207,11 @@ const App = () => {
           <Route path="/mountain" element={<Mountain />} />
           <Route path="/cloudform" element={<Cloudform />} />
           <Route path="/torchrite" element={<Torchrite />} />
+          <Route path="/signal-memory" element={<SignalMemory />} />
+          {/* Ad landing pages. Production serves static listen/<slug>/index.html first; this is the SPA fallback. */}
+          <Route path="/listen/:slug" element={<ListenRoute />} />
+          {/* Static legal/privacy/index.html is served first in production; SPA fallback. */}
+          <Route path="/legal/privacy" element={<PrivacyPolicy />} />
         </Routes>
       </WorkstationShell>
     </BrowserRouter>

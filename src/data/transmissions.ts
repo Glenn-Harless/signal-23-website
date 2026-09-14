@@ -374,6 +374,20 @@ export const torchriteVisualExport: VisualExportCapability = {
   operatorNotes: 'Non-deterministic contact-propagation rite on a roughly 50-second cycle: reveal, ignition, spread, full congregation, then extinction in ignition order. A new congregation is scattered each cycle and a few unreachable bearers never light. Camera orbits continuously; portrait frames drop the camera into the crowd rather than shrinking the wide composition.',
 };
 
+export const signalMemoryVisualExport: VisualExportCapability = {
+  supportedTargets: ['canvas', 'reel', 'hardware-feed', 'still', 'loop'],
+  defaultTarget: 'reel',
+  seed: { supported: true, defaultMode: 'fixed' },
+  duration: { supported: true, defaultSeconds: 13.5, minSeconds: 12, maxSeconds: 15 },
+  aspectRatios: {
+    supported: ['9:16', '4:5', '16:9'],
+    default: '9:16',
+  },
+  capture: 'browser-source',
+  hardwareFeedSafe: true,
+  operatorNotes: 'One beam, one phosphor: a fixed-step raster simulation. A hidden pre-roll integrates the owned CRT stills and extracts the emblem contours; the visible piece types that drawing as Signal-23 glyphs at 4, 7, 13, 26 and 52 columns, re-scanning the drawing between passes. The plate is worn: crooked registration, slipped lines, chewed slugs, blotchy ink with pinholes, a second impression out of register, dust and scratches on a stained ground. Seeded and replayable; add t= to pin a frame; mode=arc plays the earlier five-phase version. Capture with target=reel from Restart to the end.',
+};
+
 export const transmissions: Transmission[] = [
   {
     slug: 'home',
@@ -433,6 +447,18 @@ export const transmissions: Transmission[] = [
     tags: ['terms', 'commerce', 'policy'],
     exportUse: [],
     addedAt: '2026-05-07',
+  },
+  {
+    slug: 'privacy-policy',
+    route: '/legal/privacy',
+    title: 'PRIVACY POLICY',
+    type: 'page',
+    status: 'active',
+    visibility: 'public',
+    tags: ['privacy', 'policy', 'legal'],
+    exportUse: [],
+    notes: 'Script-free static page built from src/components/Legal/privacy-policy.content.html. Used as the Meta app Privacy Policy URL.',
+    addedAt: '2026-09-13',
   },
   {
     slug: 'testblandingpage',
@@ -714,6 +740,19 @@ export const transmissions: Transmission[] = [
     visualExport: torchriteVisualExport,
     notes: 'A congregation of cold staffs in the dark. One catches, and the flame travels by contact alone — down the dense lanes, stalling where the crowd opens wider than a reach — until the field burns, then goes out in the order it lit.',
     addedAt: '2026-08-17',
+  },
+  {
+    slug: 'signal-memory',
+    route: '/signal-memory',
+    title: 'SIGNAL MEMORY',
+    type: 'visual',
+    status: 'active',
+    visibility: 'soft-secret',
+    tags: ['crt', 'phosphor', 'glyphs', 'moire', 'memory', 'deterministic'],
+    exportUse: ['canvas', 'reel', 'hardware-feed', 'still', 'loop'],
+    visualExport: signalMemoryVisualExport,
+    notes: 'A CRT remembering. One beam, one phosphor. Twelve photographs of the emblem are integrated and their contours extracted before the first frame; then the beam types that drawing in the band\'s own glyphs, row by row, five times, each pass twice as fine as the last, until the emblem is a mosaic of its own alphabet. The type is worn, the ink blotchy and the second plate out of register — the look of a machine that has printed this many times before.',
+    addedAt: '2026-08-27',
   },
 ];
 

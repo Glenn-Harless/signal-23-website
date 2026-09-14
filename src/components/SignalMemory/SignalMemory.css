@@ -1,0 +1,301 @@
+.signal-memory-page {
+  --memory-panel: clamp(272px, 24vw, 348px);
+  width: 100%;
+  height: 100%;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) var(--memory-panel);
+  overflow: hidden;
+  background: #030304;
+  color: #e8e5dc;
+}
+
+.signal-memory-page > .export-frame-normal {
+  min-width: 0;
+  min-height: 0;
+}
+
+.signal-memory-viewport {
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+  place-items: center;
+  padding: clamp(14px, 2.5vw, 38px);
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 50% 42%, rgba(23, 27, 37, 0.28), transparent 52%),
+    #010102;
+}
+
+.signal-memory-stage {
+  position: relative;
+  width: min(100%, calc((100dvh - clamp(28px, 5vw, 76px)) * 9 / 16));
+  max-height: 100%;
+  overflow: hidden;
+  background: #000;
+  box-shadow:
+    0 0 0 1px rgba(220, 225, 235, 0.13),
+    0 24px 80px rgba(0, 0, 0, 0.72),
+    0 0 90px rgba(51, 76, 154, 0.08);
+}
+
+.signal-memory-stage canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.signal-memory-aspect-9-16 {
+  aspect-ratio: 9 / 16;
+}
+
+.signal-memory-aspect-4-5 {
+  aspect-ratio: 4 / 5;
+  width: min(100%, calc((100dvh - clamp(28px, 5vw, 76px)) * 4 / 5));
+}
+
+.signal-memory-aspect-16-9 {
+  aspect-ratio: 16 / 9;
+  width: min(100%, calc((100dvh - clamp(28px, 5vw, 76px)) * 16 / 9));
+}
+
+.signal-memory-page.is-export {
+  display: block;
+}
+
+.signal-memory-page.is-export .signal-memory-viewport {
+  padding: 0;
+  background: #000;
+}
+
+.signal-memory-page.is-export .signal-memory-stage {
+  width: 100%;
+  height: 100%;
+  max-height: none;
+  aspect-ratio: auto;
+  box-shadow: none;
+}
+
+.signal-memory-loading {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  background: #000;
+  color: rgba(220, 225, 235, 0.48);
+  font-size: 10px;
+  letter-spacing: 0.22em;
+}
+
+.signal-memory-stage-meta {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px;
+  pointer-events: none;
+  color: rgba(233, 235, 238, 0.58);
+  font-size: 8px;
+  line-height: 1;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  mix-blend-mode: screen;
+}
+
+.signal-memory-controls {
+  min-width: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 17px;
+  padding: clamp(20px, 2.5vw, 34px);
+  overflow-y: auto;
+  border-left: 1px solid rgba(226, 229, 235, 0.12);
+  background: #080809;
+  font-family: 'IBM Plex Mono', monospace;
+}
+
+.signal-memory-controls header {
+  display: grid;
+  gap: 7px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(226, 229, 235, 0.12);
+}
+
+.signal-memory-controls header p,
+.signal-memory-controls header span,
+.signal-memory-controls footer,
+.signal-memory-field > span,
+.signal-memory-field output {
+  margin: 0;
+  color: rgba(225, 227, 231, 0.48);
+  font-size: 8px;
+  line-height: 1.4;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.signal-memory-controls h1 {
+  margin: 0;
+  color: #f2efe6;
+  font-family: 'NeoBrute', 'IBM Plex Mono', monospace;
+  font-size: clamp(24px, 2.1vw, 34px);
+  font-weight: 500;
+  letter-spacing: -0.025em;
+}
+
+.signal-memory-transport,
+.signal-memory-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.signal-memory-transport button,
+.signal-memory-presets button {
+  min-height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid rgba(224, 227, 233, 0.18);
+  border-radius: 0;
+  background: rgba(255, 255, 255, 0.02);
+  color: rgba(242, 239, 230, 0.82);
+  font: inherit;
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  cursor: pointer;
+}
+
+.signal-memory-transport button:hover,
+.signal-memory-transport button:focus-visible,
+.signal-memory-presets button:hover,
+.signal-memory-presets button:focus-visible,
+.signal-memory-presets button.is-active {
+  border-color: rgba(222, 226, 235, 0.58);
+  background: rgba(180, 190, 220, 0.08);
+  color: #fff;
+  outline: none;
+}
+
+.signal-memory-field {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 8px;
+}
+
+.signal-memory-field input[type='range'] {
+  grid-column: 1 / -1;
+  width: 100%;
+  height: 2px;
+  margin: 7px 0 2px;
+  appearance: none;
+  border-radius: 0;
+  background: rgba(228, 230, 235, 0.18);
+}
+
+.signal-memory-field input[type='range']::-webkit-slider-thumb {
+  width: 8px;
+  height: 14px;
+  appearance: none;
+  border: 0;
+  border-radius: 0;
+  background: #d9dce4;
+}
+
+.signal-memory-text-input,
+.signal-memory-field select {
+  grid-column: 1 / -1;
+  width: 100%;
+  min-width: 0;
+  height: 36px;
+  padding: 0 10px;
+  border: 1px solid rgba(224, 227, 233, 0.14);
+  border-radius: 0;
+  background: #040405;
+  color: rgba(242, 239, 230, 0.78);
+  font: inherit;
+  font-size: 9px;
+  letter-spacing: 0.08em;
+}
+
+.signal-memory-presets {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 6px;
+}
+
+.signal-memory-presets button {
+  justify-content: flex-start;
+  padding: 0 11px;
+}
+
+.signal-memory-controls footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px 12px;
+  margin-top: auto;
+  padding-top: 15px;
+  border-top: 1px solid rgba(226, 229, 235, 0.12);
+}
+
+@media (max-width: 760px) {
+  .signal-memory-page {
+    grid-template-columns: 1fr;
+    grid-template-rows: minmax(0, 1fr) auto;
+  }
+
+  .signal-memory-viewport {
+    padding: 10px;
+  }
+
+  .signal-memory-stage {
+    width: min(100%, calc((100dvh - 280px) * 9 / 16));
+  }
+
+  .signal-memory-aspect-4-5 {
+    width: min(100%, calc((100dvh - 280px) * 4 / 5));
+  }
+
+  .signal-memory-aspect-16-9 {
+    width: min(100%, calc((100dvh - 280px) * 16 / 9));
+  }
+
+  .signal-memory-controls {
+    max-height: 260px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+    padding: 12px;
+    border-top: 1px solid rgba(226, 229, 235, 0.12);
+    border-left: 0;
+  }
+
+  .signal-memory-controls header,
+  .signal-memory-presets,
+  .signal-memory-controls footer {
+    display: none;
+  }
+
+  .signal-memory-field:has(.signal-memory-text-input) {
+    display: grid;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .signal-memory-transport button,
+  .signal-memory-presets button {
+    transition: none;
+  }
+}

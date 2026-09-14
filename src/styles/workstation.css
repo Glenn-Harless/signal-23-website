@@ -164,6 +164,15 @@
     animation: ws-flicker 0.15s infinite;
 }
 
+.ws-deterministic-visual.ws-transitioning {
+    animation: none;
+}
+
+.ws-deterministic-visual > .ws-scanlines,
+.ws-deterministic-visual > .ws-noise {
+    display: none;
+}
+
 /* Mobile Adjustments for Shell */
 @media (max-width: 768px) {
     .ws-nav-container {
@@ -171,5 +180,21 @@
         padding: 1rem;
         letter-spacing: 0.1em;
         font-size: 0.7rem;
+    }
+}
+
+/* Plain documents: listen landing pages (/listen/<slug>) and legal pages (/legal/*) */
+.ws-main-container.ws-plain {
+    padding: 0;
+    overflow-y: auto;
+}
+
+.ws-plain-route.ws-transitioning {
+    animation: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .ws-transitioning {
+        animation: none;
     }
 }

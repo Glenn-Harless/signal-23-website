@@ -1,0 +1,148 @@
+/*
+ * Legal documents (/legal/privacy).
+ * Shared by the static build (inlined by scripts/legal-pages.js, no JavaScript)
+ * and the SPA fallback route, so it assumes no Tailwind preflight or global reset.
+ * Readability first: larger type and higher contrast than the terminal surfaces.
+ */
+
+.legal-page {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 100%;
+  margin: 0;
+  padding: 3.5rem max(1.5rem, env(safe-area-inset-right)) 4rem max(1.5rem, env(safe-area-inset-left));
+  display: flex;
+  justify-content: center;
+  background: #000000;
+  color: rgba(255, 255, 255, 0.82);
+  font-family: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  -webkit-font-smoothing: antialiased;
+  -webkit-text-size-adjust: 100%;
+}
+
+.legal-page *,
+.legal-page *::before,
+.legal-page *::after {
+  box-sizing: inherit;
+}
+
+.legal {
+  width: 100%;
+  max-width: 680px;
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+.legal__eyebrow {
+  margin: 0 0 0.75rem;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.legal h1 {
+  margin: 0 0 0.5rem;
+  font-size: clamp(28px, 6vw, 36px);
+  line-height: 1.1;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: #ffffff;
+}
+
+.legal__meta {
+  margin: 0 0 1.25rem;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.legal__lead {
+  margin: 0 0 2rem;
+  color: rgba(255, 255, 255, 0.88);
+}
+
+.legal__toc {
+  margin: 0 0 2.5rem;
+  padding: 1rem 1.25rem;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.legal__toc ol {
+  margin: 0;
+  padding-left: 1.4rem;
+}
+
+.legal__toc li {
+  margin: 0.2rem 0;
+  font-size: 13px;
+}
+
+.legal section {
+  margin: 0 0 2.25rem;
+}
+
+.legal h2 {
+  margin: 0 0 0.85rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: #ffffff;
+}
+
+.legal p {
+  margin: 0 0 0.9rem;
+}
+
+.legal ul,
+.legal ol {
+  margin: 0 0 0.9rem;
+  padding-left: 1.4rem;
+}
+
+.legal li {
+  margin: 0.35rem 0;
+}
+
+.legal strong {
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.legal a {
+  color: #ffffff;
+  text-decoration: underline;
+  text-decoration-color: rgba(255, 255, 255, 0.4);
+  text-underline-offset: 3px;
+  overflow-wrap: anywhere;
+}
+
+.legal a:hover {
+  text-decoration-color: #ffffff;
+}
+
+.legal a:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.7);
+  outline-offset: 2px;
+}
+
+.legal__foot {
+  margin-top: 3rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.legal__foot p {
+  margin: 0;
+}
+
+@media (max-width: 600px) {
+  .legal-page {
+    padding-top: 2.5rem;
+    padding-bottom: 3rem;
+  }
+}
