@@ -51,7 +51,7 @@ First mobile screen, top to bottom:
 3. Approved artwork still, with the optional loop video fading in over it
 4. Prominent **Listen on Spotify** button: a plain `<a href>` to the canonical Spotify track URL, same tab
 5. **Explore Signal-23** text link (`exploreHref`)
-6. **Privacy** link to `/legal/privacy`
+6. **Privacy** link to `/legal/privacy/`
 
 An optional one-sentence description may appear under the title. There is no preview player, sign-up form, or interstitial.
 

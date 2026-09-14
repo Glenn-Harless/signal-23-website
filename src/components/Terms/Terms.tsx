@@ -32,7 +32,7 @@ export const Terms: React.FC = () => {
           <p>
             How we handle information on this site, for purchases, and in our own
             Facebook and Instagram advertising is described in our{' '}
-            <a href="/legal/privacy">Privacy Policy</a>.
+            <a href="/legal/privacy/">Privacy Policy</a>.
           </p>
         </section>
       </div>

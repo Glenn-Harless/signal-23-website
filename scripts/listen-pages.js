@@ -80,7 +80,7 @@ function renderListenMarkup(track) {
       </a>
       <nav class="listen__secondary" aria-label="More from ${artist}">
         <a class="listen__explore" href="${escapeHtml(track.exploreHref || '/')}">Explore ${artist}</a>
-        <a class="listen__privacy" href="/legal/privacy">Privacy</a>
+        <a class="listen__privacy" href="/legal/privacy/">Privacy</a>
       </nav>
     </div>
   </div>
@@ -95,7 +95,8 @@ function listenPageParameters(track, css) {
     artist: escapeHtml(config.artist),
     title: escapeHtml(pageTitle(track)),
     description: escapeHtml(pageDescription(track)),
-    url: escapeHtml(`${origin}/listen/${track.slug}`),
+    // Netlify serves directory index pages at the trailing-slash URL; the canonical must match what is served.
+    url: escapeHtml(`${origin}/listen/${track.slug}/`),
     image: escapeHtml(`${origin}${share.src}`),
     imageWidth: share.width,
     imageHeight: share.height,

@@ -14,9 +14,9 @@ The main art experience is unchanged. The policy is reached from a clearly label
 
 ## Outputs
 
-- `build/legal/privacy/index.html`: a complete HTML document containing the full policy text, page metadata, `robots: index, follow`, a canonical link, the shared stylesheet inlined, the site typeface loaded from Google Fonts, and no `<script>` elements. Netlify serves it before the SPA rewrite, so a direct request returns HTTP 200 with the text in the initial response.
+- `build/legal/privacy/index.html`: a complete HTML document containing the full policy text, page metadata, `robots: index, follow`, a canonical link, the shared stylesheet inlined, the site typeface loaded from Google Fonts, and no `<script>` elements. Netlify serves it before the SPA rewrite at the trailing-slash address `https://signal23.net/legal/privacy/` (HTTP 200 with the text in the initial response); `/legal/privacy` without the slash is a 301 to it. The canonical tag, internal links and the Meta Privacy Policy URL all use the trailing-slash form.
 - SPA route `/legal/privacy` rendering the same content file inside the shell, as a fallback for hosts without static-file resolution and for client-side navigation.
-- `netlify.toml`: `/privacy` redirects to `/legal/privacy` with status 301.
+- `netlify.toml`: `/privacy` redirects to `/legal/privacy/` with status 301.
 - Registry entry `privacy-policy` (type `page`, visibility `public`) in `src/data/transmissions.ts`.
 
 ## Content

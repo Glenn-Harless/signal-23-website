@@ -133,7 +133,7 @@ export const ListenPage: React.FC<ListenPageProps> = ({ track }) => {
             <a className="listen__explore" href={track.exploreHref || '/'}>
               Explore {LISTEN_ARTIST}
             </a>
-            <a className="listen__privacy" href="/legal/privacy">
+            <a className="listen__privacy" href="/legal/privacy/">
               Privacy
             </a>
           </nav>
