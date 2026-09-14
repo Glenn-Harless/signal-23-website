@@ -67,7 +67,8 @@ function legalHtmlPlugins({ template, css }) {
         page: {
           title: escapeHtml(page.title),
           description: escapeHtml(page.description),
-          url: escapeHtml(`${siteUrl()}${page.route}`),
+          // Netlify serves directory index pages at the trailing-slash URL; the canonical must match what is served.
+          url: escapeHtml(`${siteUrl()}${page.route}/`),
           fontHref: escapeHtml(FONT_HREF),
           css: stylesheet,
           content,

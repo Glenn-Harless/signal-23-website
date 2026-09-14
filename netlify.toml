@@ -58,7 +58,7 @@
 # Short alias for the privacy policy; the canonical page is /legal/privacy.
 [[redirects]]
   from = "/privacy"
-  to = "/legal/privacy"
+  to = "/legal/privacy/"
   status = 301
 
 [[redirects]]

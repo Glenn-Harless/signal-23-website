@@ -141,7 +141,7 @@ Measurement lives in `src/lib/listenAnalytics.ts`: a page view and a `spotify_ou
 
 ## Privacy Policy
 
-`/legal/privacy` is the public privacy policy for the website and for Signal-23's internal Meta advertising app; it is the URL used in Meta's Privacy Policy field. The policy text lives once, in `src/components/Legal/privacy-policy.content.html`. At build time `scripts/legal-pages.js` renders it into a static, script-free `build/legal/privacy/index.html` (metadata plus inlined `Legal.css`), so the full text is in the initial HTML response for people and crawlers alike. `/legal/privacy` in `App.tsx` renders the same content as an SPA fallback, `/terms` links to it, and `netlify.toml` redirects `/privacy` there.
+`/legal/privacy` is the public privacy policy for the website and for Signal-23's internal Meta advertising app; it is the URL used in Meta's Privacy Policy field. The policy text lives once, in `src/components/Legal/privacy-policy.content.html`. At build time `scripts/legal-pages.js` renders it into a static, script-free `build/legal/privacy/index.html` (metadata plus inlined `Legal.css`), so the full text is in the initial HTML response for people and crawlers alike. `/legal/privacy` in `App.tsx` renders the same content as an SPA fallback, `/terms` links to it, and `netlify.toml` redirects `/privacy` there. Netlify serves directory pages at the trailing-slash URL, so the served address, canonical tag and the value for Meta's Privacy Policy URL field are all `https://signal23.net/legal/privacy/`.
 
 To change the policy, edit the content file and update the effective date in its header. The page must never add analytics, pixels or cookies of its own.
 
