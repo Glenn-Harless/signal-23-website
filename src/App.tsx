@@ -38,6 +38,7 @@ import { Mycelium } from './components/Mycelium/Mycelium';
 import { Mountain } from './components/Mountain/Mountain';
 import { Cloudform } from './components/Cloudform/Cloudform';
 import { Torchrite } from './components/Torchrite/Torchrite';
+import { SignalMemory } from './components/SignalMemory/SignalMemory';
 
 
 
@@ -204,6 +205,7 @@ const App = () => {
           <Route path="/mountain" element={<Mountain />} />
           <Route path="/cloudform" element={<Cloudform />} />
           <Route path="/torchrite" element={<Torchrite />} />
+          <Route path="/signal-memory" element={<SignalMemory />} />
         </Routes>
       </WorkstationShell>
     </BrowserRouter>

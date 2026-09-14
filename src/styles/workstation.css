@@ -164,6 +164,15 @@
     animation: ws-flicker 0.15s infinite;
 }
 
+.ws-deterministic-visual.ws-transitioning {
+    animation: none;
+}
+
+.ws-deterministic-visual > .ws-scanlines,
+.ws-deterministic-visual > .ws-noise {
+    display: none;
+}
+
 /* Mobile Adjustments for Shell */
 @media (max-width: 768px) {
     .ws-nav-container {

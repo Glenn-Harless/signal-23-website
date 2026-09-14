@@ -3,3 +3,5 @@ Disallow: /operator
 Disallow: /operator/
 Disallow: /deaddrop
 Disallow: /deaddrop/
+Disallow: /signal-memory
+Disallow: /signal-memory/

@@ -93,6 +93,7 @@ Soft-secret visual transmissions:
 | `/mountain` | Mountain |
 | `/cloudform` | Cloudform |
 | `/torchrite` | Torchrite |
+| `/signal-memory` | Signal Memory |
 
 Hidden internal surfaces:
 
@@ -106,13 +107,25 @@ The hidden surfaces are intentionally absent from public navigation. `robots.txt
 
 ## Visual Export
 
-Each of the 22 visual routes can act as a browser-rendered capture source. A route behaves normally without query parameters and enters export framing when `target` is present, for example:
+Each of the 23 visual routes can act as a browser-rendered capture source. A route behaves normally without query parameters and enters export framing when `target` is present, for example:
 
 ```text
 /torchrite?target=canvas&duration=8&aspect=9:16
 ```
 
 Supported targets are `canvas`, `reel`, `hardware-feed`, `still`, and `loop`; individual route capabilities are defined in `src/data/transmissions.ts` and displayed in the operator console.
+
+### Signal Memory
+
+`/signal-memory` is the first seed-replayable visual route: a silent, fixed-step 12–15 second piece in which a single simulated CRT beam writes Signal-23's own promo stills onto a single phosphor buffer — losing and regaining sync, integrating twelve observations of the emblem, tracing the contours out of its own memory, rewriting them as Signal-23 glyphs and landing on the frame-1 lockup. It supports 9:16, 4:5 and 16:9 plus three curated presets.
+
+Use the normal route for controls and timeline scrubbing, then add `target=reel` for a clean control-free capture frame (`t=` pins a frame for stills):
+
+```text
+/signal-memory?target=reel&seed=S23-GLYPH-1603&duration=13.5&aspect=9:16
+```
+
+Capture at 1080×1920 for 9:16, 1080×1350 for 4:5, or 1920×1080 for 16:9 with audio disabled. The visual system, seed, source-derivative and capture notes live in [`src/components/SignalMemory/README.md`](src/components/SignalMemory/README.md).
 
 ## Payment and Download Flow
 

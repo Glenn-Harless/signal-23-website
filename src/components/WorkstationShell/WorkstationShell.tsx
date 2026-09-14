@@ -10,9 +10,13 @@ interface WorkstationShellProps {
 export const WorkstationShell: React.FC<WorkstationShellProps> = ({ children }) => {
     const location = useLocation();
     const [flicker, setFlicker] = useState(false);
+    const currentPath = location.pathname === '/'
+        ? '/'
+        : location.pathname.replace(/\/+$/, '');
+    const isDeterministicVisual = currentPath === '/signal-memory';
 
     // Add page-specific detection for layout containment
-    const isLanding = location.pathname === '/' || location.pathname === '/testblandingpage' || location.pathname === '/terminal' || location.pathname === '/resonance' || location.pathname === '/tangle' || location.pathname === '/learning' || location.pathname === '/forbidding' || location.pathname === '/well' || location.pathname === '/stepwell' || location.pathname === '/broadcast' || location.pathname === '/forest';
+    const isLanding = currentPath === '/' || currentPath === '/testblandingpage' || currentPath === '/terminal' || currentPath === '/resonance' || currentPath === '/tangle' || currentPath === '/learning' || currentPath === '/forbidding' || currentPath === '/well' || currentPath === '/stepwell' || currentPath === '/broadcast' || currentPath === '/forest' || isDeterministicVisual;
 
     // Sync flicker effect with route changes
     useEffect(() => {
@@ -22,7 +26,7 @@ export const WorkstationShell: React.FC<WorkstationShellProps> = ({ children }) 
     }, [location.pathname]);
 
     return (
-        <div className={`workstation-shell ${flicker ? 'ws-transitioning' : ''}`}>
+        <div className={`workstation-shell ${flicker ? 'ws-transitioning' : ''} ${isDeterministicVisual ? 'ws-deterministic-visual' : ''}`}>
             <div className="ws-scanlines" />
             <div className="ws-noise" />
 
@@ -33,5 +37,3 @@ export const WorkstationShell: React.FC<WorkstationShellProps> = ({ children }) 
         </div>
     );
 };
-
-
