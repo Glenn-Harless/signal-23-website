@@ -1,0 +1,250 @@
+/*
+ * Listen landing page (/listen/<slug>).
+ * Shared by the standalone per-track HTML build (inlined by scripts/listen-pages.js)
+ * and the SPA fallback route, so it assumes no Tailwind preflight or global reset.
+ */
+
+.listen {
+  --listen-bg: #000000;
+  --listen-fg: #ffffff;
+  --listen-dim: rgba(255, 255, 255, 0.58);
+  --listen-faint: rgba(255, 255, 255, 0.38);
+  --listen-line: rgba(255, 255, 255, 0.14);
+  --listen-spotify: #1db954;
+  --listen-pad-x: 20px;
+
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 100%;
+  margin: 0;
+  padding:
+    max(16px, env(safe-area-inset-top))
+    max(var(--listen-pad-x), env(safe-area-inset-right))
+    max(16px, env(safe-area-inset-bottom))
+    max(var(--listen-pad-x), env(safe-area-inset-left));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: var(--listen-bg);
+  color: var(--listen-fg);
+  font-family: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  font-size: 14px;
+  line-height: 1.4;
+  -webkit-font-smoothing: antialiased;
+  -webkit-text-size-adjust: 100%;
+}
+
+.listen *,
+.listen *::before,
+.listen *::after {
+  box-sizing: inherit;
+}
+
+.listen__frame {
+  width: 100%;
+  max-width: 440px;
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: 860px;
+  display: flex;
+  flex-direction: column;
+  /* Once the artwork hits its square cap, leftover height centers the content instead of pooling below it. */
+  justify-content: center;
+}
+
+/* Header ------------------------------------------------------------- */
+
+.listen__head {
+  padding: 8px 0 18px;
+}
+
+.listen__artist {
+  margin: 0 0 10px;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--listen-dim);
+}
+
+.listen__title {
+  margin: 0;
+  font-size: clamp(34px, 10vw, 46px);
+  line-height: 1.02;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  overflow-wrap: anywhere;
+}
+
+.listen__description {
+  margin: 12px 0 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--listen-dim);
+}
+
+/* Artwork ------------------------------------------------------------ */
+
+.listen__art {
+  position: relative;
+  width: 100%;
+  margin: 0;
+  flex: 1 1 auto;
+  min-height: 150px;
+  max-height: min(calc(100vw - 2 * var(--listen-pad-x)), 440px);
+  overflow: hidden;
+  background: #05070a;
+  border: 1px solid var(--listen-line);
+}
+
+.listen__art img,
+.listen__art video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.listen__loop {
+  opacity: 0;
+  transition: opacity 700ms ease;
+  pointer-events: none;
+}
+
+.listen__loop.is-playing {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .listen__loop {
+    display: none;
+  }
+}
+
+/* Actions ------------------------------------------------------------ */
+
+.listen__actions {
+  padding-top: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.listen__cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 56px;
+  padding: 14px 20px;
+  background: var(--listen-fg);
+  color: #000000;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-decoration: none;
+  border-radius: 4px;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color 120ms ease;
+}
+
+.listen__cta:hover {
+  background: #e6e6e6;
+}
+
+.listen__cta:active {
+  transform: translateY(1px);
+}
+
+.listen__cta:focus-visible {
+  outline: 2px solid var(--listen-spotify);
+  outline-offset: 3px;
+}
+
+.listen__cta svg {
+  width: 22px;
+  height: 22px;
+  flex: none;
+  fill: var(--listen-spotify);
+}
+
+.listen__secondary {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+}
+
+.listen__explore,
+.listen__privacy {
+  display: inline-block;
+  padding: 12px 0;
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.listen__explore {
+  color: var(--listen-dim);
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  border-bottom: 1px solid var(--listen-line);
+  padding-bottom: 3px;
+  margin-bottom: 9px;
+}
+
+.listen__privacy {
+  color: var(--listen-faint);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.listen__explore:hover,
+.listen__explore:focus-visible {
+  color: var(--listen-fg);
+  border-color: var(--listen-dim);
+}
+
+.listen__privacy:hover,
+.listen__privacy:focus-visible {
+  color: var(--listen-dim);
+}
+
+.listen__explore:focus-visible,
+.listen__privacy:focus-visible {
+  outline: 2px solid var(--listen-dim);
+  outline-offset: 2px;
+}
+
+/* Short viewports (in-app browsers on small phones) ------------------- */
+
+@media (max-height: 600px) {
+  .listen__head {
+    padding: 4px 0 12px;
+  }
+
+  .listen__artist {
+    margin-bottom: 6px;
+  }
+
+  .listen__title {
+    font-size: clamp(28px, 8vw, 36px);
+  }
+
+  .listen__art {
+    min-height: 120px;
+  }
+
+  .listen__actions {
+    padding-top: 12px;
+  }
+
+  .listen__cta {
+    min-height: 52px;
+  }
+}

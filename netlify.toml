@@ -55,6 +55,12 @@
     [headers.values]
     X-Robots-Tag = "noindex, nofollow"
 
+# Short alias for the privacy policy; the canonical page is /legal/privacy.
+[[redirects]]
+  from = "/privacy"
+  to = "/legal/privacy"
+  status = 301
+
 [[redirects]]
   from = "/*"
   to = "/index.html"

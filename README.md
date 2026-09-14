@@ -65,6 +65,8 @@ Public and commerce routes:
 | `/instruments` | Instrument-rack catalog and pay-what-you-want acquisition flow |
 | `/instruments/success` | Stripe payment verification and signed-download delivery |
 | `/terms` | Terms page |
+| `/listen/:slug` | Per-track ad landing page with a direct **Listen on Spotify** handoff (currently `decay`) |
+| `/legal/privacy` | Privacy policy; static HTML readable without JavaScript (`/privacy` redirects here) |
 | `/testblandingpage` | Deprecated compatibility path that redirects to `/resonance` |
 
 Soft-secret visual transmissions:
@@ -127,6 +129,22 @@ Use the normal route for controls and timeline scrubbing, then add `target=reel`
 
 Capture at 1080×1920 for 9:16, 1080×1350 for 4:5, or 1920×1080 for 16:9 with audio disabled. The visual system, seed, source-derivative and capture notes live in [`src/components/SignalMemory/README.md`](src/components/SignalMemory/README.md).
 
+## Listen Landing Pages
+
+`/listen/<slug>` is a lightweight landing page for visitors arriving from a paid social ad that plays a specific track: artist name, exact track title, the approved artwork, one **Listen on Spotify** link, and small **Explore Signal-23** and **Privacy** links. Ads land on it directly; the portal and terminal are untouched.
+
+Tracks are configured in `src/data/listenTracks.json` (title, slug, canonical Spotify track URL, artwork, optional share crop, optional muted loop video, optional one-sentence description, explore destination). Derived web assets live under `public/listen/<slug>/`.
+
+At build time `scripts/listen-pages.js` pre-renders one static `build/listen/<slug>/index.html` per track with track-specific Open Graph metadata, the inlined stylesheet, working markup before any JavaScript runs, and only the small `listen` bundle (`src/listen.tsx`). Netlify serves that file ahead of the SPA rewrite; `/listen/:slug` in `App.tsx` is the fallback for other hosts and unknown slugs. `npm start` serves the generated pages at the same pretty URLs.
+
+Measurement lives in `src/lib/listenAnalytics.ts`: a page view and a `spotify_outbound_click` event fired once per activation of the Spotify link, carrying the track slug and allowlisted `utm_*` parameters. The Meta Pixel sink is included only when `LISTEN_META_PIXEL_ID` is set at build time and runs only when the visitor has not opted out (Global Privacy Control or a stored denial). Requirements, decisions and manual review steps live in `feature-dev-docs/feature-dev-listen/`.
+
+## Privacy Policy
+
+`/legal/privacy` is the public privacy policy for the website and for Signal-23's internal Meta advertising app; it is the URL used in Meta's Privacy Policy field. The policy text lives once, in `src/components/Legal/privacy-policy.content.html`. At build time `scripts/legal-pages.js` renders it into a static, script-free `build/legal/privacy/index.html` (metadata plus inlined `Legal.css`), so the full text is in the initial HTML response for people and crawlers alike. `/legal/privacy` in `App.tsx` renders the same content as an SPA fallback, `/terms` links to it, and `netlify.toml` redirects `/privacy` there.
+
+To change the policy, edit the content file and update the effective date in its header. The page must never add analytics, pixels or cookies of its own.
+
 ## Payment and Download Flow
 
 - An exact `$0` selection calls `/.netlify/functions/free-download` and returns a 30-minute Cloudflare R2 signed URL without involving Stripe.
@@ -143,10 +161,14 @@ src/
   App.tsx                         React Router configuration
   components/                    Route and shared UI components
   data/transmissions.ts          Operator and visual-export registry
+  data/listenTracks.json         Listen landing page track configuration
+  listen.tsx                     Standalone entry for the static /listen/<slug> pages
   hooks/                         Shared React hooks
   lib/                           Export parsing and validation
   styles/                        Global and shared styles
 netlify/functions/               Stripe and R2 serverless endpoints
+scripts/listen-pages.js          Pre-renders static /listen/<slug> pages for webpack
+scripts/legal-pages.js           Pre-renders the script-free /legal/privacy page for webpack
 public/                          Static files, models, audio, and thumbnails
 feature-dev-docs/                Living requirements, decisions, and tests
 Dockerfile.frontend              Node 18 development image
@@ -167,6 +189,8 @@ The serverless payment flow expects:
 | `R2_ACCESS_KEY_ID` | R2 API credential |
 | `R2_SECRET_ACCESS_KEY` | R2 API credential |
 | `R2_BUCKET` | Private rack bucket; defaults to `signal23-racks` |
+| `LISTEN_META_PIXEL_ID` | Build-time; enables the Meta Pixel on `/listen/<slug>` pages. Empty means no tracking code |
+| `LISTEN_SITE_URL` | Build-time; origin for listen page canonical/Open Graph URLs. Defaults to Netlify `URL`, then `siteUrl` in `src/data/listenTracks.json` |
 
 See `.env.example` for placeholders.
 

@@ -14,6 +14,8 @@ export const WorkstationShell: React.FC<WorkstationShellProps> = ({ children }) 
         ? '/'
         : location.pathname.replace(/\/+$/, '');
     const isDeterministicVisual = currentPath === '/signal-memory';
+    // Plain documents (ad landing pages, legal pages): plain scrolling container, no route-change flicker.
+    const isPlainDocument = currentPath.startsWith('/listen/') || currentPath.startsWith('/legal/');
 
     // Add page-specific detection for layout containment
     const isLanding = currentPath === '/' || currentPath === '/testblandingpage' || currentPath === '/terminal' || currentPath === '/resonance' || currentPath === '/tangle' || currentPath === '/learning' || currentPath === '/forbidding' || currentPath === '/well' || currentPath === '/stepwell' || currentPath === '/broadcast' || currentPath === '/forest' || isDeterministicVisual;
@@ -26,12 +28,12 @@ export const WorkstationShell: React.FC<WorkstationShellProps> = ({ children }) 
     }, [location.pathname]);
 
     return (
-        <div className={`workstation-shell ${flicker ? 'ws-transitioning' : ''} ${isDeterministicVisual ? 'ws-deterministic-visual' : ''}`}>
+        <div className={`workstation-shell ${flicker ? 'ws-transitioning' : ''} ${isDeterministicVisual ? 'ws-deterministic-visual' : ''} ${isPlainDocument ? 'ws-plain-route' : ''}`}>
             <div className="ws-scanlines" />
             <div className="ws-noise" />
 
 
-            <div className={`ws-main-container ${isLanding ? 'no-padding ws-reset' : ''}`}>
+            <div className={`ws-main-container ${isLanding ? 'no-padding ws-reset' : ''} ${isPlainDocument ? 'ws-plain' : ''}`}>
                 {children}
             </div>
         </div>

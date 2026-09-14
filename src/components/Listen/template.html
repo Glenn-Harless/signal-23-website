@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#000000">
+    <title><%= page.title %></title>
+    <meta name="description" content="<%= page.description %>">
+    <link rel="canonical" href="<%= page.url %>">
+    <link rel="icon" type="image/png" href="/favicon.png">
+
+    <meta property="og:type" content="music.song">
+    <meta property="og:site_name" content="<%= page.artist %>">
+    <meta property="og:title" content="<%= page.title %>">
+    <meta property="og:description" content="<%= page.description %>">
+    <meta property="og:url" content="<%= page.url %>">
+    <meta property="og:image" content="<%= page.image %>">
+    <meta property="og:image:width" content="<%= page.imageWidth %>">
+    <meta property="og:image:height" content="<%= page.imageHeight %>">
+    <meta property="og:image:alt" content="<%= page.imageAlt %>">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="<%= page.title %>">
+    <meta name="twitter:description" content="<%= page.description %>">
+    <meta name="twitter:image" content="<%= page.image %>">
+    <meta name="twitter:image:alt" content="<%= page.imageAlt %>">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preload" as="style" href="<%= page.fontHref %>" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="<%= page.fontHref %>"></noscript>
+    <style>
+        html, body { margin: 0; height: 100%; background: #000000; color: #ffffff; }
+        #listen-root { height: 100%; }
+        <%= page.css %>
+    </style>
+</head>
+<body>
+    <div id="listen-root" data-track="<%= page.slug %>"><%= page.markup %></div>
+</body>
+</html>

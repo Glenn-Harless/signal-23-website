@@ -1,0 +1,29 @@
+{
+  "artist": "Signal-23",
+  "siteUrl": "https://signal23.net",
+  "tracks": [
+    {
+      "slug": "decay",
+      "title": "Decay",
+      "spotifyUrl": "https://open.spotify.com/track/4W3gCoS3MDNNHHjtCsQrID",
+      "releaseDate": "2026-03-20",
+      "artwork": {
+        "src": "/listen/decay/artwork.jpg",
+        "width": 1200,
+        "height": 1200,
+        "alt": "Decay track art: a bright ringed ellipse burning through a field of CRT static"
+      },
+      "shareImage": {
+        "src": "/listen/decay/og.jpg",
+        "width": 1200,
+        "height": 630
+      },
+      "loopVideo": {
+        "src": "/listen/decay/loop.mp4",
+        "width": 540,
+        "height": 540
+      },
+      "exploreHref": "/decay"
+    }
+  ]
+}

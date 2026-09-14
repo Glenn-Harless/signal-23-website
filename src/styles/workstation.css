@@ -182,3 +182,19 @@
         font-size: 0.7rem;
     }
 }
+
+/* Plain documents: listen landing pages (/listen/<slug>) and legal pages (/legal/*) */
+.ws-main-container.ws-plain {
+    padding: 0;
+    overflow-y: auto;
+}
+
+.ws-plain-route.ws-transitioning {
+    animation: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .ws-transitioning {
+        animation: none;
+    }
+}

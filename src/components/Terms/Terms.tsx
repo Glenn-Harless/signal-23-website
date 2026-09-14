@@ -27,12 +27,12 @@ export const Terms: React.FC = () => {
           </p>
         </section>
 
-        <section>
+        <section id="privacy">
           <h2>Privacy</h2>
           <p>
-            We collect only the information necessary to process your purchase.
-            Payment processing is handled securely by Stripe. We do not sell or
-            share your personal information.
+            How we handle information on this site, for purchases, and in our own
+            Facebook and Instagram advertising is described in our{' '}
+            <a href="/legal/privacy">Privacy Policy</a>.
           </p>
         </section>
       </div>

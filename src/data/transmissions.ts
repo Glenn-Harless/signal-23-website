@@ -449,6 +449,18 @@ export const transmissions: Transmission[] = [
     addedAt: '2026-05-07',
   },
   {
+    slug: 'privacy-policy',
+    route: '/legal/privacy',
+    title: 'PRIVACY POLICY',
+    type: 'page',
+    status: 'active',
+    visibility: 'public',
+    tags: ['privacy', 'policy', 'legal'],
+    exportUse: [],
+    notes: 'Script-free static page built from src/components/Legal/privacy-policy.content.html. Used as the Meta app Privacy Policy URL.',
+    addedAt: '2026-09-13',
+  },
+  {
     slug: 'testblandingpage',
     route: '/testblandingpage',
     title: 'LEGACY RESONANCE REDIRECT',
