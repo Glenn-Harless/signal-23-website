@@ -170,7 +170,7 @@ netlify/functions/               Stripe and R2 serverless endpoints
 scripts/listen-pages.js          Pre-renders static /listen/<slug> pages for webpack
 scripts/legal-pages.js           Pre-renders the script-free /legal/privacy page for webpack
 public/                          Static files, models, audio, and thumbnails
-feature-dev-docs/                Living requirements, decisions, and tests
+feature-dev-docs/                Older per-feature notes (reference only; may be stale)
 Dockerfile.frontend              Node 18 development image
 docker-compose.yml               Host port 9823 → container port 8080
 webpack.config.js                Development and production bundling
