@@ -41,6 +41,7 @@ import { Torchrite } from './components/Torchrite/Torchrite';
 import { SignalMemory } from './components/SignalMemory/SignalMemory';
 import { ListenRoute } from './components/Listen/ListenRoute';
 import { PrivacyPolicy } from './components/Legal/PrivacyPolicy';
+import { Standby } from './components/Standby/Standby';
 
 
 
@@ -99,7 +100,10 @@ const Home: React.FC<HomeProps> = ({ isMobile }) => {
 
           <div className="md:hidden flex flex-col items-center h-full relative z-10">
             {/* Font renders "-" as "-2", so "SIGNAL-3" displays as "SIGNAL-23" */}
-            <h1 className="text-4xl sm:text-5xl font-bold text-white font-neo-brute-transparent mt-12">
+            <h1
+              className="text-4xl sm:text-5xl font-bold text-white font-neo-brute-transparent"
+              style={{ marginTop: 'calc(3rem + var(--site-nav-offset, 0px))' }}
+            >
               SIGNAL-3
             </h1>
           </div>
@@ -176,8 +180,10 @@ const App = () => {
         <Routes>
           <Route path="/" element={<Home isMobile={isMobile} />} />
           <Route path="/terminal" element={<Terminal isMobile={isMobile} />} />
+          <Route path="/av" element={<Standby code="A/V" lines={['RELEASES', 'FILMS', 'VISUAL TRANSMISSIONS']} />} />
           <Route path="/instruments" element={<InstrumentsPage />} />
           <Route path="/instruments/success" element={<SuccessPage />} />
+          <Route path="/buy" element={<Standby code="BUY" lines={['VST INSTRUMENTS', 'SAMPLE LIBRARIES', 'MAX FOR LIVE DEVICES']} />} />
           <Route path="/testblandingpage" element={<Navigate to="/resonance" replace />} />
           <Route path="/resonance" element={<Resonance />} />
           <Route path="/growth" element={<Growth />} />

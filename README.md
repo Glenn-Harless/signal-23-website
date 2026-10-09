@@ -62,12 +62,16 @@ Public and commerce routes:
 | --- | --- |
 | `/` | Public Signal-23 portal and audio entry point |
 | `/terminal` | Public B.A.N.I.S. terminal |
-| `/instruments` | Instrument-rack catalog and pay-what-you-want acquisition flow |
+| `/av` | A/V holding page (releases, films, visual transmissions) |
+| `/instruments` | Instrument-rack catalog and pay-what-you-want acquisition flow (the nav's **DL**) |
 | `/instruments/success` | Stripe payment verification and signed-download delivery |
+| `/buy` | BUY holding page (VST instruments, sample libraries, Max for Live devices) |
 | `/terms` | Terms page |
 | `/listen/:slug` | Per-track ad landing page with a direct **Listen on Spotify** handoff (currently `decay`) |
 | `/legal/privacy` | Privacy policy; static HTML readable without JavaScript (`/privacy` redirects here) |
 | `/testblandingpage` | Deprecated compatibility path that redirects to `/resonance` |
+
+The public routes above (except `/listen/*`, `/legal/*` and the redirect) carry the site nav, **HOME / A/V / DL / BUY**, set in American Typewriter. Its items and route allowlist live in `src/data/siteNav.ts`.
 
 Soft-secret visual transmissions:
 
