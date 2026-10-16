@@ -133,7 +133,7 @@ export const AVPage: React.FC = () => {
         <section className="av-section" aria-labelledby="av-ep2">
           <div className="av-sh">
             <h2 id="av-ep2" className="tw ink">EP2</h2>
-            <span className="av-ro">2026.08.28 / FOUR TRANSMISSIONS / HOVER FOR THE DATA</span>
+            <span className="av-ro">2026.08.28 / FOUR TRANSMISSIONS</span>
           </div>
           <div className="av-row4">
             {ep2.map((r) => (
@@ -157,7 +157,6 @@ export const AVPage: React.FC = () => {
         <section className="av-section" aria-labelledby="av-films">
           <div className="av-sh">
             <h2 id="av-films" className="tw ink">FILMS</h2>
-            <span className="av-ro">NOTHING PLAYS UNTIL YOU PRESS IT</span>
           </div>
           <div className="av-films">
             {films.map((r) => (
