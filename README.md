@@ -61,7 +61,7 @@ Public and commerce routes:
 | Path | Purpose |
 | --- | --- |
 | `/` | Public portal: a window lit by the visitor's clock, Station 23's number groups and the hidden home audio |
-| `/terminal` | Public B.A.N.I.S. terminal: LOG, TUNE (full releases), DECODE (number groups), SCAN, ARCHIVES |
+| `/terminal` | Public terminal: LOG, TUNE (full releases), DECODE (number groups), SCAN, ARCHIVES |
 | `/av` | A/V: every release as a window drawn from its measured spectrum, films and excerpts, and the visitor's recovered transmissions |
 | `/instruments` | DL: the schedule sheet of devices and racks, with pay-what-you-want downloads per pack (`/dl` redirects here) |
 | `/instruments/success` | Stripe payment verification and signed-download delivery |

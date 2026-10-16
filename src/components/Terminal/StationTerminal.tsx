@@ -398,7 +398,6 @@ export const StationTerminal: React.FC<StationTerminalProps> = ({ isMobile }) =>
       />
       <div className="station-terminal__screen">
         <div className="st-dim st-header">
-          <span>B.A.N.I.S. TERMINAL</span>
           <span>
             LOCAL {clock}  {phase}  CARRIER 23
           </span>

@@ -404,7 +404,7 @@ export const transmissions: Transmission[] = [
   {
     slug: 'terminal',
     route: '/terminal',
-    title: 'B.A.N.I.S TERMINAL',
+    title: 'TERMINAL',
     type: 'interactive',
     status: 'active',
     visibility: 'public',

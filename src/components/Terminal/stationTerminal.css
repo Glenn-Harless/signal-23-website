@@ -1,4 +1,4 @@
-/* The B.A.N.I.S. terminal: a full green phosphor screen, no housing. */
+/* The terminal: a full green phosphor screen, no housing. */
 
 @import './Terminal.css';
 
@@ -46,7 +46,7 @@
 
 .st-header {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-end;
     gap: 16px;
     white-space: pre;
 }
@@ -295,8 +295,8 @@
         inset: calc(var(--site-nav-offset, 3.25rem) + 1rem) 1.25rem calc(env(safe-area-inset-bottom, 0px) + 13.5rem);
     }
 
-    .st-header > span:last-child {
-        display: none;
+    .st-header {
+        justify-content: flex-start;
     }
 
     .st-row {
