@@ -144,7 +144,10 @@ export const EnhancedNumberStation: React.FC<NumberStationProps> = ({ isMobile, 
   );
 
   return (
-    <div className="fixed top-0 left-0 w-full h-24 px-6 font-mono pointer-events-none">
+    <div
+      className="fixed left-0 w-full h-24 px-6 font-mono pointer-events-none"
+      style={{ top: 'var(--site-nav-offset, 0px)' }}
+    >
       <div className={`h-full ${containerClass}`}>
         <div
           className={`flex space-x-2 ${glitchEffect ? 'animate-pulse' : ''}`}

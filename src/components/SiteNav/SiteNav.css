@@ -1,0 +1,224 @@
+/* Site navigation: HOME / A/V / DL / BUY, set in American Typewriter like the partners' print work. */
+
+.workstation-shell.has-site-nav {
+    --site-nav-offset: 0px;
+}
+
+/* Padded (document-style) routes start below the nav band instead of under it. */
+.workstation-shell.has-site-nav .ws-main-container:not(.no-padding) {
+    padding-top: 7.5rem;
+}
+
+.site-nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 6rem;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 0 1.5rem;
+    z-index: 9000;
+    pointer-events: none;
+    color: #fff;
+}
+
+/* Surfaces whose content scrolls under the nav get a solid band with a short fade so labels stay legible. */
+.site-nav[data-surface='page'] {
+    --site-nav-band: #000;
+}
+
+.site-nav[data-surface='terminal'] {
+    --site-nav-band: #000b00;
+    color: #4ade80;
+}
+
+.site-nav[data-surface='page'],
+.site-nav[data-surface='terminal'] {
+    background-color: var(--site-nav-band);
+}
+
+.site-nav[data-surface='page']::after,
+.site-nav[data-surface='terminal']::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 100%;
+    height: 1.5rem;
+    background: linear-gradient(to bottom, var(--site-nav-band), transparent);
+    pointer-events: none;
+}
+
+.site-nav__list {
+    pointer-events: auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 21rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.site-nav__link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0 0.1em;
+    font-family: 'American Typewriter', 'Courier Prime', 'Courier New', monospace;
+    font-weight: 700;
+    font-size: 0.95rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: inherit;
+    text-decoration: none;
+    opacity: 0.82;
+    transition: opacity 0.15s ease;
+}
+
+.site-nav[data-surface='terminal'] .site-nav__link {
+    text-shadow: 0 0 6px rgba(74, 222, 128, 0.45);
+}
+
+.site-nav__link:hover,
+.site-nav__link:focus-visible,
+.site-nav__link.is-active {
+    opacity: 1;
+}
+
+.site-nav__link:focus-visible {
+    outline: 1px solid currentColor;
+    outline-offset: 2px;
+}
+
+.site-nav__word {
+    position: relative;
+    display: inline-block;
+}
+
+.site-nav__ink {
+    display: inline-block;
+    filter: url(#site-nav-ink);
+}
+
+/* One key per character: each letter drops in like a typebar on first load. */
+.site-nav__char {
+    display: inline-block;
+    animation: site-nav-type 90ms ease-out both;
+}
+
+/* Typed underline: a run of underscores from the ribbon. Red half of the ribbon marks the current page. */
+.site-nav__ribbon {
+    position: absolute;
+    left: 0;
+    right: 0.16em;
+    bottom: -0.4em;
+    height: 2px;
+    background: repeating-linear-gradient(90deg, currentColor 0 0.62em, transparent 0.62em 0.76em);
+    opacity: 0.5;
+    transform: scaleX(0);
+    transform-origin: left center;
+    transition: transform 0.24s steps(4, end);
+}
+
+.site-nav__link:hover .site-nav__ribbon,
+.site-nav__link:focus-visible .site-nav__ribbon {
+    transform: scaleX(1);
+}
+
+.site-nav__link.is-active .site-nav__ribbon {
+    background: repeating-linear-gradient(90deg, var(--ws-accent, #ef4444) 0 0.62em, transparent 0.62em 0.76em);
+    opacity: 1;
+    transform: scaleX(1);
+}
+
+.site-nav__link:hover .site-nav__word {
+    animation: site-nav-strike 140ms ease-out;
+}
+
+.site-nav__defs {
+    position: absolute;
+    width: 0;
+    height: 0;
+    overflow: hidden;
+}
+
+@keyframes site-nav-type {
+    0% {
+        opacity: 0;
+        transform: translateY(2px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes site-nav-strike {
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    30% {
+        transform: translateY(1.5px);
+    }
+}
+
+/* Desktop: align the nav with the homepage glyph stack (right-20, ~25.5rem wide at lg). */
+@media (min-width: 1024px) {
+    .site-nav {
+        padding-right: 5rem;
+    }
+
+    .site-nav__list {
+        width: 25.5rem;
+    }
+
+    .site-nav__link {
+        font-size: 1rem;
+    }
+}
+
+/* Mobile: a full-width strip at the top; the number station and title move down beneath it. */
+@media (max-width: 768px) {
+    .workstation-shell.has-site-nav {
+        --site-nav-offset: 3.25rem;
+    }
+
+    .workstation-shell.has-site-nav .ws-main-container:not(.no-padding) {
+        padding-top: calc(var(--site-nav-offset) + 2rem);
+    }
+
+    .site-nav {
+        height: auto;
+        padding: calc(env(safe-area-inset-top, 0px) + 0.25rem) 1.5rem 0.25rem;
+    }
+
+    .site-nav__list {
+        width: 100%;
+    }
+
+    .site-nav__link {
+        font-size: 0.85rem;
+        letter-spacing: 0.14em;
+    }
+
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .site-nav__char {
+        animation: none;
+    }
+
+    .site-nav__link:hover .site-nav__word {
+        animation: none;
+    }
+
+    .site-nav__ribbon {
+        transition: none;
+    }
+}
