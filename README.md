@@ -150,13 +150,7 @@ To change the policy, edit the content file and update the effective date in its
 
 ## Portal, Number Station and Terminal
 
-The home portal (`src/components/Station/`) draws one window on the GPU, colored by the visitor's local clock (dawn, day, dusk, night; no location prompt). The window element is also the click area into the terminal. Three design options are built in:
-
-- **A**: the soft cloud drawn small on the CPU and blurred up.
-- **B** (default): a detailed cloud in one fragment shader, three parallax layers with self-shadowing.
-- **C**: Station 23 seen as a slow-scan radio picture. Seven ridges drawn from the measured releases, a mast whose red light blinks the number groups, live fog that breathes with the home audio. The mast light is the listen button.
-
-`?portal=a|b|c` picks an option and is remembered for the browser session. Builds outside Netlify's `production` context also show a small A/B/C switch (`process.env.SITE_CONTEXT`, from Netlify's `CONTEXT` at build time). `?sky=dawn|day|dusk|night` previews a time of day and `?at23=1` previews the call-up the station sends 23 minutes past each hour. Without WebGL every option falls back to A.
+The home portal (`src/components/Station/`) draws one window on the GPU: a detailed cloud in a single fragment shader, three parallax layers with self-shadowing, colored by the visitor's local clock (dawn, day, dusk, night; no location prompt). The window element is also the click area into the terminal. Without WebGL it falls back to a soft cloud drawn on the CPU. `?sky=dawn|day|dusk|night` previews a time of day and `?at23=1` previews the call-up the station sends 23 minutes past each hour.
 
 The number readout steps through the day's groups digit by digit; the red dot blinks in time and is the home audio's hidden play button. Each of the 23 soft-secret visuals in `src/data/transmissions.ts` has one group, numbered in registry order; the scheme, the daily schedule and the flash timing live in `src/data/numberStation.ts`. The terminal's DECODE turns a group into its route and remembers recovered routes in the visitor's own browser (`localStorage`).
 

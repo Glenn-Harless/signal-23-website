@@ -1,19 +1,11 @@
 import React, { useEffect, useRef } from 'react';
-import { DETAIL_FRAGMENT, PORTAL_VERTEX, STATION_FRAGMENT } from './portalShaders';
-import { localHour, moonInWindow, moonLit, moonPhase, nightAmount, skyPalette, sunState } from './sky';
-import { mastPosition, ridgeProfiles, RIDGE_SAMPLES } from './ridges';
+import { DETAIL_FRAGMENT, PORTAL_VERTEX } from './portalShaders';
+import { localHour, nightAmount, skyPalette } from './sky';
 import { StationBroadcast } from './broadcast';
-import { analyserFor, bandLevel } from '../../lib/audioGraph';
-
-export type PortalVariant = 'a' | 'b' | 'c';
 
 interface StationPortalProps {
-  variant: PortalVariant;
   broadcast: StationBroadcast;
-  audio: HTMLAudioElement | null;
-  isAudioPlaying: boolean;
   onEnter: () => void;
-  onListen: () => void;
 }
 
 const FRAME_MS = 33;
@@ -23,12 +15,9 @@ type GlState = {
   u: Record<string, WebGLUniformLocation | null>;
 };
 
-const UNIFORMS = ['uRes', 'uTime', 'uMouse', 'uShadow', 'uMid', 'uHigh', 'uWin', 'uNight', 'uSun', 'uMoon', 'uLight', 'uBlink', 'uFog', 'uMastU', 'uLock', 'uRidge'];
+const UNIFORMS = ['uRes', 'uTime', 'uMouse', 'uShadow', 'uMid', 'uHigh', 'uWin', 'uNight'];
 
-const RIDGES = ridgeProfiles();
-const MAST = mastPosition(RIDGES[RIDGES.length - 1]);
-
-const initGl = (canvas: HTMLCanvasElement, variant: PortalVariant): GlState | null => {
+const initGl = (canvas: HTMLCanvasElement): GlState | null => {
   const gl = canvas.getContext('webgl', { antialias: false, alpha: false, depth: false, stencil: false, preserveDrawingBuffer: false, powerPreference: 'low-power' });
   if (!gl) return null;
   const compile = (type: number, src: string) => {
@@ -39,7 +28,7 @@ const initGl = (canvas: HTMLCanvasElement, variant: PortalVariant): GlState | nu
     return gl.getShaderParameter(s, gl.COMPILE_STATUS) ? s : null;
   };
   const vs = compile(gl.VERTEX_SHADER, PORTAL_VERTEX);
-  const fs = compile(gl.FRAGMENT_SHADER, variant === 'c' ? STATION_FRAGMENT : DETAIL_FRAGMENT);
+  const fs = compile(gl.FRAGMENT_SHADER, DETAIL_FRAGMENT);
   const prog = gl.createProgram();
   if (!vs || !fs || !prog) return null;
   gl.attachShader(prog, vs);
@@ -57,29 +46,10 @@ const initGl = (canvas: HTMLCanvasElement, variant: PortalVariant): GlState | nu
   UNIFORMS.forEach((n) => {
     u[n] = gl.getUniformLocation(prog, n);
   });
-
-  if (variant === 'c') {
-    // The only texture: 96 x 8 bytes of release data, one row per ridge.
-    const data = new Uint8Array(RIDGE_SAMPLES * 8);
-    RIDGES.forEach((row, k) => row.forEach((v, i) => {
-      data[k * RIDGE_SAMPLES + i] = Math.round(v * 255);
-    }));
-    const tex = gl.createTexture();
-    gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, tex);
-    gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.LUMINANCE, RIDGE_SAMPLES, 8, 0, gl.LUMINANCE, gl.UNSIGNED_BYTE, data);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-    gl.uniform1i(u.uRidge, 0);
-    gl.uniform1f(u.uMastU, MAST.u);
-  }
   return { gl, u };
 };
 
-// Option A: the cloud drawn small on the CPU and blurred up, as on the live site today.
+// Without WebGL: the soft cloud drawn small on the CPU and blurred up.
 const hash2 = (i: number, j: number) => {
   const s = Math.sin(i * 127.1 + j * 311.7) * 43758.5453;
   return s - Math.floor(s);
@@ -109,7 +79,7 @@ const fbm2 = (x: number, y: number) => {
   return s;
 };
 
-class CloudA {
+class CpuCloud {
   private off = document.createElement('canvas');
 
   private offCtx: CanvasRenderingContext2D | null;
@@ -180,24 +150,21 @@ class CloudA {
   }
 }
 
-export const StationPortal: React.FC<StationPortalProps> = ({ variant, broadcast, audio, isAudioPlaying, onEnter, onListen }) => {
+export const StationPortal: React.FC<StationPortalProps> = ({ broadcast, onEnter }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const windowRef = useRef<HTMLDivElement>(null);
-  const live = useRef({ audio, isAudioPlaying });
-  live.current = { audio, isAudioPlaying };
 
   useEffect(() => {
     const canvas = canvasRef.current;
     const win = windowRef.current;
     if (!canvas || !win) return undefined;
 
-    let glState = variant === 'a' ? null : initGl(canvas, variant);
-    // Without WebGL every option falls back to the CPU cloud.
+    let glState = initGl(canvas);
     let ctx2d: CanvasRenderingContext2D | null = null;
-    let cloudA: CloudA | null = null;
+    let cpuCloud: CpuCloud | null = null;
     if (!glState) {
       ctx2d = canvas.getContext('2d');
-      cloudA = new CloudA();
+      cpuCloud = new CpuCloud();
     }
 
     const mouse = { x: 0, y: 0, tx: 0, ty: 0 };
@@ -210,10 +177,6 @@ export const StationPortal: React.FC<StationPortalProps> = ({ variant, broadcast
     let raf = 0;
     let last = 0;
     const t0 = performance.now();
-    let fog = 0.9;
-    let audF = 0;
-    let audS = 0;
-    let fbuf: Uint8Array | null = null;
 
     const frame = (ts: number) => {
       raf = requestAnimationFrame(frame);
@@ -236,7 +199,7 @@ export const StationPortal: React.FC<StationPortalProps> = ({ variant, broadcast
       const h = localHour();
 
       if (!glState) {
-        if (ctx2d && cloudA) cloudA.draw(ctx2d, W, H, rect, t, [mouse.x, mouse.y], h);
+        if (ctx2d && cpuCloud) cpuCloud.draw(ctx2d, W, H, rect, t, [mouse.x, mouse.y], h);
         return;
       }
 
@@ -253,37 +216,6 @@ export const StationPortal: React.FC<StationPortalProps> = ({ variant, broadcast
       gl.uniform3f(u.uHigh, hi[0], hi[1], hi[2]);
       gl.uniform1f(u.uNight, night);
 
-      if (variant === 'c') {
-        const sun = sunState(h);
-        const phase = moonPhase();
-        const moon = night > 0.05 ? moonInWindow(h, phase) : null;
-        const lit = moonLit(phase);
-        const lightX = night > 0.5 ? (moon ? moon.x : 0.5) : sun.x;
-        const side = Math.max(-1, Math.min(1, (lightX - 0.5) * 2));
-        const strength = night > 0.5 ? (moon ? 0.25 + 0.5 * lit : 0.12) : 0.55 + 0.6 * sun.glow;
-
-        const natural = 0.82 + 0.22 * Math.sin((t * 2 * Math.PI) / 97) + 0.12 * Math.sin((t * 2 * Math.PI) / 41 + 1.3);
-        fog += ((broadcast.current.mode === 'callup' ? 0.35 : natural) - fog) * 0.02;
-        const { audio: el, isAudioPlaying: playing } = live.current;
-        const analyser = el && playing ? analyserFor(el) : null;
-        if (analyser) {
-          if (!fbuf || fbuf.length !== analyser.frequencyBinCount) fbuf = new Uint8Array(analyser.frequencyBinCount);
-          const lvl = bandLevel(analyser, fbuf, 1, 24);
-          audF += (lvl - audF) * 0.25;
-          audS += (lvl - audS) * 0.02;
-        } else {
-          audF *= 0.94;
-          audS *= 0.98;
-        }
-        const fogNow = Math.max(0.2, Math.min(1.6, fog + audS * 0.3 + (audF - audS) * 2.2));
-
-        gl.uniform3f(u.uSun, sun.x, sun.elevation, sun.glow);
-        gl.uniform4f(u.uMoon, moon ? moon.x : 0, moon ? moon.y : 0, moon ? 13 : 0, phase);
-        gl.uniform3f(u.uLight, 0.026 * side, -0.024, strength);
-        gl.uniform1f(u.uBlink, broadcast.blink);
-        gl.uniform1f(u.uFog, fogNow);
-        gl.uniform1f(u.uLock, broadcast.lock);
-      }
       gl.drawArrays(gl.TRIANGLES, 0, 3);
     };
     raf = requestAnimationFrame(frame);
@@ -296,22 +228,13 @@ export const StationPortal: React.FC<StationPortalProps> = ({ variant, broadcast
         glState = null;
       }
     };
-  }, [variant, broadcast]);
+  }, [broadcast]);
 
   return (
     <div className="station-portal">
       <canvas ref={canvasRef} className="station-portal__canvas" aria-hidden="true" />
       <div ref={windowRef} className="station-portal__window">
         <button type="button" className="station-portal__enter" aria-label="Enter terminal" onClick={onEnter} />
-        {variant === 'c' && (
-          <button
-            type="button"
-            className="station-portal__mast"
-            aria-label={isAudioPlaying ? 'Stop listening' : 'Listen'}
-            style={{ left: `${MAST.x * 100}%`, top: `calc(${MAST.footY * 100}% - 77.5px)` }}
-            onClick={onListen}
-          />
-        )}
       </div>
     </div>
   );

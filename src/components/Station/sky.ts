@@ -67,23 +67,3 @@ export const moonPhase = (now = Date.now()) => {
 
 /** Percentage of the disc lit. */
 export const moonLit = (phase: number) => (1 - Math.cos(2 * Math.PI * phase)) / 2;
-
-/** Low sun position for the window, which faces south: it rises on the left and sets on the right. */
-export const sunState = (h: number) => {
-  const x = Math.max(-0.3, Math.min(1.3, -0.3 + ((h - 6) / 13.5) * 1.6));
-  const elevation = h > 6.3 && h < 19.4 ? Math.sin((Math.PI * (h - 6.3)) / 13.1) : 0;
-  const glow = Math.exp(-(((h - 6.9) / 1.1) ** 2)) + Math.exp(-(((h - 18.9) / 1.1) ** 2));
-  return { x, elevation, glow };
-};
-
-/**
- * Where the moon sits in the window, in window units (0..1, top-left origin), or null when it is down.
- * It transits about phase x 24 hours after noon and is up for roughly six hours either side.
- */
-export const moonInWindow = (h: number, phase: number) => {
-  const transit = (12 + phase * 24) % 24;
-  const fromTransit = ((h - transit + 36) % 24) - 12;
-  if (Math.abs(fromTransit) > 6.2) return null;
-  const a = fromTransit / 6.2;
-  return { x: 0.5 + a * 0.55, y: 0.52 - Math.cos((a * Math.PI) / 2) * 0.36 };
-};

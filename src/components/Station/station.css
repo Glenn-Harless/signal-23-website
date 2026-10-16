@@ -44,29 +44,6 @@
     outline-offset: 6px;
 }
 
-/* Option C: the mast light is the listen button. */
-.station-portal__mast {
-    position: absolute;
-    width: 48px;
-    height: 48px;
-    margin: -24px 0 0 -24px;
-    border-radius: 50%;
-    border: 1px solid rgba(239, 68, 68, 0);
-    background: transparent;
-    padding: 0;
-    cursor: pointer;
-    transition: border-color 0.4s;
-}
-
-.station-portal__mast:hover {
-    border-color: rgba(239, 68, 68, 0.28);
-}
-
-.station-portal__mast:focus-visible {
-    outline: none;
-    border-color: rgba(239, 68, 68, 0.7);
-}
-
 .station-readout {
     position: absolute;
     left: 1.5rem;
@@ -171,40 +148,6 @@
     z-index: 20;
 }
 
-/* Design-option switch, shown on deploy previews only. */
-.station-home__options {
-    position: absolute;
-    right: 1.5rem;
-    bottom: calc(env(safe-area-inset-bottom, 0px) + 1.25rem);
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    z-index: 30;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 10px;
-    letter-spacing: 0.2em;
-    color: rgba(232, 228, 216, 0.45);
-}
-
-.station-home__options span {
-    margin-right: 6px;
-}
-
-.station-home__options button {
-    min-width: 32px;
-    min-height: 32px;
-    background: transparent;
-    border: 1px solid rgba(232, 228, 216, 0.18);
-    color: inherit;
-    font: inherit;
-    cursor: pointer;
-}
-
-.station-home__options button.is-on {
-    color: #fff;
-    border-color: rgba(239, 68, 68, 0.7);
-}
-
 @media (max-width: 768px) {
     .station-home {
         --win-h: min(400px, 46vh);
@@ -234,7 +177,4 @@
         margin: 0 0 0 -8px;
     }
 
-    .station-home__options {
-        bottom: calc(env(safe-area-inset-bottom, 0px) + 3.25rem);
-    }
 }

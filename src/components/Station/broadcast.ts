@@ -24,8 +24,6 @@ const forceCallup = () => {
 export class StationBroadcast {
   blink = 0;
 
-  lock = 0;
-
   private seq: FlashSequence | null = null;
 
   private started = 0;
@@ -94,7 +92,6 @@ export class StationBroadcast {
     if (elapsed >= this.seq.end) digit = groups[index].length;
 
     this.blink += ((on ? 1 : 0) - this.blink) * (on ? 0.75 : 0.4);
-    this.lock += ((mode === 'callup' ? 1 : 0) - this.lock) * 0.03;
 
     const s = this.state;
     if (s.mode !== mode || s.groups !== groups || s.index !== index || s.digit !== digit) {
