@@ -60,18 +60,17 @@ Public and commerce routes:
 
 | Path | Purpose |
 | --- | --- |
-| `/` | Public Signal-23 portal and audio entry point |
-| `/terminal` | Public B.A.N.I.S. terminal |
+| `/` | Public portal: a window lit by the visitor's clock, Station 23's number groups and the hidden home audio |
+| `/terminal` | Public B.A.N.I.S. terminal: LOG, TUNE (full releases), DECODE (number groups), SCAN, ARCHIVES |
 | `/av` | A/V holding page (releases, films, visual transmissions) |
 | `/instruments` | Instrument-rack catalog and pay-what-you-want acquisition flow (the nav's **DL**) |
 | `/instruments/success` | Stripe payment verification and signed-download delivery |
-| `/buy` | BUY holding page (VST instruments, sample libraries, Max for Live devices) |
 | `/terms` | Terms page |
 | `/listen/:slug` | Per-track ad landing page with a direct **Listen on Spotify** handoff (currently `decay`) |
 | `/legal/privacy` | Privacy policy; static HTML readable without JavaScript (`/privacy` redirects here) |
 | `/testblandingpage` | Deprecated compatibility path that redirects to `/resonance` |
 
-The public routes above (except `/listen/*`, `/legal/*` and the redirect) carry the site nav, **HOME / A/V / DL / BUY**, set in American Typewriter. Its items and route allowlist live in `src/data/siteNav.ts`.
+The public routes above (except `/listen/*`, `/legal/*` and the redirect) carry the site nav, **HOME / A/V / DL**, set in American Typewriter. Its items and route allowlist live in `src/data/siteNav.ts`.
 
 Soft-secret visual transmissions:
 
@@ -149,6 +148,20 @@ Measurement lives in `src/lib/listenAnalytics.ts`: a page view and a `spotify_ou
 
 To change the policy, edit the content file and update the effective date in its header. The page must never add analytics, pixels or cookies of its own.
 
+## Portal, Number Station and Terminal
+
+The home portal (`src/components/Station/`) draws one window on the GPU, colored by the visitor's local clock (dawn, day, dusk, night; no location prompt). The window element is also the click area into the terminal. Three design options are built in:
+
+- **A**: the soft cloud drawn small on the CPU and blurred up.
+- **B** (default): a detailed cloud in one fragment shader, three parallax layers with self-shadowing.
+- **C**: Station 23 seen as a slow-scan radio picture. Seven ridges drawn from the measured releases, a mast whose red light blinks the number groups, live fog that breathes with the home audio. The mast light is the listen button.
+
+`?portal=a|b|c` picks an option and is remembered for the browser session. Builds outside Netlify's `production` context also show a small A/B/C switch (`process.env.SITE_CONTEXT`, from Netlify's `CONTEXT` at build time). `?sky=dawn|day|dusk|night` previews a time of day and `?at23=1` previews the call-up the station sends 23 minutes past each hour. Without WebGL every option falls back to A.
+
+The number readout steps through the day's groups digit by digit; the red dot blinks in time and is the home audio's hidden play button. Each of the 23 soft-secret visuals in `src/data/transmissions.ts` has one group, numbered in registry order; the scheme, the daily schedule and the flash timing live in `src/data/numberStation.ts`. The terminal's DECODE turns a group into its route and remembers recovered routes in the visitor's own browser (`localStorage`).
+
+TUNE lists every release on a frequency taken from its release date. Measured numbers and spectra live in `src/data/releaseTelemetry.json`; release metadata, audio paths and YouTube IDs in `src/data/releases.ts`. Full tracks are 192 kbps MP3s in `public/audio/` (Pieces stays at `public/pieces-website-mp3.mp3`). A release without audio shows as not loaded. SCAN still plays a random stretch of the HLS stream in `src/components/Terminal/AudioStreamer.ts`.
+
 ## Payment and Download Flow
 
 - An exact `$0` selection calls `/.netlify/functions/free-download` and returns a 30-minute Cloudflare R2 signed URL without involving Stripe.
@@ -165,6 +178,8 @@ src/
   App.tsx                         React Router configuration
   components/                    Route and shared UI components
   data/transmissions.ts          Operator and visual-export registry
+  data/releases.ts               Releases for TUNE and A/V (audio, films, measured telemetry)
+  data/numberStation.ts          Number groups, daily schedule and DECODE
   data/listenTracks.json         Listen landing page track configuration
   listen.tsx                     Standalone entry for the static /listen/<slug> pages
   hooks/                         Shared React hooks
@@ -173,7 +188,7 @@ src/
 netlify/functions/               Stripe and R2 serverless endpoints
 scripts/listen-pages.js          Pre-renders static /listen/<slug> pages for webpack
 scripts/legal-pages.js           Pre-renders the script-free /legal/privacy page for webpack
-public/                          Static files, models, audio, and thumbnails
+public/                          Static files, models, audio (public/audio/ holds release MP3s), and thumbnails
 feature-dev-docs/                Older per-feature notes (reference only; may be stale)
 Dockerfile.frontend              Node 18 development image
 docker-compose.yml               Host port 9823 → container port 8080

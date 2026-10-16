@@ -1,4 +1,4 @@
-/* Site navigation: HOME / A/V / DL / BUY, set in American Typewriter like the partners' print work. */
+/* Site navigation: HOME / A/V / DL, set in American Typewriter like the partners' print work. */
 
 .workstation-shell.has-site-nav {
     --site-nav-offset: 0px;
@@ -56,7 +56,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    width: 21rem;
+    width: 15.75rem;
     margin: 0;
     padding: 0;
     list-style: none;
@@ -168,14 +168,14 @@
     }
 }
 
-/* Desktop: align the nav with the homepage glyph stack (right-20, ~25.5rem wide at lg). */
+/* Desktop: align the nav with the homepage glyph stack (right-20); three items sit over its right three-quarters. */
 @media (min-width: 1024px) {
     .site-nav {
         padding-right: 5rem;
     }
 
     .site-nav__list {
-        width: 25.5rem;
+        width: 19rem;
     }
 
     .site-nav__link {

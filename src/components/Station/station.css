@@ -1,0 +1,240 @@
+/* Home: the portal window, the number readout, the glyph stack. */
+
+.station-home {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: #000;
+    color: #e8e4d8;
+    --win-h: min(520px, 60vh);
+    --win-w: calc(var(--win-h) * 0.7692);
+}
+
+.station-portal,
+.station-portal__canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+/* The window the shader draws into; its box is the click area, so they always line up. */
+.station-portal__window {
+    position: absolute;
+    width: var(--win-w);
+    height: var(--win-h);
+    left: max(1.5rem, calc(33% - var(--win-w) / 2));
+    top: calc(50% - var(--win-h) / 2);
+    z-index: 5;
+}
+
+.station-portal__enter {
+    position: absolute;
+    inset: 0;
+    background: transparent;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+}
+
+.station-portal__enter:focus-visible {
+    outline: 1px solid rgba(232, 228, 216, 0.6);
+    outline-offset: 6px;
+}
+
+/* Option C: the mast light is the listen button. */
+.station-portal__mast {
+    position: absolute;
+    width: 48px;
+    height: 48px;
+    margin: -24px 0 0 -24px;
+    border-radius: 50%;
+    border: 1px solid rgba(239, 68, 68, 0);
+    background: transparent;
+    padding: 0;
+    cursor: pointer;
+    transition: border-color 0.4s;
+}
+
+.station-portal__mast:hover {
+    border-color: rgba(239, 68, 68, 0.28);
+}
+
+.station-portal__mast:focus-visible {
+    outline: none;
+    border-color: rgba(239, 68, 68, 0.7);
+}
+
+.station-readout {
+    position: absolute;
+    left: 1.5rem;
+    top: 0;
+    height: 6rem;
+    display: flex;
+    align-items: center;
+    gap: 22px;
+    z-index: 20;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 14px;
+    letter-spacing: 0.22em;
+    color: rgba(232, 228, 216, 0.78);
+    pointer-events: none;
+}
+
+.station-readout__mark {
+    opacity: 0.55;
+}
+
+.station-readout__light {
+    pointer-events: auto;
+    width: 28px;
+    height: 44px;
+    margin: 0 -10px 0 -8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+}
+
+.station-readout__light:focus-visible {
+    outline: 1px solid rgba(239, 68, 68, 0.7);
+    outline-offset: 2px;
+}
+
+.station-readout__dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #ef4444;
+    box-shadow: 0 0 8px rgba(239, 68, 68, 0.9);
+    opacity: 0.15;
+}
+
+.station-readout__group .is-sent {
+    opacity: 0.82;
+}
+
+.station-readout__group .is-now {
+    color: #fff;
+    text-shadow: 0 0 10px rgba(239, 68, 68, 0.6);
+}
+
+.station-readout__group .is-waiting {
+    opacity: 0.3;
+}
+
+.station-readout__next {
+    opacity: 0.36;
+}
+
+/* The typed red ribbon under a real group. */
+.station-readout .is-marked {
+    color: #fff;
+    padding-bottom: 5px;
+    background: repeating-linear-gradient(90deg, #ef4444 0 0.62em, transparent 0.62em 0.76em) left bottom / calc(100% - 0.22em) 2px no-repeat;
+}
+
+.station-home__stack {
+    position: absolute;
+    inset: 0;
+    z-index: 4;
+    pointer-events: none;
+}
+
+.station-home__title {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 7.75rem;
+    margin: 0;
+    text-align: center;
+    font-size: 2.6rem;
+    font-weight: 700;
+    color: #fff;
+    z-index: 4;
+    pointer-events: none;
+}
+
+.station-home__contact {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 1.5rem);
+    display: flex;
+    justify-content: center;
+    opacity: 0.6;
+    z-index: 20;
+}
+
+/* Design-option switch, shown on deploy previews only. */
+.station-home__options {
+    position: absolute;
+    right: 1.5rem;
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 1.25rem);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    z-index: 30;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    color: rgba(232, 228, 216, 0.45);
+}
+
+.station-home__options span {
+    margin-right: 6px;
+}
+
+.station-home__options button {
+    min-width: 32px;
+    min-height: 32px;
+    background: transparent;
+    border: 1px solid rgba(232, 228, 216, 0.18);
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+}
+
+.station-home__options button.is-on {
+    color: #fff;
+    border-color: rgba(239, 68, 68, 0.7);
+}
+
+@media (max-width: 768px) {
+    .station-home {
+        --win-h: min(400px, 46vh);
+    }
+
+    .station-portal__window {
+        left: calc(50% - var(--win-w) / 2);
+        top: calc(56% - var(--win-h) / 2);
+    }
+
+    .station-readout {
+        top: 3.5rem;
+        left: 1.5rem;
+        right: 1.5rem;
+        height: 2.75rem;
+        gap: 0;
+        justify-content: space-between;
+        font-size: 13px;
+        letter-spacing: 0.18em;
+    }
+
+    .station-readout__mark {
+        display: none;
+    }
+
+    .station-readout__light {
+        margin: 0 0 0 -8px;
+    }
+
+    .station-home__options {
+        bottom: calc(env(safe-area-inset-bottom, 0px) + 3.25rem);
+    }
+}

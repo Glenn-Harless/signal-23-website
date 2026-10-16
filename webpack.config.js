@@ -69,6 +69,8 @@ module.exports = {
     new webpack.DefinePlugin({
       // Listen landing page analytics; empty string disables the Meta Pixel sink.
       'process.env.LISTEN_META_PIXEL_ID': JSON.stringify(process.env.LISTEN_META_PIXEL_ID || ''),
+      // Netlify's build context (production, deploy-preview, branch-deploy); design-option switches hide in production.
+      'process.env.SITE_CONTEXT': JSON.stringify(process.env.CONTEXT || 'dev'),
     }),
     new HtmlWebpackPlugin({
       template: './public/index.html',
