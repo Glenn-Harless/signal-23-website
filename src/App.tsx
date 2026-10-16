@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { StationHome } from './components/Station/StationHome';
 import { StationTerminal } from './components/Terminal/StationTerminal';
-import { InstrumentsPage } from './components/Instruments/InstrumentsPage';
+import { DLPage } from './components/DL/DLPage';
 import { SuccessPage } from './components/Instruments/SuccessPage';
 import { WorkstationShell } from './components/WorkstationShell/WorkstationShell';
 import { Resonance } from './components/Resonance/Resonance';
@@ -64,7 +64,8 @@ const App = () => {
           <Route path="/" element={<StationHome isMobile={isMobile} />} />
           <Route path="/terminal" element={<StationTerminal isMobile={isMobile} />} />
           <Route path="/av" element={<AVPage />} />
-          <Route path="/instruments" element={<InstrumentsPage />} />
+          <Route path="/instruments" element={<DLPage />} />
+          <Route path="/dl" element={<Navigate to="/instruments" replace />} />
           <Route path="/instruments/success" element={<SuccessPage />} />
           <Route path="/testblandingpage" element={<Navigate to="/resonance" replace />} />
           <Route path="/resonance" element={<Resonance />} />

@@ -13,9 +13,11 @@ interface GritTextProps {
   text: string;
   id: string;
   className?: string;
+  /** How many of the stacked cuts to show, from the top. */
+  layers?: number;
 }
 
-export const GritText: React.FC<GritTextProps> = ({ text, id, className = '' }) => {
+export const GritText: React.FC<GritTextProps> = ({ text, id, className = '', layers = LAYERS.length }) => {
   const live = useRef<SVGFETurbulenceElement>(null);
   const outline = useRef<SVGFETurbulenceElement>(null);
 
@@ -49,7 +51,7 @@ export const GritText: React.FC<GritTextProps> = ({ text, id, className = '' }) 
           <feDisplacementMap in="SourceGraphic" scale={1} />
         </filter>
       </svg>
-      {LAYERS.map((layer, i) => (
+      {LAYERS.slice(0, layers).map((layer, i) => (
         <div
           // eslint-disable-next-line react/no-array-index-key
           key={i}

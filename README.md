@@ -63,7 +63,7 @@ Public and commerce routes:
 | `/` | Public portal: a window lit by the visitor's clock, Station 23's number groups and the hidden home audio |
 | `/terminal` | Public B.A.N.I.S. terminal: LOG, TUNE (full releases), DECODE (number groups), SCAN, ARCHIVES |
 | `/av` | A/V: every release as a window drawn from its measured spectrum, films and excerpts, and the visitor's recovered transmissions |
-| `/instruments` | Instrument-rack catalog and pay-what-you-want acquisition flow (the nav's **DL**) |
+| `/instruments` | DL: the schedule sheet of devices and racks, with pay-what-you-want downloads per pack (`/dl` redirects here) |
 | `/instruments/success` | Stripe payment verification and signed-download delivery |
 | `/terms` | Terms page |
 | `/listen/:slug` | Per-track ad landing page with a direct **Listen on Spotify** handoff (currently `decay`) |
@@ -173,7 +173,11 @@ TUNE lists every release on a frequency taken from its release date. Measured nu
 - Stripe returns successful payments to `/instruments/success?session_id=...`; that page calls `/.netlify/functions/verify-payment` before receiving a 30-minute R2 signed URL.
 - `/.netlify/functions/stripe-webhook` verifies Stripe signatures and logs completed or expired checkout sessions.
 
-The current rack IDs are `arps`, `audio-fx`, `bass`, and `keys`. Their R2 object mapping lives in `netlify/functions/utils/storage.ts`.
+DL sells one pack per rack folder: `guitar`, `drums`, `synths-pads`, `any-source`, `vocals`, `mix-fx` and `lab`. Their R2 object names live in `netlify/functions/utils/storage.ts` (`Signal-23 <Pack> Racks.zip`); the retired `arps`, `audio-fx`, `bass` and `keys` stay mapped so earlier receipts still resolve.
+
+## DL
+
+`/instruments` (`src/components/DL/`) is a numbers-station schedule sheet: one line per rack, each digit one of its knobs at its saved position (0 to 9), devices first and then each pack in folder order. Rack names, knobs, presets and descriptions live in `src/data/racks.json`, generated from the racks in Ableton's User Library (`Presets/Audio Effects/Audio Effect Rack/1 Guitar` to `7 Lab`) and Glenn's racksmith notes. Third-party presets are left out. BK Baklengs is listed under Devices as in development, with demos in `public/audio/bk/` rendered from a plain synth phrase; while one plays, its line reads out the sound's energy band by band.
 
 ## Repository Layout
 
