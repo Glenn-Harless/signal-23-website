@@ -62,7 +62,7 @@ Public and commerce routes:
 | --- | --- |
 | `/` | Public portal: a window lit by the visitor's clock, Station 23's number groups and the hidden home audio |
 | `/terminal` | Public terminal: LOG, TUNE (full releases), DECODE (number groups), SCAN, ARCHIVES |
-| `/av` | A/V: every release as a window drawn from its measured spectrum, films and excerpts, and the visitor's recovered transmissions |
+| `/av` | A/V: every release as a window drawn from its measured spectrum, plus films and excerpts |
 | `/instruments` | DL: the schedule sheet of devices and racks, with pay-what-you-want downloads per pack (`/dl` redirects here) |
 | `/instruments/success` | Stripe payment verification and signed-download delivery |
 | `/terms` | Terms page |
@@ -164,7 +164,7 @@ TUNE lists every release on a frequency taken from its release date. Measured nu
 
 ## A/V
 
-`/av` (`src/components/AV/`) shows the latest release, EP2 and the Pillars EP as small portals painted from each track's measured spectrum in the visitor's sky colours; hovering shows the data as lines and clicking opens the terminal on that release (`/terminal?tune=MM.DD`). Films (official visuals) and excerpts (Shorts) come from `src/data/releases.ts`. Their stills are served from `public/av/`, and YouTube (privacy-enhanced mode) loads only when a visitor presses play. Recovered transmissions lists the 23 hidden visuals: each stays as static until that visitor has decoded its group in the terminal, then links to its route.
+`/av` (`src/components/AV/`) shows the latest release, EP2 and the Pillars EP as small portals painted from each track's measured spectrum in the visitor's sky colours; hovering shows the data as lines and clicking opens the terminal on that release (`/terminal?tune=MM.DD`). Films (official visuals) and excerpts (Shorts) come from `src/data/releases.ts`. Their stills are served from `public/av/`, and YouTube (privacy-enhanced mode) loads only when a visitor presses play.
 
 ## Payment and Download Flow
 

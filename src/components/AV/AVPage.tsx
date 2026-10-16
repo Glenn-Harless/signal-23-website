@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import { SpectrumWindow } from './SpectrumWindow';
 import { GritText } from '../Station/GritText';
 import { LOOSE_EXCERPTS, RELEASES, Release, formatDuration, latestRelease, telemetryFor } from '../../data/releases';
-import { STATION_ROUTES, readRecovered } from '../../data/numberStation';
 import { localHour, moonLit, moonPhase, skyPalette, skyPhase } from '../Station/sky';
 import './av.css';
 
@@ -49,10 +48,8 @@ const ReleaseCard: React.FC<{ release: Release; palette: ReturnType<typeof skyPa
 
 export const AVPage: React.FC = () => {
   const [now, setNow] = useState(() => new Date());
-  const [recovered, setRecovered] = useState<string[]>([]);
 
   useEffect(() => {
-    setRecovered(readRecovered());
     const timer = setInterval(() => setNow(new Date()), 60000);
     return () => clearInterval(timer);
   }, []);
@@ -70,8 +67,6 @@ export const AVPage: React.FC = () => {
       .flatMap((r) => r.excerpts.map((id, i) => ({ id, title: r.excerpts.length > 1 ? `${r.title} ${i + 1}` : r.title }))),
     ...LOOSE_EXCERPTS,
   ];
-  const open = new Set(recovered);
-  const openCount = STATION_ROUTES.filter((r) => open.has(r.slug)).length;
 
   return (
     <div className="av-page">
@@ -179,32 +174,6 @@ export const AVPage: React.FC = () => {
                 <figcaption className="av-ro">{x.title.toUpperCase()}</figcaption>
               </figure>
             ))}
-          </div>
-        </section>
-
-        <section className="av-section" aria-labelledby="av-recovered">
-          <div className="av-sh">
-            <h2 id="av-recovered" className="tw ink">RECOVERED TRANSMISSIONS</h2>
-            <span className="av-ro">{openCount} OF 23</span>
-          </div>
-          <div className="av-cells">
-            {STATION_ROUTES.map((r) =>
-              open.has(r.slug) ? (
-                <Link key={r.slug} className="av-cell is-open" to={r.route}>
-                  <img className="av-feather" src={`/thumbnails/${r.slug}.jpg`} alt="" loading="lazy" />
-                  <span className="av-ro">
-                    {pad2(r.number)} {r.title}
-                  </span>
-                </Link>
-              ) : (
-                <div key={r.slug} className="av-cell">
-                  <svg className="av-flick av-feather" viewBox="0 0 100 100" aria-hidden="true">
-                    <rect width="100" height="100" filter="url(#av-noise)" />
-                  </svg>
-                  <span className="av-ro">{pad2(r.number)}</span>
-                </div>
-              ),
-            )}
           </div>
         </section>
 

@@ -420,9 +420,9 @@ export const transmissions: Transmission[] = [
     type: 'page',
     status: 'active',
     visibility: 'public',
-    tags: ['releases', 'films', 'recovered-transmissions'],
+    tags: ['releases', 'films'],
     exportUse: [],
-    notes: 'Releases drawn from their measured spectra, films and excerpts (YouTube loads on press), and the recovered transmissions a visitor has decoded.',
+    notes: 'Releases drawn from their measured spectra, plus films and excerpts (YouTube loads on press).',
     addedAt: '2026-10-15',
   },
   {
