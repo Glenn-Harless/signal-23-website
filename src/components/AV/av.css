@@ -1,0 +1,478 @@
+/* A/V: every release is a small portal; films and excerpts sit in the same feathered light. */
+
+.av-page {
+    position: relative;
+    width: 100%;
+    min-height: 100%;
+    background: #000;
+    color: #e8e4d8;
+    font-family: 'IBM Plex Mono', monospace;
+}
+
+.av-defs {
+    position: absolute;
+}
+
+.av-grain {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    opacity: 0.07;
+    z-index: 1;
+}
+
+.av-page .tw {
+    font-family: 'American Typewriter', 'Courier Prime', 'Courier New', monospace;
+    font-weight: 700;
+}
+
+.av-page .ink {
+    filter: url(#av-ink);
+}
+
+.av-ro {
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    color: rgba(232, 228, 216, 0.55);
+}
+
+.av-ribbon {
+    padding-bottom: 6px;
+    background: repeating-linear-gradient(90deg, #ef4444 0 0.62em, transparent 0.62em 0.76em) left bottom / calc(100% - 0.12em) 2px no-repeat;
+}
+
+.av-wrap {
+    position: relative;
+    z-index: 2;
+    max-width: 1260px;
+    margin: 0 auto;
+    padding: 0 3rem 6rem;
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    gap: 7.5rem;
+}
+
+/* A legacy responsive rule sets section { width: 48% } on wide screens. */
+.av-page section {
+    width: 100%;
+}
+
+.av-sky {
+    display: flex;
+    gap: 18px;
+    margin-bottom: -5rem;
+}
+
+.av-hero {
+    display: grid;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 4fr);
+    gap: 64px;
+    align-items: center;
+}
+
+.av-hero__win {
+    max-width: 520px;
+    width: 100%;
+}
+
+.av-hero__text {
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+    align-items: flex-end;
+    text-align: right;
+}
+
+.av-hero__name {
+    margin: 0;
+    font-size: 30px;
+    letter-spacing: 0.1em;
+}
+
+.av-hero__meta {
+    line-height: 2;
+}
+
+.av-links {
+    display: flex;
+    gap: 28px;
+}
+
+.av-tl {
+    color: #e8e4d8;
+    text-decoration: none;
+    display: inline-flex;
+    min-height: 44px;
+    align-items: center;
+    letter-spacing: 0.16em;
+    font-size: 13px;
+    opacity: 0.82;
+}
+
+.av-tl:hover,
+.av-tl:focus-visible {
+    opacity: 1;
+    background: repeating-linear-gradient(90deg, #ef4444 0 0.62em, transparent 0.62em 0.76em) left calc(100% - 8px) / 100% 2px no-repeat;
+}
+
+/* Gritty glyph titles, shared with DL. */
+.grit-text {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    align-items: flex-end;
+}
+
+.grit-text__defs {
+    position: absolute;
+}
+
+.grit-text__layer {
+    font-size: 96px;
+    font-weight: 700;
+    line-height: 1;
+    color: #f2f1ec;
+    animation: av-pulse 2.2s ease-in-out infinite;
+}
+
+.grit-text__layer.is-outline {
+    color: #000;
+    -webkit-text-stroke: 1px #f2f1ec;
+    animation: none;
+}
+
+.grit-text__mirror {
+    display: inline-block;
+    transform: scaleX(-1);
+}
+
+.av-win {
+    position: relative;
+    display: block;
+    width: 100%;
+    aspect-ratio: 3 / 4;
+}
+
+.av-win canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    animation: av-breathe 6s ease-in-out infinite;
+    transition: filter 0.4s ease;
+}
+
+.av-win svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+}
+
+.av-win svg path {
+    fill: none;
+    stroke: rgba(242, 241, 236, 0.85);
+    stroke-width: 1;
+    vector-effect: non-scaling-stroke;
+}
+
+.av-win:hover svg,
+.av-win:focus-visible svg {
+    opacity: 1;
+}
+
+.av-win:hover canvas,
+.av-win:focus-visible canvas {
+    filter: brightness(0.55);
+}
+
+.av-win:focus-visible {
+    outline: 1px solid rgba(232, 228, 216, 0.5);
+    outline-offset: 4px;
+}
+
+.av-section {
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+}
+
+.av-sh {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 16px;
+}
+
+.av-sh h2 {
+    margin: 0;
+    font-size: 15px;
+    letter-spacing: 0.24em;
+}
+
+.av-card {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.av-card h3 {
+    margin: 0;
+    font-size: 16px;
+    letter-spacing: 0.12em;
+}
+
+.av-row4 {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 36px;
+}
+
+.av-row5 {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 28px;
+}
+
+.av-films {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 36px;
+}
+
+.av-films figure:first-child {
+    grid-column: 1 / -1;
+}
+
+.av-films figure,
+.av-strip figure {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.av-films figcaption {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    letter-spacing: 0.12em;
+}
+
+.av-video {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    background: #000;
+}
+
+.av-video.is-vertical {
+    aspect-ratio: 9 / 16;
+}
+
+.av-video iframe {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+}
+
+.av-video__poster {
+    position: absolute;
+    inset: 0;
+    padding: 0;
+    border: 0;
+    background: #000;
+    cursor: pointer;
+    -webkit-mask-image: radial-gradient(ellipse 72% 70% at 50% 50%, #000 52%, transparent 100%);
+    mask-image: radial-gradient(ellipse 72% 70% at 50% 50%, #000 52%, transparent 100%);
+}
+
+.av-video__poster img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    opacity: 0.85;
+    transition: opacity 0.3s ease;
+}
+
+.av-video__poster:hover img,
+.av-video__poster:focus-visible img {
+    opacity: 1;
+}
+
+.av-video__play {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 14%;
+    text-align: center;
+    font-size: 13px;
+    letter-spacing: 0.2em;
+    color: #f2f1ec;
+}
+
+.av-strip {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(150px, 1fr);
+    gap: 20px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    padding-bottom: 12px;
+    scrollbar-width: thin;
+    scrollbar-color: #3a3936 transparent;
+}
+
+.av-strip figure {
+    scroll-snap-align: start;
+    min-width: 150px;
+}
+
+.av-cells {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 22px;
+}
+
+.av-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    color: inherit;
+    text-decoration: none;
+}
+
+.av-cell img,
+.av-cell svg {
+    width: 100%;
+    aspect-ratio: 1;
+    object-fit: cover;
+    display: block;
+}
+
+.av-cell.is-open .av-ro {
+    color: #e8e4d8;
+}
+
+.av-feather {
+    -webkit-mask-image: radial-gradient(ellipse 72% 70% at 50% 50%, #000 52%, transparent 100%);
+    mask-image: radial-gradient(ellipse 72% 70% at 50% 50%, #000 52%, transparent 100%);
+}
+
+.av-flick {
+    animation: av-flick 1.4s steps(3) infinite;
+}
+
+.av-foot {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    padding-top: 20px;
+}
+
+.av-foot a {
+    font-size: 12px;
+    color: rgba(232, 228, 216, 0.6);
+    text-decoration: none;
+}
+
+@keyframes av-pulse {
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.85;
+    }
+}
+
+@keyframes av-breathe {
+    0%,
+    100% {
+        opacity: 0.9;
+    }
+
+    50% {
+        opacity: 1;
+    }
+}
+
+@keyframes av-flick {
+    0% {
+        opacity: 0.16;
+        transform: translate(0, 0);
+    }
+
+    50% {
+        opacity: 0.3;
+        transform: translate(-2px, 1px);
+    }
+
+    100% {
+        opacity: 0.22;
+        transform: translate(1px, -1px);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .grit-text__layer,
+    .av-win canvas,
+    .av-flick {
+        animation: none;
+    }
+}
+
+@media (max-width: 860px) {
+    .av-wrap {
+        padding: 0 1.25rem 4rem;
+        gap: 4.5rem;
+    }
+
+    .av-sky {
+        margin-bottom: -2.5rem;
+    }
+
+    .av-hero {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 28px;
+    }
+
+    .av-hero__text,
+    .grit-text {
+        align-items: flex-start;
+        text-align: left;
+    }
+
+    .grit-text__layer {
+        font-size: 64px;
+    }
+
+    .av-row4,
+    .av-row5 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 22px;
+    }
+
+    .av-films {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .av-cells {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .av-sh {
+        flex-direction: column;
+        gap: 8px;
+    }
+}

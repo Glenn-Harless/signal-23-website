@@ -62,7 +62,7 @@ Public and commerce routes:
 | --- | --- |
 | `/` | Public portal: a window lit by the visitor's clock, Station 23's number groups and the hidden home audio |
 | `/terminal` | Public B.A.N.I.S. terminal: LOG, TUNE (full releases), DECODE (number groups), SCAN, ARCHIVES |
-| `/av` | A/V holding page (releases, films, visual transmissions) |
+| `/av` | A/V: every release as a window drawn from its measured spectrum, films and excerpts, and the visitor's recovered transmissions |
 | `/instruments` | Instrument-rack catalog and pay-what-you-want acquisition flow (the nav's **DL**) |
 | `/instruments/success` | Stripe payment verification and signed-download delivery |
 | `/terms` | Terms page |
@@ -161,6 +161,10 @@ The home portal (`src/components/Station/`) draws one window on the GPU, colored
 The number readout steps through the day's groups digit by digit; the red dot blinks in time and is the home audio's hidden play button. Each of the 23 soft-secret visuals in `src/data/transmissions.ts` has one group, numbered in registry order; the scheme, the daily schedule and the flash timing live in `src/data/numberStation.ts`. The terminal's DECODE turns a group into its route and remembers recovered routes in the visitor's own browser (`localStorage`).
 
 TUNE lists every release on a frequency taken from its release date. Measured numbers and spectra live in `src/data/releaseTelemetry.json`; release metadata, audio paths and YouTube IDs in `src/data/releases.ts`. Full tracks are 192 kbps MP3s in `public/audio/` (Pieces stays at `public/pieces-website-mp3.mp3`). A release without audio shows as not loaded. SCAN still plays a random stretch of the HLS stream in `src/components/Terminal/AudioStreamer.ts`.
+
+## A/V
+
+`/av` (`src/components/AV/`) shows the latest release, EP2 and the Pillars EP as small portals painted from each track's measured spectrum in the visitor's sky colours; hovering shows the data as lines and clicking opens the terminal on that release (`/terminal?tune=MM.DD`). Films (official visuals) and excerpts (Shorts) come from `src/data/releases.ts`. Their stills are served from `public/av/`, and YouTube (privacy-enhanced mode) loads only when a visitor presses play. Recovered transmissions lists the 23 hidden visuals: each stays as static until that visitor has decoded its group in the terminal, then links to its route.
 
 ## Payment and Download Flow
 

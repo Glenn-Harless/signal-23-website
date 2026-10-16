@@ -414,6 +414,18 @@ export const transmissions: Transmission[] = [
     addedAt: '2026-05-07',
   },
   {
+    slug: 'av',
+    route: '/av',
+    title: 'A/V',
+    type: 'page',
+    status: 'active',
+    visibility: 'public',
+    tags: ['releases', 'films', 'recovered-transmissions'],
+    exportUse: [],
+    notes: 'Releases drawn from their measured spectra, films and excerpts (YouTube loads on press), and the recovered transmissions a visitor has decoded.',
+    addedAt: '2026-10-15',
+  },
+  {
     slug: 'instruments',
     route: '/instruments',
     title: 'INSTRUMENT RACKS',

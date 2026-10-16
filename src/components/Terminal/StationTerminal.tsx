@@ -75,10 +75,13 @@ interface StationTerminalProps {
 
 export const StationTerminal: React.FC<StationTerminalProps> = ({ isMobile }) => {
   const navigate = useNavigate();
-  const [mode, setMode] = useState<Mode>('boot');
+  // /terminal?tune=09.25 opens straight onto a release (A/V links here).
+  const tuneParam = new URLSearchParams(window.location.search).get('tune');
+  const tuneIndex = tuneParam ? RELEASES.findIndex((r) => r.freq === tuneParam) : -1;
+  const [mode, setMode] = useState<Mode>(tuneIndex >= 0 ? 'tune' : 'boot');
   const [bootLines, setBootLines] = useState<Line[]>([]);
   const [booted, setBooted] = useState(false);
-  const [sel, setSel] = useState(RELEASES.length - 1);
+  const [sel, setSel] = useState(tuneIndex >= 0 ? tuneIndex : RELEASES.length - 1);
   const [playing, setPlaying] = useState(false);
   const [pos, setPos] = useState(0);
   const [cmd, setCmd] = useState('');

@@ -34,7 +34,7 @@ import { Torchrite } from './components/Torchrite/Torchrite';
 import { SignalMemory } from './components/SignalMemory/SignalMemory';
 import { ListenRoute } from './components/Listen/ListenRoute';
 import { PrivacyPolicy } from './components/Legal/PrivacyPolicy';
-import { Standby } from './components/Standby/Standby';
+import { AVPage } from './components/AV/AVPage';
 
 
 
@@ -63,7 +63,7 @@ const App = () => {
         <Routes>
           <Route path="/" element={<StationHome isMobile={isMobile} />} />
           <Route path="/terminal" element={<StationTerminal isMobile={isMobile} />} />
-          <Route path="/av" element={<Standby code="A/V" lines={['RELEASES', 'FILMS', 'VISUAL TRANSMISSIONS']} />} />
+          <Route path="/av" element={<AVPage />} />
           <Route path="/instruments" element={<InstrumentsPage />} />
           <Route path="/instruments/success" element={<SuccessPage />} />
           <Route path="/testblandingpage" element={<Navigate to="/resonance" replace />} />
