@@ -164,7 +164,7 @@ TUNE lists every release on a frequency taken from its release date. Measured nu
 
 ## A/V
 
-`/av` (`src/components/AV/`) shows the latest release, EP2 and the Pillars EP as small portals painted from each track's measured spectrum in the visitor's sky colours; hovering shows the data as lines and clicking opens the terminal on that release (`/terminal?tune=MM.DD`). Films (official visuals) and excerpts (Shorts) come from `src/data/releases.ts`. Their stills are served from `public/av/`, and YouTube (privacy-enhanced mode) loads only when a visitor presses play.
+`/av` (`src/components/AV/`) shows the latest release, EP2 and the Pillars EP as small portals painted from each track's measured spectrum in the visitor's sky colours; hovering shows the data as lines and clicking opens the terminal on that release (`/terminal?tune=MM.DD`). Films (official visuals) and excerpts (Shorts) come from `src/data/releases.ts`. Their stills are served from `public/av/`, and the YouTube player loads only when a visitor presses play, with a direct YouTube link beside it in case YouTube refuses to play embedded.
 
 ## Payment and Download Flow
 

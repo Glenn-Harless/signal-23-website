@@ -283,6 +283,21 @@
     border: 0;
 }
 
+.av-video__out {
+    align-self: flex-start;
+    min-height: 32px;
+    display: inline-flex;
+    align-items: center;
+    text-decoration: underline;
+    text-decoration-color: rgba(232, 228, 216, 0.3);
+    text-underline-offset: 4px;
+}
+
+.av-video__out:hover,
+.av-video__out:focus-visible {
+    color: #e8e4d8;
+}
+
 .av-video__poster {
     position: absolute;
     inset: 0;

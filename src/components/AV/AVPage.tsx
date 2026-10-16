@@ -11,25 +11,35 @@ const SPOTIFY = 'https://open.spotify.com/artist/3ZKXfUCXvaZbEdCRx9sWD6';
 const pad2 = (n: number) => String(n).padStart(2, '0');
 const tuneLink = (r: Release) => `/terminal?tune=${r.freq}`;
 
-// A still from our own server; YouTube only loads once the visitor presses play.
+// A still from our own server; YouTube only loads once the visitor presses play. YouTube can refuse
+// to play inside other sites for visitors it doesn't recognise, so a direct link appears as well.
 const YouTubeFrame: React.FC<{ id: string; title: string; poster: string; vertical?: boolean }> = ({ id, title, poster, vertical }) => {
   const [playing, setPlaying] = useState(false);
+  const watchUrl = vertical ? `https://www.youtube.com/shorts/${id}` : `https://www.youtube.com/watch?v=${id}`;
   return (
-    <div className={`av-video${vertical ? ' is-vertical' : ''}`}>
-      {playing ? (
-        <iframe
-          src={`https://www.youtube-nocookie.com/embed/${id}?autoplay=1&rel=0&playsinline=1`}
-          title={title}
-          allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
-          allowFullScreen
-        />
-      ) : (
-        <button type="button" className="av-video__poster" onClick={() => setPlaying(true)} aria-label={`Play ${title}`}>
-          <img src={poster} alt="" loading="lazy" />
-          <span className="av-video__play tw">PLAY</span>
-        </button>
+    <>
+      <div className={`av-video${vertical ? ' is-vertical' : ''}`}>
+        {playing ? (
+          <iframe
+            src={`https://www.youtube.com/embed/${id}?autoplay=1&rel=0&playsinline=1`}
+            title={title}
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
+            referrerPolicy="strict-origin-when-cross-origin"
+            allowFullScreen
+          />
+        ) : (
+          <button type="button" className="av-video__poster" onClick={() => setPlaying(true)} aria-label={`Play ${title}`}>
+            <img src={poster} alt="" loading="lazy" />
+            <span className="av-video__play tw">PLAY</span>
+          </button>
+        )}
+      </div>
+      {playing && (
+        <a className="av-ro av-video__out" href={watchUrl} target="_blank" rel="noreferrer">
+          NOT PLAYING? OPEN ON YOUTUBE
+        </a>
       )}
-    </div>
+    </>
   );
 };
 
