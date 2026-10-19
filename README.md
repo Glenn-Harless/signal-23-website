@@ -144,8 +144,20 @@ At build time `scripts/listen-pages.js` pre-renders one static `build/listen/<sl
 Measurement lives in `src/lib/listenAnalytics.ts`: a page view and a `spotify_outbound_click` event fired once per activation of the Spotify link (never with `preventDefault`), carrying the track slug and allowlisted `utm_*` parameters. It goes to up to three places:
 
 - **Our counter, every visitor.** `navigator.sendBeacon` posts `page_view` and `spotify_tap` to `/.netlify/functions/relay`. The function stores one marker blob per hit in Netlify Blobs, keyed by UTC day, slug, event, device class (`instagram`, `facebook`, `mobile`, `desktop` or `bot`, from the user agent) and `utm_content`. No cookies, IPs, user agents or timestamps finer than the day are stored. Production counts go to the `listen-counter` store; deploy previews, branch deploys and `netlify dev` go to `listen-counter-preview`.
-- **Meta Pixel, after Accept.** Only when `LISTEN_META_PIXEL_ID` was set at build time. A consent banner (`src/components/Listen/ListenConsent.tsx`) sits in the page flow below the Spotify button and asks first; nothing is requested from `connect.facebook.net` until the visitor accepts. No stored choice, a stored decline or Global Privacy Control all mean no. The choice is kept in `localStorage` under `s23.analytics-consent`, and a **Cookies** link in the page footer reopens the banner. Declining after accepting revokes Pixel consent and expires the `_fbp`/`_fbc` cookies. Automatic Pixel events are off (`autoConfig` false).
-- **Conversions API, after Accept.** The same tap is posted to `/.netlify/functions/relay-forward`, which sends `spotify_outbound_click` to Meta's Graph API with the browser event's id (so Meta counts it once), `action_source: website`, the page URL, the client IP and user agent, and `_fbp`/`_fbc` (built from `fbclid` when the cookie is missing). It does nothing unless `LISTEN_META_PIXEL_ID` and `META_CAPI_TOKEN` are set for the functions, or when the request carries `Sec-GPC: 1`.
+- **Meta Pixel, by region.** Only when `LISTEN_META_PIXEL_ID` was set at build time. Consent depends on the visitor's country (`src/lib/consent.ts`):
+  - **opt-in** for the EU/EEA, UK and Switzerland, and whenever the country is unknown: a banner (`src/components/Listen/ListenConsent.tsx`) sits in the page flow below the Spotify button, and nothing is requested from `connect.facebook.net` until the visitor taps Accept.
+  - **opt-out** everywhere else, including the US ad audience: no banner, and the Pixel loads with the page.
+
+  The built page ships `data-consent="opt-in"` on `#listen-root`. The `listen-region` edge function (`netlify/edge-functions/listen-region.ts`) reads Netlify's `context.geo.country` and flips that to `opt-out` outside the opt-in countries, which are listed in `netlify/shared/consentRegions.ts`. Anything that bypasses it (`npm start`, the SPA fallback) stays opt-in. In both modes a stored decline or Global Privacy Control means no, the choice is kept in `localStorage` under `s23.analytics-consent`, and a **Cookies** link in the page footer opens the banner to change it. Declining after the Pixel ran revokes Pixel consent and expires the `_fbp`/`_fbc` cookies. Automatic Pixel events are off (`autoConfig` false).
+- **Conversions API, wherever the Pixel runs.** The same tap is posted to `/.netlify/functions/relay-forward`, which sends `spotify_outbound_click` to Meta's Graph API with the browser event's id (so Meta counts it once), `action_source: website`, the page URL, the client IP and user agent, and `_fbp`/`_fbc` (built from `fbclid` when the cookie is missing). It does nothing unless `LISTEN_META_PIXEL_ID` and `META_CAPI_TOKEN` are set for the functions, when the request carries `Sec-GPC: 1`, or when a visitor in an opt-in (or unknown) country has not explicitly accepted.
+
+To check both regions locally, build and serve with Netlify Dev's mock geolocation (from a worktree checkout, also pass `--functions` with that checkout's `netlify/functions` path):
+
+```bash
+LISTEN_META_PIXEL_ID=<pixel id> npm run build
+netlify dev --dir build --framework '#static' --country US
+netlify dev --dir build --framework '#static' --country DE
+```
 
 The banner and the Pixel exist only on the listen pages. Function names avoid "track" and "analytics" so ad blockers' generic rules leave the counter alone.
 
@@ -189,6 +201,8 @@ src/
   lib/                           Export parsing and validation
   styles/                        Global and shared styles
 netlify/functions/               Stripe and R2 endpoints; listen page counter and Conversions API relay
+netlify/edge-functions/          listen-region: sets each listen page's consent mode from the visitor's country
+netlify/shared/                  Code shared by functions and edge functions (opt-in country list)
 scripts/listen-pages.js          Pre-renders static /listen/<slug> pages for webpack
 scripts/legal-pages.js           Pre-renders the script-free /legal/privacy page for webpack
 public/                          Static files, models, audio, and thumbnails
@@ -211,7 +225,7 @@ The serverless payment flow expects:
 | `R2_ACCESS_KEY_ID` | R2 API credential |
 | `R2_SECRET_ACCESS_KEY` | R2 API credential |
 | `R2_BUCKET` | Private rack bucket; defaults to `signal23-racks` |
-| `LISTEN_META_PIXEL_ID` | Meta Pixel (dataset) ID. Build-time: enables the consent banner and the Pixel on `/listen/<slug>` pages; empty means no Meta code at all. Also read at runtime by `relay-forward`, so scope it to builds and functions. Set it for production only so deploy previews send nothing to Meta |
+| `LISTEN_META_PIXEL_ID` | Meta Pixel (dataset) ID, `2364230354409635` ("Signal-23 Listen Pages"). Build-time: enables the Pixel and the consent banner on `/listen/<slug>` pages; empty means no Meta code at all. Also read at runtime by `relay-forward`, so scope it to builds and functions. Set it for production only so deploy previews send nothing to Meta |
 | `META_CAPI_TOKEN` | Runtime; Conversions API access token from Events Manager. Without it `relay-forward` does nothing |
 | `META_TEST_EVENT_CODE` | Optional, runtime; sends Conversions API events to Events Manager's Test Events tab instead of counting them |
 | `LISTEN_SITE_URL` | Build-time; origin for listen page canonical/Open Graph URLs. Defaults to Netlify `URL`, then `siteUrl` in `src/data/listenTracks.json` |

@@ -7,11 +7,12 @@
  *
  * Our own cookie-free counter runs for every visitor. The Meta sinks (browser
  * Pixel and the server-side Conversions API relay) are attached only when a
- * Pixel ID was set at build time and run only after the visitor accepts (see
- * consent.ts). Every call is synchronous, non-blocking and swallows its own
- * errors so the Spotify link never waits on analytics.
+ * Pixel ID was set at build time and run only where consent.ts allows: after
+ * Accept in the EU/EEA, UK and Switzerland, unless opted out elsewhere. Every
+ * call is synchronous, non-blocking and swallows its own errors so the Spotify
+ * link never waits on analytics.
  */
-import { hasTrackingConsent, setStoredConsent } from './consent';
+import { hasTrackingConsent, readStoredConsent, setStoredConsent } from './consent';
 import type { CampaignParams } from './campaignParams';
 
 export const SPOTIFY_OUTBOUND_EVENT = 'spotify_outbound_click';
@@ -140,7 +141,9 @@ const metaServerSink: AnalyticsSink = {
     // Only the outbound tap goes server-side.
   },
   outbound(payload, eventId) {
-    beacon(META_SERVER_ENDPOINT, { event_id: eventId, url: window.location.href, data: payload });
+    // "default" lets the function refuse it if the visitor turns out to be in an opt-in country.
+    const consent = readStoredConsent() === 'granted' ? 'granted' : 'default';
+    beacon(META_SERVER_ENDPOINT, { event_id: eventId, url: window.location.href, consent, data: payload });
   },
 };
 

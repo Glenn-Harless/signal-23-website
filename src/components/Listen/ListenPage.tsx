@@ -161,7 +161,7 @@ export const ListenPage: React.FC<ListenPageProps> = ({ track }) => {
         </div>
 
         {consent.open ? (
-          <ConsentBanner choice={consent.choice} onChoose={consent.choose} focusOnMount={consent.reopened} />
+          <ConsentBanner measuring={consent.measuring} onChoose={consent.choose} reopened={consent.reopened} />
         ) : null}
       </div>
     </main>

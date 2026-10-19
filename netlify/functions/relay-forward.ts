@@ -1,18 +1,21 @@
 /**
  * Meta Conversions API relay for the listen pages. The browser calls this only
- * after the visitor accepted Meta measurement, with the same event id as the
- * Pixel's `spotify_outbound_click`, so Meta counts the pair once while still
- * receiving the tap when the Pixel request is blocked or cut off by the jump
- * to Spotify.
+ * where the Pixel is allowed (see src/lib/consent.ts), with the same event id
+ * as the Pixel's `spotify_outbound_click`, so Meta counts the pair once while
+ * still receiving the tap when the Pixel request is blocked or cut off by the
+ * jump to Spotify.
  *
  * Does nothing (204) unless LISTEN_META_PIXEL_ID and META_CAPI_TOKEN are set
- * for this deploy, or when the request carries Global Privacy Control.
- * META_TEST_EVENT_CODE routes events to Events Manager's Test Events tab.
+ * for this deploy, when the request carries Global Privacy Control, or when a
+ * visitor from an opt-in country (or an unknown one) has not explicitly
+ * accepted. META_TEST_EVENT_CODE routes events to Events Manager's Test Events tab.
  *
  * POST /.netlify/functions/relay-forward
- *   {"event_id":"…","url":"https://signal23.net/listen/pulsar-04/?utm_…","data":{"track_slug":"pulsar-04","destination":"spotify","utm_content":"…"}}
+ *   {"event_id":"…","url":"https://signal23.net/listen/pulsar-04/?utm_…","consent":"granted"|"default",
+ *    "data":{"track_slug":"pulsar-04","destination":"spotify","utm_content":"…"}}
  */
 import type { Context } from '@netlify/functions';
+import { consentModeForCountry } from '../shared/consentRegions';
 import { LISTEN_SLUGS, isCrossSite, methodNotAllowed, noContent, readBeaconBody } from './utils/relay';
 
 const GRAPH_API = 'https://graph.facebook.com/v23.0';
@@ -59,6 +62,8 @@ export default async (req: Request, context: Context): Promise<Response> => {
 
   const body = await readBeaconBody(req);
   if (!body) return new Response(null, { status: 400 });
+  const country = context.geo && context.geo.country ? context.geo.country.code : undefined;
+  if (body.consent !== 'granted' && consentModeForCountry(country) === 'opt-in') return noContent();
   const eventId = body.event_id;
   const pageUrl = listenPageUrl(body.url, req);
   const data = body.data && typeof body.data === 'object' ? (body.data as Record<string, unknown>) : {};
