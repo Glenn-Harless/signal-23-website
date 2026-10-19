@@ -19,7 +19,9 @@ export type ListenTrack = {
   /** Exact advertised track title. */
   title: string;
   /** Verified https://open.spotify.com/track/... URL for the recording heard in the ad. */
-  spotifyUrl: string;
+  spotifyUrl?: string;
+  /** Pre-release only: the DistroKid HyperFollow pre-save page, used until `spotifyUrl` is set. */
+  preSaveUrl?: string;
   releaseDate?: string;
   /** Optional, at most one sentence. Omit rather than invent copy. */
   description?: string;
@@ -40,6 +42,19 @@ export const listenTracks: ListenTrack[] = data.tracks;
 export function findListenTrack(slug: string): ListenTrack | undefined {
   const normalized = slug.trim().toLowerCase();
   return listenTracks.find((track) => track.slug === normalized);
+}
+
+export type ListenDestination = {
+  href: string;
+  label: string;
+  /** Reported with the outbound event so pre-save taps stay distinguishable from listens. */
+  kind: 'spotify' | 'presave';
+};
+
+/** The main button: the track on Spotify once released, the pre-save page before. Mirrored in scripts/listen-pages.js. */
+export function listenDestination(track: ListenTrack): ListenDestination {
+  if (track.spotifyUrl) return { href: track.spotifyUrl, label: 'Listen on Spotify', kind: 'spotify' };
+  return { href: track.preSaveUrl || '/', label: 'Pre-save on Spotify', kind: 'presave' };
 }
 
 export function listenPageTitle(track: ListenTrack): string {

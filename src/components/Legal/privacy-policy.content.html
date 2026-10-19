@@ -2,7 +2,7 @@
   <header class="legal__head">
     <p class="legal__eyebrow">Signal-23</p>
     <h1>Privacy Policy</h1>
-    <p class="legal__meta">Effective September 13, 2026. First version.</p>
+    <p class="legal__meta">Effective October 19, 2026. Updated for ad measurement on our listen pages.</p>
     <p class="legal__lead">This page explains, in plain language, what information we handle when you visit signal23.net, download or buy an instrument rack, or see our advertising on Facebook and Instagram. It also describes the internal Meta developer app we use to run that advertising.</p>
   </header>
 
@@ -27,8 +27,8 @@
 
   <section id="website">
     <h2>2. Visiting the website</h2>
-    <p><strong>No tracking.</strong> This site does not use analytics, advertising pixels or tracking cookies, and it does not set cookies of its own. We do not build profiles of visitors.</p>
-    <p><strong>One browser flag.</strong> The terminal page stores a single value in your browser's session storage so it does not replay its introduction during the same visit. The value stays in your browser, is never sent to us, and disappears when you close the tab or browser.</p>
+    <p><strong>Measurement.</strong> Most of this site uses no analytics, advertising pixels or tracking cookies, and sets no cookies of its own. We do not build profiles of visitors. The exception is our listen pages, at addresses starting signal23.net/listen/, where our ads send people. What happens there is described under <a href="#listen-pages">our advertising</a>.</p>
+    <p><strong>Browser storage.</strong> The terminal page stores a single value in your browser's session storage so it does not replay its introduction during the same visit; it disappears when you close the tab or browser. A listen page stores your answer to its Meta measurement question in your browser's local storage so it does not ask again. Neither value is sent to us.</p>
     <p><strong>Hosting.</strong> The site is hosted by Netlify. To deliver pages and protect the service, Netlify processes your IP address and standard request details such as the page requested, your browser type and the time of the request, under <a href="https://www.netlify.com/privacy/">Netlify's privacy policy</a>.</p>
     <p><strong>Fonts.</strong> Our typeface loads from Google Fonts. When it loads, Google receives your IP address and browser details, under <a href="https://policies.google.com/privacy">Google's privacy policy</a>.</p>
     <p><strong>Audio and video.</strong> The terminal's audio stream is served from Dropbox, so playing it sends your IP address to Dropbox. Other audio, video and images are served from our own site.</p>
@@ -56,7 +56,10 @@
     </ul>
     <p>Meta provides those reports in aggregated form. We do not receive the names, profile details or contact information of people who see or interact with our ads, and we do not try to identify them.</p>
     <p><strong>What we do not do with it.</strong> We do not use the app to read or send direct messages, moderate or reply to comments, publish ordinary posts or stories, or manage anyone else's Pages, accounts or ad accounts. Some permissions granted to the app cover broader capabilities than this; we use them only for the advertising tasks described here.</p>
-    <p><strong>Ads that link to our website.</strong> Our current advertising sends people directly to Spotify. If we later send ads to a page on this site and add a Meta Pixel or similar measurement to it, we will update this policy before we do so.</p>
+    <p id="listen-pages"><strong>Listen pages.</strong> Some of our ads send people to a page on this site for the advertised track, at an address starting signal23.net/listen/, with a button that opens the track on Spotify. Two kinds of measurement run there, and nowhere else on the site.</p>
+    <p><strong>Our own visit counter, for everyone.</strong> When a listen page loads, and when you tap its Spotify button, your browser sends our server a short note: which page, which of our ads you came from (the utm_content label in the ad's link), whether it was a visit or a tap, and a device category (phone, computer, or the Instagram or Facebook in-app browser) worked out from your browser's user-agent string. We keep only counts of those notes per day. The counter uses no cookies, and we do not store your IP address, your full browser details or the time of your visit, so the counts cannot be linked back to you. It runs whatever you answer below.</p>
+    <p><strong>Meta Pixel, only if you accept.</strong> A listen page asks whether Meta may measure your visit. Nothing is loaded from Meta, and nothing is sent to Meta, unless you tap Accept. If you accept, we load the Meta Pixel, Meta's measurement script. It sets Meta cookies on this site (_fbp, and _fbc if you arrived from one of our ads) and tells Meta that you viewed the page and, if you do, that you tapped the Spotify button, along with the track, the campaign labels in the ad's link, the page address, your IP address and browser details. When you tap the button, our server also sends Meta that same tap, with the same details and Meta's cookies, through Meta's Conversions API, so Meta still receives it if your browser's own request is blocked or cut off as Spotify opens; Meta counts the two copies once. Meta uses this to report how our ads perform and to show them to people likely to listen, and may connect it with your Facebook or Instagram account, under <a href="https://www.facebook.com/privacy/policy/">Meta's privacy policy</a>. We receive only Meta's aggregated reports.</p>
+    <p><strong>Your choice.</strong> If you decline, or your browser sends a Global Privacy Control signal, the Pixel never loads and nothing goes to Meta. The Spotify button works the same either way. To change your answer later, use the Cookies link at the bottom of any listen page. If you withdraw consent, we stop sending Meta events and remove the Meta cookies we can reach. What was already sent stays with Meta; you can review and disconnect it in your Facebook or Instagram settings under "Your activity off Meta technologies".</p>
   </section>
 
   <section id="ai">
@@ -73,7 +76,7 @@
   <section id="retention">
     <h2>7. How long we keep information</h2>
     <ul>
-      <li><strong>Website visits:</strong> we keep no visitor records. The terminal's browser flag ends with your session. Hosting and function logs are kept by Netlify for the limited period Netlify sets.</li>
+      <li><strong>Website visits:</strong> we keep no records of individual visitors. Listen page counts are kept per day for as long as they help us judge our advertising. The terminal's browser flag ends with your session; a listen page's record of your Meta answer stays in your browser until you change it or clear this site's data. Hosting and function logs are kept by Netlify for the limited period Netlify sets. If you accepted Meta measurement, Meta keeps what it received under its own retention.</li>
       <li><strong>Downloads and payments:</strong> download links expire after 30 minutes. Payment records stay in our Stripe account while we need them for accounting, tax and dispute purposes. The email address in a completed-checkout notification stays in Netlify's function logs for that same limited period.</li>
       <li><strong>Advertising data:</strong> account identifiers, ad settings, creative and reports live in our Meta ad account under Meta's retention. Copies we make, such as exported reports, creative files, notes and AI tool conversation history, stay in the operators' private working files and tool accounts while they are useful for running our advertising, and are deleted when they are no longer needed.</li>
       <li><strong>Email:</strong> we keep correspondence for as long as we need it to reply and handle any follow-up.</li>
@@ -83,7 +86,7 @@
   <section id="deletion">
     <h2>8. Contact and deletion requests</h2>
     <p>To ask what information we hold about you, or to ask us to delete it, email <a href="mailto:music@signal23.net">music@signal23.net</a> from the address you used with us and tell us what you would like removed. We will delete the information we hold, or ask the relevant provider to delete it, except for records we must keep for payment, tax or legal reasons, and we will reply to confirm.</p>
-    <p>Because Meta gives us advertising reports only in aggregate, we cannot identify or remove an individual from them. Requests about your own Facebook or Instagram data go to Meta through your account settings. Requests about a payment can also be made to Stripe directly.</p>
+    <p>Because Meta gives us advertising reports only in aggregate, we cannot identify or remove an individual from them, and our own listen page counts hold nothing that identifies you. Requests about your own Facebook or Instagram data go to Meta through your account settings. Requests about a payment can also be made to Stripe directly.</p>
   </section>
 
   <section id="changes">

@@ -65,7 +65,7 @@ Public and commerce routes:
 | `/instruments` | Instrument-rack catalog and pay-what-you-want acquisition flow |
 | `/instruments/success` | Stripe payment verification and signed-download delivery |
 | `/terms` | Terms page |
-| `/listen/:slug` | Per-track ad landing page with a direct **Listen on Spotify** handoff (currently `decay`) |
+| `/listen/:slug` | Per-track ad landing page with a direct **Listen on Spotify** handoff (currently `decay` and `pulsar-04`) |
 | `/legal/privacy` | Privacy policy; static HTML readable without JavaScript (`/privacy` redirects here) |
 | `/testblandingpage` | Deprecated compatibility path that redirects to `/resonance` |
 
@@ -135,15 +135,37 @@ Capture at 1080×1920 for 9:16, 1080×1350 for 4:5, or 1920×1080 for 16:9 with 
 
 Tracks are configured in `src/data/listenTracks.json` (title, slug, canonical Spotify track URL, artwork, optional share crop, optional muted loop video, optional one-sentence description, explore destination). Derived web assets live under `public/listen/<slug>/`.
 
+Before a track is released, give it a `preSaveUrl` (the DistroKid HyperFollow page) instead of `spotifyUrl`; the button then reads **Pre-save on Spotify**. On release day, add the exact `https://open.spotify.com/track/<id>` URL as `spotifyUrl` (not the album link), remove `preSaveUrl`, and redeploy. `pulsar-04` is in this state until 30 October 2026.
+
 At build time `scripts/listen-pages.js` pre-renders one static `build/listen/<slug>/index.html` per track with track-specific Open Graph metadata, the inlined stylesheet, working markup before any JavaScript runs, and only the small `listen` bundle (`src/listen.tsx`). Netlify serves that file ahead of the SPA rewrite; `/listen/:slug` in `App.tsx` is the fallback for other hosts and unknown slugs. `npm start` serves the generated pages at the same pretty URLs.
 
-Measurement lives in `src/lib/listenAnalytics.ts`: a page view and a `spotify_outbound_click` event fired once per activation of the Spotify link, carrying the track slug and allowlisted `utm_*` parameters. The Meta Pixel sink is included only when `LISTEN_META_PIXEL_ID` is set at build time and runs only when the visitor has not opted out (Global Privacy Control or a stored denial). Requirements, decisions and manual review steps live in `feature-dev-docs/feature-dev-listen/`.
+### Listen page measurement
+
+Measurement lives in `src/lib/listenAnalytics.ts`: a page view and a `spotify_outbound_click` event fired once per activation of the Spotify link (never with `preventDefault`), carrying the track slug and allowlisted `utm_*` parameters. It goes to up to three places:
+
+- **Our counter, every visitor.** `navigator.sendBeacon` posts `page_view` and `spotify_tap` to `/.netlify/functions/relay`. The function stores one marker blob per hit in Netlify Blobs, keyed by UTC day, slug, event, device class (`instagram`, `facebook`, `mobile`, `desktop` or `bot`, from the user agent) and `utm_content`. No cookies, IPs, user agents or timestamps finer than the day are stored. Production counts go to the `listen-counter` store; deploy previews, branch deploys and `netlify dev` go to `listen-counter-preview`.
+- **Meta Pixel, after Accept.** Only when `LISTEN_META_PIXEL_ID` was set at build time. A consent banner (`src/components/Listen/ListenConsent.tsx`) sits in the page flow below the Spotify button and asks first; nothing is requested from `connect.facebook.net` until the visitor accepts. No stored choice, a stored decline or Global Privacy Control all mean no. The choice is kept in `localStorage` under `s23.analytics-consent`, and a **Cookies** link in the page footer reopens the banner. Declining after accepting revokes Pixel consent and expires the `_fbp`/`_fbc` cookies. Automatic Pixel events are off (`autoConfig` false).
+- **Conversions API, after Accept.** The same tap is posted to `/.netlify/functions/relay-forward`, which sends `spotify_outbound_click` to Meta's Graph API with the browser event's id (so Meta counts it once), `action_source: website`, the page URL, the client IP and user agent, and `_fbp`/`_fbc` (built from `fbclid` when the cookie is missing). It does nothing unless `LISTEN_META_PIXEL_ID` and `META_CAPI_TOKEN` are set for the functions, or when the request carries `Sec-GPC: 1`.
+
+The banner and the Pixel exist only on the listen pages. Function names avoid "track" and "analytics" so ad blockers' generic rules leave the counter alone.
+
+Counter totals are public and aggregate only:
+
+```text
+/.netlify/functions/relay-totals              last 14 UTC days
+/.netlify/functions/relay-totals?days=30      last 30 days (max 92)
+/.netlify/functions/relay-totals?from=2026-11-02&to=2026-11-11&slug=pulsar-04
+```
+
+The response has overall totals, totals by `utm_content` and by device class, and per-day rows by slug, device and `utm_content`. Its `store` field says whether it read production or preview counts. `npm start` does not run functions (the beacons 404 harmlessly); use `netlify dev` or a deploy preview to exercise them.
+
+Older requirements and review notes for the first version live in `feature-dev-docs/feature-dev-listen/` and may be stale.
 
 ## Privacy Policy
 
 `/legal/privacy` is the public privacy policy for the website and for Signal-23's internal Meta advertising app; it is the URL used in Meta's Privacy Policy field. The policy text lives once, in `src/components/Legal/privacy-policy.content.html`. At build time `scripts/legal-pages.js` renders it into a static, script-free `build/legal/privacy/index.html` (metadata plus inlined `Legal.css`), so the full text is in the initial HTML response for people and crawlers alike. `/legal/privacy` in `App.tsx` renders the same content as an SPA fallback, `/terms` links to it, and `netlify.toml` redirects `/privacy` there. Netlify serves directory pages at the trailing-slash URL, so the served address, canonical tag and the value for Meta's Privacy Policy URL field are all `https://signal23.net/legal/privacy/`.
 
-To change the policy, edit the content file and update the effective date in its header. The page must never add analytics, pixels or cookies of its own.
+To change the policy, edit the content file and update the effective date in its header. The page must never add analytics, pixels or cookies of its own. The listen pages' consent banner links to its `#listen-pages` section.
 
 ## Payment and Download Flow
 
@@ -166,7 +188,7 @@ src/
   hooks/                         Shared React hooks
   lib/                           Export parsing and validation
   styles/                        Global and shared styles
-netlify/functions/               Stripe and R2 serverless endpoints
+netlify/functions/               Stripe and R2 endpoints; listen page counter and Conversions API relay
 scripts/listen-pages.js          Pre-renders static /listen/<slug> pages for webpack
 scripts/legal-pages.js           Pre-renders the script-free /legal/privacy page for webpack
 public/                          Static files, models, audio, and thumbnails
@@ -189,7 +211,9 @@ The serverless payment flow expects:
 | `R2_ACCESS_KEY_ID` | R2 API credential |
 | `R2_SECRET_ACCESS_KEY` | R2 API credential |
 | `R2_BUCKET` | Private rack bucket; defaults to `signal23-racks` |
-| `LISTEN_META_PIXEL_ID` | Build-time; enables the Meta Pixel on `/listen/<slug>` pages. Empty means no tracking code |
+| `LISTEN_META_PIXEL_ID` | Meta Pixel (dataset) ID. Build-time: enables the consent banner and the Pixel on `/listen/<slug>` pages; empty means no Meta code at all. Also read at runtime by `relay-forward`, so scope it to builds and functions. Set it for production only so deploy previews send nothing to Meta |
+| `META_CAPI_TOKEN` | Runtime; Conversions API access token from Events Manager. Without it `relay-forward` does nothing |
+| `META_TEST_EVENT_CODE` | Optional, runtime; sends Conversions API events to Events Manager's Test Events tab instead of counting them |
 | `LISTEN_SITE_URL` | Build-time; origin for listen page canonical/Open Graph URLs. Defaults to Netlify `URL`, then `siteUrl` in `src/data/listenTracks.json` |
 
 See `.env.example` for placeholders.
@@ -203,4 +227,4 @@ npx tsc --noEmit
 npm run build
 ```
 
-Then smoke-test the affected routes at desktop and mobile widths. Payment changes also require Netlify Dev or a deploy preview because webpack-dev-server does not execute Netlify Functions.
+Then smoke-test the affected routes at desktop and mobile widths. Payment and listen counter changes also require Netlify Dev or a deploy preview because webpack-dev-server does not execute Netlify Functions.
