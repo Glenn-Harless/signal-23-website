@@ -173,6 +173,15 @@
   fill: var(--listen-spotify);
 }
 
+/* Only with ?applink=1: says whether the Spotify app link experiment runs on this page. */
+.listen__applink-note {
+  margin: 0;
+  color: var(--listen-faint);
+  font-size: 12px;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
 .listen__secondary {
   display: flex;
   justify-content: space-between;

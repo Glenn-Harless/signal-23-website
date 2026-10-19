@@ -57,6 +57,18 @@ export function listenDestination(track: ListenTrack): ListenDestination {
   return { href: track.preSaveUrl || '/', label: 'Pre-save on Spotify', kind: 'presave' };
 }
 
+const SPOTIFY_TRACK_URL = /^https:\/\/open\.spotify\.com\/track\/([A-Za-z0-9]{22})(?:[?#]|$)/;
+
+/**
+ * The Spotify app's own URI for the button's track (spotify:track:<id>), or null when the
+ * button goes somewhere else: a pre-save page, an album, or any other URL shape.
+ */
+export function spotifyAppUri(destination: ListenDestination): string | null {
+  if (destination.kind !== 'spotify') return null;
+  const match = SPOTIFY_TRACK_URL.exec(destination.href);
+  return match ? `spotify:track:${match[1]}` : null;
+}
+
 export function listenPageTitle(track: ListenTrack): string {
   return `${track.title} · ${LISTEN_ARTIST}`;
 }
