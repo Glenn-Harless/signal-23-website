@@ -173,6 +173,19 @@ The response has overall totals, totals by `utm_content` and by device class, an
 
 Older requirements and review notes for the first version live in `feature-dev-docs/feature-dev-listen/` and may be stale.
 
+### Spotify app link experiment (off by default)
+
+Instagram's and Facebook's in-app browsers open `open.spotify.com` as a web page instead of handing it to the Spotify app. To find out whether the app's own link does better there, add `?applink=1` to a listen page URL. With it, and only inside those in-app browsers (user agent contains `Instagram`, `FBAN`, `FBAV` or `FB_IAB`) on a track whose `spotifyUrl` is an `https://open.spotify.com/track/<id>` URL, the button first goes to `spotify:track:<id>`, then to the https link if the page is still visible 1.5 seconds later. Pre-save links never try the app. A small grey note under the button says whether the test is on here, and if not, why. Without the parameter nothing changes: a plain https link, no `preventDefault`. Either way the tap is recorded once, before any navigation, so the counter and the Meta event are the same. The code is `readAppLinkTest` and `openSpotifyApp` in `ListenPage.tsx`.
+
+It has not been tried on a real phone yet. To test it, use a deployed URL that includes this code (phones can't reach `npm start`). Pulsar 04 shows "App link test off: pre-save link" until its track URL goes in on 30 October, so test with Decay, for example `https://signal23.net/listen/decay/?applink=1`. The ads run in the US, so test on US phones, which also see the page as ad visitors will (no consent banner). Links in DMs and posts open in the same in-app browser as ads.
+
+- **Instagram on iPhone.** Send the link in an Instagram DM between two accounts you can open on the phone (for example from the Signal-23 account to your own), then tap it in the Instagram app.
+- **Facebook on Android.** Post the link on your own profile with the audience set to **Only me**, then tap it in the Facebook app.
+
+On each, check that the note reads "App link test on", then tap **Listen on Spotify**. It passes when the Spotify app opens on the track and plays, and going back to Instagram or Facebook shows the listen page rather than the Spotify web player. It fails if the Spotify web page loads after a pause, or an error page appears (Android can show `ERR_UNKNOWN_URL_SCHEME`). If a dialog asks whether to open Spotify, note it: the 1.5-second fallback may fire while it is showing. Then repeat with Spotify signed out or uninstalled, where the https page should load after about 1.5 seconds, and once without `?applink=1` to compare with today's behaviour. `relay-totals` should show one `spotify_tap` per tap, with device class `instagram` or `facebook`. Test taps on production count like any other visit, so test before a campaign starts.
+
+If both phones pass, ship it by removing the `applink=1` check from `readAppLinkTest` so every in-app visitor gets it. If not, leave it behind the parameter or remove it; the https link stays.
+
 ## Privacy Policy
 
 `/legal/privacy` is the public privacy policy for the website and for Signal-23's internal Meta advertising app; it is the URL used in Meta's Privacy Policy field. The policy text lives once, in `src/components/Legal/privacy-policy.content.html`. At build time `scripts/legal-pages.js` renders it into a static, script-free `build/legal/privacy/index.html` (metadata plus inlined `Legal.css`), so the full text is in the initial HTML response for people and crawlers alike. `/legal/privacy` in `App.tsx` renders the same content as an SPA fallback, `/terms` links to it, and `netlify.toml` redirects `/privacy` there. Netlify serves directory pages at the trailing-slash URL, so the served address, canonical tag and the value for Meta's Privacy Policy URL field are all `https://signal23.net/legal/privacy/`.
