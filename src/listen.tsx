@@ -8,6 +8,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import { ListenPage } from './components/Listen/ListenPage';
 import { findListenTrack } from './components/Listen/listenTracks';
+import { setConsentMode } from './lib/consent';
 
 const root = document.getElementById('listen-root');
 
@@ -21,6 +22,8 @@ const slug = (root && root.dataset.track) || slugFromLocation();
 const track = findListenTrack(slug);
 
 if (root && track) {
+  // Written by the listen-region edge function from the visitor's country; anything else stays opt-in.
+  setConsentMode(root.dataset.consent === 'opt-out' ? 'opt-out' : 'opt-in');
   ReactDOM.render(
     <React.StrictMode>
       <ListenPage track={track} />

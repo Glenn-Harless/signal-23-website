@@ -24,6 +24,24 @@
         "height": 540
       },
       "exploreHref": "/decay"
+    },
+    {
+      "slug": "pulsar-04",
+      "title": "Pulsar 04",
+      "preSaveUrl": "https://distrokid.com/hyperfollow/signal23/pulsar-04",
+      "releaseDate": "2026-10-30",
+      "artwork": {
+        "src": "/listen/pulsar-04/artwork.jpg",
+        "width": 1200,
+        "height": 1200,
+        "alt": "Pulsar 04 track art: sepia moire bands crossing in an X behind a dark vertical bar, with the title in typewriter type"
+      },
+      "shareImage": {
+        "src": "/listen/pulsar-04/og.jpg",
+        "width": 1200,
+        "height": 630
+      },
+      "exploreHref": "/"
     }
   ]
 }

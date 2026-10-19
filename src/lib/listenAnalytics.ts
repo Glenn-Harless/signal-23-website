@@ -1,18 +1,25 @@
 /**
  * Measurement for the listen landing pages.
  *
- * Two events, each dispatched to every configured sink:
- *   - page view               (standard PageView on Meta)
- *   - spotify_outbound_click  (custom event, fired once per link activation)
+ * Two events, each dispatched to every active sink:
+ *   - page view               (counter `page_view`; standard PageView on Meta)
+ *   - spotify_outbound_click  (counter `spotify_tap`; custom event on Meta, fired once per link activation)
  *
- * Sinks are attached only when configured and only when the visitor has not
- * opted out. Every call is synchronous, non-blocking and swallows its own
- * errors so the Spotify link never waits on analytics.
+ * Our own cookie-free counter runs for every visitor. The Meta sinks (browser
+ * Pixel and the server-side Conversions API relay) are attached only when a
+ * Pixel ID was set at build time and run only where consent.ts allows: after
+ * Accept in the EU/EEA, UK and Switzerland, unless opted out elsewhere. Every
+ * call is synchronous, non-blocking and swallows its own errors so the Spotify
+ * link never waits on analytics.
  */
-import { hasTrackingConsent } from './consent';
+import { hasTrackingConsent, readStoredConsent, setStoredConsent } from './consent';
 import type { CampaignParams } from './campaignParams';
 
 export const SPOTIFY_OUTBOUND_EVENT = 'spotify_outbound_click';
+
+// Netlify Functions, named so ad blockers' generic "track"/"analytics" rules leave them alone.
+const COUNTER_ENDPOINT = '/.netlify/functions/relay';
+const META_SERVER_ENDPOINT = '/.netlify/functions/relay-forward';
 
 export type ListenPageViewEvent = {
   trackSlug: string;
@@ -22,12 +29,13 @@ export type ListenPageViewEvent = {
 export type SpotifyOutboundEvent = {
   trackSlug: string;
   destinationUrl: string;
+  destination: 'spotify' | 'presave';
   campaign: CampaignParams;
 };
 
 type OutboundPayload = CampaignParams & {
   track_slug: string;
-  destination: 'spotify';
+  destination: 'spotify' | 'presave';
 };
 
 interface AnalyticsSink {
@@ -41,6 +49,33 @@ interface AnalyticsSink {
 // Injected at build time by webpack.DefinePlugin (see webpack.config.js).
 const META_PIXEL_ID = (process.env.LISTEN_META_PIXEL_ID || '').trim();
 const IS_PRODUCTION = process.env.NODE_ENV === 'production';
+
+/** A same-origin POST that survives the page unloading into Spotify. */
+function beacon(url: string, body: Record<string, unknown>): void {
+  const data = JSON.stringify(body);
+  try {
+    // A string body goes as text/plain, which needs no CORS preflight.
+    if (typeof navigator.sendBeacon === 'function' && navigator.sendBeacon(url, data)) return;
+  } catch {
+    // Fall through to fetch.
+  }
+  if (typeof fetch === 'function') {
+    fetch(url, { method: 'POST', body: data, keepalive: true, credentials: 'same-origin' }).catch(() => {});
+  }
+}
+
+// --- Our counter (cookie-free, every visitor) -------------------------------
+
+const counterSink: AnalyticsSink = {
+  name: 'counter',
+  requiresConsent: false,
+  pageView(event) {
+    beacon(COUNTER_ENDPOINT, { event: 'page_view', slug: event.trackSlug, content: event.campaign.utm_content });
+  },
+  outbound(payload) {
+    beacon(COUNTER_ENDPOINT, { event: 'spotify_tap', slug: payload.track_slug, content: payload.utm_content });
+  },
+};
 
 // --- Meta Pixel -----------------------------------------------------------
 
@@ -77,6 +112,8 @@ function ensureMetaPixel(pixelId: string): Fbq {
   script.src = 'https://connect.facebook.net/en_US/fbevents.js';
   document.head.appendChild(script);
 
+  // No automatic button-click or page-metadata events: only the two we send.
+  fbq('set', 'autoConfig', false, pixelId);
   fbq('init', pixelId);
   return fbq;
 }
@@ -89,10 +126,37 @@ function metaPixelSink(pixelId: string): AnalyticsSink {
       ensureMetaPixel(pixelId)('track', 'PageView');
     },
     outbound(payload, eventId) {
-      // eventID lets a future Conversions API call deduplicate against this browser event.
+      // The server relay sends the same event with this id; Meta counts the pair once.
       ensureMetaPixel(pixelId)('trackCustom', SPOTIFY_OUTBOUND_EVENT, payload, { eventID: eventId });
     },
   };
+}
+
+// --- Meta Conversions API, via our function ---------------------------------
+
+const metaServerSink: AnalyticsSink = {
+  name: 'meta-server',
+  requiresConsent: true,
+  pageView() {
+    // Only the outbound tap goes server-side.
+  },
+  outbound(payload, eventId) {
+    // "default" lets the function refuse it if the visitor turns out to be in an opt-in country.
+    const consent = readStoredConsent() === 'granted' ? 'granted' : 'default';
+    beacon(META_SERVER_ENDPOINT, { event_id: eventId, url: window.location.href, consent, data: payload });
+  },
+};
+
+const META_COOKIES = ['_fbp', '_fbc'];
+
+/** Best effort: expire the Pixel's first-party cookies on this host and each parent domain. */
+function clearMetaCookies(): void {
+  const parts = window.location.hostname.split('.');
+  const domains = [''];
+  for (let i = 0; i < parts.length - 1; i += 1) domains.push(`; domain=.${parts.slice(i).join('.')}`);
+  for (const name of META_COOKIES) {
+    for (const domain of domains) document.cookie = `${name}=; Max-Age=0; path=/${domain}`;
+  }
 }
 
 // --- Development console --------------------------------------------------
@@ -110,12 +174,17 @@ const consoleSink: AnalyticsSink = {
 
 // --- Dispatcher -----------------------------------------------------------
 
-const sinks: AnalyticsSink[] = [];
-if (META_PIXEL_ID) sinks.push(metaPixelSink(META_PIXEL_ID));
+const sinks: AnalyticsSink[] = [counterSink];
+if (META_PIXEL_ID) sinks.push(metaPixelSink(META_PIXEL_ID), metaServerSink);
 if (!IS_PRODUCTION) sinks.push(consoleSink);
 
 export function configuredSinkNames(): string[] {
   return sinks.map((sink) => sink.name);
+}
+
+/** True when this build can send anything to Meta, i.e. the consent question is worth asking. */
+export function metaMeasurementConfigured(): boolean {
+  return Boolean(META_PIXEL_ID);
 }
 
 function activeSinks(): AnalyticsSink[] {
@@ -137,8 +206,42 @@ function newEventId(): string {
   return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
 }
 
+// The current page view, kept so a sink that becomes active later (Accept) still receives it once.
+let currentPageView: ListenPageViewEvent | null = null;
+const pageViewSentTo = new Set<string>();
+
+function dispatchPageView(): void {
+  if (!currentPageView) return;
+  const event = currentPageView;
+  for (const sink of activeSinks()) {
+    if (pageViewSentTo.has(sink.name)) continue;
+    pageViewSentTo.add(sink.name);
+    safely(sink, () => sink.pageView(event));
+  }
+}
+
 export function recordListenPageView(event: ListenPageViewEvent): void {
-  for (const sink of activeSinks()) safely(sink, () => sink.pageView(event));
+  currentPageView = event;
+  pageViewSentTo.clear();
+  dispatchPageView();
+}
+
+/**
+ * Applies the visitor's banner choice. Accepting loads the Pixel and sends this
+ * page's PageView; declining stops further Meta events and removes Meta's cookies.
+ */
+export function updateListenConsent(state: 'granted' | 'denied'): void {
+  setStoredConsent(state);
+  if (!META_PIXEL_ID) return;
+  try {
+    // Only matters when the Pixel already loaded earlier on this page.
+    const fbq = (window as PixelWindow).fbq;
+    if (fbq) fbq('consent', state === 'granted' ? 'grant' : 'revoke');
+    if (state === 'denied') clearMetaCookies();
+  } catch (error) {
+    if (!IS_PRODUCTION) console.warn('[listen] consent update failed', error);
+  }
+  if (state === 'granted') dispatchPageView();
 }
 
 /** The same activation observed twice inside this window is recorded once. */
@@ -161,7 +264,7 @@ export function recordSpotifyOutbound(event: SpotifyOutboundEvent): string | nul
   const eventId = newEventId();
   const payload: OutboundPayload = {
     track_slug: event.trackSlug,
-    destination: 'spotify',
+    destination: event.destination,
     ...event.campaign,
   };
   for (const sink of activeSinks()) safely(sink, () => sink.outbound(payload, eventId));

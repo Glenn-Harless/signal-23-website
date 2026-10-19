@@ -20,6 +20,8 @@ const spotifyIcon = require('../src/components/Listen/spotify-icon.json');
 
 const FONT_HREF = 'https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap';
 const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+const SPOTIFY_TRACK_PATTERN = /^https:\/\/open\.spotify\.com\/track\/[A-Za-z0-9]+$/;
+const PRE_SAVE_PATTERN = /^https:\/\/distrokid\.com\/hyperfollow\/[a-z0-9-]+\/[a-z0-9-]+$/;
 
 function escapeHtml(value) {
   return String(value).replace(/[&<>"']/g, (ch) => ({
@@ -40,8 +42,16 @@ function validateTrack(track) {
   const problems = [];
   if (!SLUG_PATTERN.test(track.slug || '')) problems.push(`slug "${track.slug}" must be lowercase letters, digits and hyphens`);
   if (!track.title) problems.push('title is required');
-  if (!/^https:\/\/open\.spotify\.com\/track\/[A-Za-z0-9]+$/.test(track.spotifyUrl || '')) {
-    problems.push(`spotifyUrl "${track.spotifyUrl}" must be a canonical https://open.spotify.com/track/<id> URL`);
+  if (track.spotifyUrl !== undefined) {
+    if (!SPOTIFY_TRACK_PATTERN.test(track.spotifyUrl)) {
+      problems.push(`spotifyUrl "${track.spotifyUrl}" must be a canonical https://open.spotify.com/track/<id> URL`);
+    }
+  } else if (track.preSaveUrl !== undefined) {
+    if (!PRE_SAVE_PATTERN.test(track.preSaveUrl)) {
+      problems.push(`preSaveUrl "${track.preSaveUrl}" must be a https://distrokid.com/hyperfollow/<artist>/<release> URL`);
+    }
+  } else {
+    problems.push('spotifyUrl is required (or preSaveUrl until the track is released)');
   }
   if (!track.artwork || !track.artwork.src) problems.push('artwork.src is required');
   if (track.description && /[.!?]\s+\S/.test(track.description)) problems.push('description must be at most one sentence');
@@ -56,9 +66,16 @@ function pageDescription(track) {
   return track.description || `Listen to ${track.title} by ${config.artist} on Spotify.`;
 }
 
-/** Mirrors the JSX in ListenPage.tsx (minus the JS-only loop video). */
+/** Mirrors listenDestination() in src/components/Listen/listenTracks.ts. */
+function listenDestination(track) {
+  if (track.spotifyUrl) return { href: track.spotifyUrl, label: 'Listen on Spotify' };
+  return { href: track.preSaveUrl || '/', label: 'Pre-save on Spotify' };
+}
+
+/** Mirrors the JSX in ListenPage.tsx (minus the JS-only loop video and consent controls). */
 function renderListenMarkup(track) {
   const artist = escapeHtml(config.artist);
+  const destination = listenDestination(track);
   const alt = escapeHtml(track.artwork.alt || `${track.title} artwork`);
   const description = track.description
     ? `\n      <p class="listen__description">${escapeHtml(track.description)}</p>`
@@ -74,9 +91,9 @@ function renderListenMarkup(track) {
       <img src="${escapeHtml(track.artwork.src)}" width="${track.artwork.width}" height="${track.artwork.height}" alt="${alt}" decoding="async" fetchpriority="high">
     </figure>
     <div class="listen__actions">
-      <a class="listen__cta" href="${escapeHtml(track.spotifyUrl)}" data-track-slug="${escapeHtml(track.slug)}">
+      <a class="listen__cta" href="${escapeHtml(destination.href)}" data-track-slug="${escapeHtml(track.slug)}">
         <svg viewBox="${spotifyIcon.viewBox}" aria-hidden="true" focusable="false"><path d="${spotifyIcon.path}"></path></svg>
-        <span>Listen on Spotify</span>
+        <span>${escapeHtml(destination.label)}</span>
       </a>
       <nav class="listen__secondary" aria-label="More from ${artist}">
         <a class="listen__explore" href="${escapeHtml(track.exploreHref || '/')}">Explore ${artist}</a>

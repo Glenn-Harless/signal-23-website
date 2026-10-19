@@ -35,6 +35,7 @@
     </style>
 </head>
 <body>
-    <div id="listen-root" data-track="<%= page.slug %>"><%= page.markup %></div>
+    <%/* The listen-region edge function switches data-consent to opt-out for visitors outside the EU/EEA, UK and Switzerland. */%>
+    <div id="listen-root" data-track="<%= page.slug %>" data-consent="opt-in"><%= page.markup %></div>
 </body>
 </html>
