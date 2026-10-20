@@ -1,7 +1,7 @@
 // Releases as the terminal (TUNE) and A/V see them.
 // Each release sits on a frequency taken from its release date, MM.DD.
-// Measured numbers come from the masters (releaseTelemetry.json); a release without a local master
-// shows as not loaded until its audio is added.
+// Measured numbers come from the released masters (releaseTelemetry.json); a release without audio
+// shows as not loaded. Spotify and Bandcamp links point at the single where there is one.
 
 import telemetry from './releaseTelemetry.json';
 
@@ -24,6 +24,8 @@ export type Release = {
   freq: string;
   group: string;
   audio?: string;
+  spotify: string;
+  bandcamp: string;
   /** Official visual on YouTube (16:9). */
   film?: string;
   /** Vertical excerpts on YouTube. */
@@ -37,8 +39,10 @@ export const RELEASES: Release[] = [
     date: '2025.11.28',
     freq: '11.28',
     group: 'EP1',
-    audio: '/pieces-website-mp3.mp3',
     film: '5_QlZY85eKA',
+    audio: '/audio/pieces.mp3',
+    spotify: 'https://open.spotify.com/track/5MG1GXxbmJ8IUHh2tjjWWv',
+    bandcamp: 'https://signal-23.bandcamp.com/track/pieces',
     excerpts: ['cm1E3WjcYNM'],
   },
   {
@@ -48,6 +52,9 @@ export const RELEASES: Release[] = [
     freq: '01.02',
     group: 'EP1',
     film: 'xfliM3sAmOU',
+    audio: '/audio/pillars.mp3',
+    spotify: 'https://open.spotify.com/track/11VXCyeCKLf1It3hWbXHZL',
+    bandcamp: 'https://signal-23.bandcamp.com/track/pillars',
     excerpts: ['BObVvPSduFE'],
   },
   {
@@ -57,6 +64,9 @@ export const RELEASES: Release[] = [
     freq: '02.06',
     group: 'EP1',
     film: 'Ys8Yhyo_kRM',
+    audio: '/audio/reset.mp3',
+    spotify: 'https://open.spotify.com/track/78RtLsnyUuAY3Y4EZwCLch',
+    bandcamp: 'https://signal-23.bandcamp.com/track/reset',
     excerpts: ['spg2qyfL8nI'],
   },
   {
@@ -65,8 +75,10 @@ export const RELEASES: Release[] = [
     date: '2026.03.20',
     freq: '03.20',
     group: 'EP1',
-    audio: '/audio/decay.mp3',
     film: 'NQbDXcCFL84',
+    audio: '/audio/decay.mp3',
+    spotify: 'https://open.spotify.com/track/4W3gCoS3MDNNHHjtCsQrID',
+    bandcamp: 'https://signal-23.bandcamp.com/track/decay',
     excerpts: ['BEjHnS4gsPk', '5s5YYismqMk'],
   },
   {
@@ -76,6 +88,9 @@ export const RELEASES: Release[] = [
     freq: '04.13',
     group: 'EP1',
     film: 'MqOUYAsZ_sM',
+    audio: '/audio/pillars-ambient.mp3',
+    spotify: 'https://open.spotify.com/track/7K26szUsrFAG2WArEBZcNd',
+    bandcamp: 'https://signal-23.bandcamp.com/track/pillars-ambient',
     excerpts: ['UyjCCA4SKg4'],
   },
   {
@@ -85,6 +100,8 @@ export const RELEASES: Release[] = [
     freq: '08.28.1',
     group: 'EP2',
     audio: '/audio/branchsplit.mp3',
+    spotify: 'https://open.spotify.com/track/2z72KsGFk0i1B39HzRYkNC',
+    bandcamp: 'https://signal-23.bandcamp.com/track/branchsplit',
     excerpts: [],
   },
   {
@@ -94,6 +111,8 @@ export const RELEASES: Release[] = [
     freq: '08.28.2',
     group: 'EP2',
     audio: '/audio/streamfront.mp3',
+    spotify: 'https://open.spotify.com/track/0Ha4SqBN412SUoGLJEnQWH',
+    bandcamp: 'https://signal-23.bandcamp.com/track/streamfront-2',
     excerpts: ['9rreyTWs9SM', 'VtlDfMmzQ8o'],
   },
   {
@@ -103,6 +122,8 @@ export const RELEASES: Release[] = [
     freq: '08.28.3',
     group: 'EP2',
     audio: '/audio/cloudform.mp3',
+    spotify: 'https://open.spotify.com/track/1FjNDQ99akYVBmA28qX4Qj',
+    bandcamp: 'https://signal-23.bandcamp.com/track/cloudform',
     excerpts: ['i5SHFUtktac'],
   },
   {
@@ -112,6 +133,8 @@ export const RELEASES: Release[] = [
     freq: '08.28.4',
     group: 'EP2',
     audio: '/audio/torchrite.mp3',
+    spotify: 'https://open.spotify.com/track/2rDIfT1We2crOwaQfBwSyI',
+    bandcamp: 'https://signal-23.bandcamp.com/track/torchrite',
     excerpts: ['sClYliWkKx8'],
   },
   {
@@ -121,9 +144,17 @@ export const RELEASES: Release[] = [
     freq: '09.25',
     group: 'SINGLE',
     audio: '/audio/brooding-games.mp3',
+    spotify: 'https://open.spotify.com/track/1MTrOOjVwE4Cu95uofDAzC',
+    bandcamp: 'https://signal-23.bandcamp.com/track/brooding-games',
     excerpts: ['O0bI5iXpACI', 'Eh2flYe95xs'],
   },
 ];
+
+// The two EPs as albums.
+export const EP_LINKS: Record<string, { spotify: string; bandcamp: string }> = {
+  EP1: { spotify: 'https://open.spotify.com/album/0xBOyo2M3Wnhy0Jk9hAf0f', bandcamp: 'https://signal-23.bandcamp.com/album/pillars-ep' },
+  EP2: { spotify: 'https://open.spotify.com/album/5OpSwbxXEjtoYfKHNBf5Da', bandcamp: 'https://signal-23.bandcamp.com/album/ep2' },
+};
 
 // Other vertical visuals on the channel that aren't tied to one release.
 export const LOOSE_EXCERPTS: Array<{ id: string; title: string }> = [

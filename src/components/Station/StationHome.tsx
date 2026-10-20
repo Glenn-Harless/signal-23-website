@@ -44,7 +44,7 @@ export const StationHome: React.FC<StationHomeProps> = ({ isMobile }) => {
 
   return (
     <div className="station-home">
-      <audio ref={audioRef} src="/pieces-website-mp3.mp3" preload="none" loop />
+      <audio ref={audioRef} src="/audio/pieces.mp3" preload="none" loop />
 
       <StationPortal broadcast={broadcast} onEnter={() => navigate('/terminal')} />
 

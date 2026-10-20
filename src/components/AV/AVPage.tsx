@@ -2,11 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { SpectrumWindow } from './SpectrumWindow';
 import { GritText } from '../Station/GritText';
-import { LOOSE_EXCERPTS, RELEASES, Release, formatDuration, latestRelease, telemetryFor } from '../../data/releases';
+import { EP_LINKS, LOOSE_EXCERPTS, RELEASES, Release, formatDuration, latestRelease, telemetryFor } from '../../data/releases';
 import { localHour, moonLit, moonPhase, skyPalette, skyPhase } from '../Station/sky';
 import './av.css';
-
-const SPOTIFY = 'https://open.spotify.com/artist/3ZKXfUCXvaZbEdCRx9sWD6';
 
 const pad2 = (n: number) => String(n).padStart(2, '0');
 const tuneLink = (r: Release) => `/terminal?tune=${r.freq}`;
@@ -43,6 +41,17 @@ const YouTubeFrame: React.FC<{ id: string; title: string; poster: string; vertic
   );
 };
 
+const StoreLinks: React.FC<{ spotify: string; bandcamp: string; className?: string }> = ({ spotify, bandcamp, className = 'av-ro av-stores' }) => (
+  <span className={className}>
+    <a href={spotify} target="_blank" rel="noreferrer">
+      SPOTIFY
+    </a>
+    <a href={bandcamp} target="_blank" rel="noreferrer">
+      BANDCAMP
+    </a>
+  </span>
+);
+
 const ReleaseCard: React.FC<{ release: Release; palette: ReturnType<typeof skyPalette> }> = ({ release, palette }) => {
   const t = telemetryFor(release.slug);
   return (
@@ -52,6 +61,7 @@ const ReleaseCard: React.FC<{ release: Release; palette: ReturnType<typeof skyPa
       <div className="av-ro">
         {release.freq} / {t ? `${formatDuration(t.dur)} / ${t.lufs.toFixed(1)} LUFS` : `NO MASTER ON FILE / ${release.date}`}
       </div>
+      <StoreLinks spotify={release.spotify} bandcamp={release.bandcamp} />
     </article>
   );
 };
@@ -120,8 +130,11 @@ export const AVPage: React.FC = () => {
               </div>
             )}
             <div className="tw av-links">
-              <a className="av-tl" href={SPOTIFY} target="_blank" rel="noreferrer">
-                LISTEN
+              <a className="av-tl" href={lead.spotify} target="_blank" rel="noreferrer">
+                SPOTIFY
+              </a>
+              <a className="av-tl" href={lead.bandcamp} target="_blank" rel="noreferrer">
+                BANDCAMP
               </a>
               <Link className="av-tl" to={tuneLink(lead)}>
                 TUNE IN
@@ -133,7 +146,10 @@ export const AVPage: React.FC = () => {
         <section className="av-section" aria-labelledby="av-ep2">
           <div className="av-sh">
             <h2 id="av-ep2" className="tw ink">EP2</h2>
-            <span className="av-ro">2026.08.28 / FOUR TRANSMISSIONS</span>
+            <span className="av-ro av-sh__meta">
+              2026.08.28 / FOUR TRANSMISSIONS
+              <StoreLinks {...EP_LINKS.EP2} />
+            </span>
           </div>
           <div className="av-row4">
             {ep2.map((r) => (
@@ -145,7 +161,10 @@ export const AVPage: React.FC = () => {
         <section className="av-section" aria-labelledby="av-ep1">
           <div className="av-sh">
             <h2 id="av-ep1" className="tw ink">PILLARS EP</h2>
-            <span className="av-ro">2026.04.13 / FIVE TRANSMISSIONS</span>
+            <span className="av-ro av-sh__meta">
+              2026.04.13 / FIVE TRANSMISSIONS
+              <StoreLinks {...EP_LINKS.EP1} />
+            </span>
           </div>
           <div className="av-row5">
             {ep1.map((r) => (

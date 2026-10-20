@@ -188,7 +188,7 @@ The home portal (`src/components/Station/`) draws one window on the GPU: a detai
 
 The number readout steps through the day's groups digit by digit; the red dot blinks in time and is the home audio's hidden play button. Each of the 23 soft-secret visuals in `src/data/transmissions.ts` has one group, numbered in registry order; the scheme, the daily schedule and the flash timing live in `src/data/numberStation.ts`. The terminal's DECODE turns a group into its route and remembers recovered routes in the visitor's own browser (`localStorage`).
 
-TUNE lists every release on a frequency taken from its release date. Measured numbers and spectra live in `src/data/releaseTelemetry.json`; release metadata, audio paths and YouTube IDs in `src/data/releases.ts`. Full tracks are 192 kbps MP3s in `public/audio/` (Pieces stays at `public/pieces-website-mp3.mp3`). A release without audio shows as not loaded. SCAN still plays a random stretch of the HLS stream in `src/components/Terminal/AudioStreamer.ts`.
+TUNE lists every release on a frequency taken from its release date. Measured numbers and spectra live in `src/data/releaseTelemetry.json`; release metadata, audio paths and YouTube IDs in `src/data/releases.ts`. Full tracks are 192 kbps MP3s of the released masters in `public/audio/`; the home page's hidden player loops Pieces from there. A release without audio shows as not loaded. A/V links each release to its Spotify and Bandcamp page (the single where there is one) and each EP to its album. SCAN still plays a random stretch of the HLS stream in `src/components/Terminal/AudioStreamer.ts`.
 
 ## A/V
 
