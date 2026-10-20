@@ -5,15 +5,18 @@ import {
   LISTEN_ARTIST,
   ListenTrack,
   ListenVideo,
+  listenDestination,
   listenPageTitle,
 } from './listenTracks';
+import { ConsentBanner, useListenConsent } from './ListenConsent';
 import { readCampaignParams } from '../../lib/campaignParams';
 import { recordListenPageView, recordSpotifyOutbound } from '../../lib/listenAnalytics';
 
 /*
  * The markup below is mirrored by renderListenMarkup() in scripts/listen-pages.js,
  * which pre-renders it into the static /listen/<slug>/index.html so the page works
- * before (or without) JavaScript. Keep the two structures identical.
+ * before (or without) JavaScript. Keep the two structures identical, apart from the
+ * JavaScript-only loop video and consent controls.
  */
 
 function motionAllowed(): boolean {
@@ -72,6 +75,14 @@ export const ListenPage: React.FC<ListenPageProps> = ({ track }) => {
     [],
   );
   const [showLoop] = useState(() => Boolean(track.loopVideo) && motionAllowed());
+  const destination = listenDestination(track);
+  const consent = useListenConsent();
+  const cookiesButton = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    // After a choice made from the reopened banner, return focus to the control that opened it.
+    if (!consent.open && consent.reopened && cookiesButton.current) cookiesButton.current.focus();
+  }, [consent.open, consent.reopened]);
 
   useEffect(() => {
     const previousTitle = document.title;
@@ -87,7 +98,12 @@ export const ListenPage: React.FC<ListenPageProps> = ({ track }) => {
 
   const recordActivation = () => {
     // No preventDefault: the browser follows the href whatever analytics does.
-    recordSpotifyOutbound({ trackSlug: track.slug, destinationUrl: track.spotifyUrl, campaign });
+    recordSpotifyOutbound({
+      trackSlug: track.slug,
+      destinationUrl: destination.href,
+      destination: destination.kind,
+      campaign,
+    });
   };
 
   const handleAuxClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
@@ -118,7 +134,7 @@ export const ListenPage: React.FC<ListenPageProps> = ({ track }) => {
         <div className="listen__actions">
           <a
             className="listen__cta"
-            href={track.spotifyUrl}
+            href={destination.href}
             data-track-slug={track.slug}
             onClick={recordActivation}
             onAuxClick={handleAuxClick}
@@ -126,18 +142,27 @@ export const ListenPage: React.FC<ListenPageProps> = ({ track }) => {
             <svg viewBox={spotifyIcon.viewBox} aria-hidden="true" focusable="false">
               <path d={spotifyIcon.path} />
             </svg>
-            <span>Listen on Spotify</span>
+            <span>{destination.label}</span>
           </a>
 
           <nav className="listen__secondary" aria-label={`More from ${LISTEN_ARTIST}`}>
             <a className="listen__explore" href={track.exploreHref || '/'}>
               Explore {LISTEN_ARTIST}
             </a>
+            {consent.askable && !consent.open ? (
+              <button ref={cookiesButton} type="button" className="listen__cookies" onClick={consent.reopen}>
+                Cookies
+              </button>
+            ) : null}
             <a className="listen__privacy" href="/legal/privacy/">
               Privacy
             </a>
           </nav>
         </div>
+
+        {consent.open ? (
+          <ConsentBanner measuring={consent.measuring} onChoose={consent.choose} reopened={consent.reopened} />
+        ) : null}
       </div>
     </main>
   );
