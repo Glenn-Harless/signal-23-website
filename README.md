@@ -135,7 +135,7 @@ Capture at 1080×1920 for 9:16, 1080×1350 for 4:5, or 1920×1080 for 16:9 with 
 
 Tracks are configured in `src/data/listenTracks.json` (title, slug, canonical Spotify track URL, artwork, optional share crop, optional muted loop video, optional one-sentence description, explore destination). Derived web assets live under `public/listen/<slug>/`.
 
-Before a track is released, give it a `preSaveUrl` (the DistroKid HyperFollow page) instead of `spotifyUrl`; the button then reads **Pre-save on Spotify**. On release day, add the exact `https://open.spotify.com/track/<id>` URL as `spotifyUrl` (not the album link), remove `preSaveUrl`, and redeploy. `pulsar-04` is in this state until 30 October 2026.
+Before a track is released, give it a `preSaveUrl` (the DistroKid HyperFollow page) instead of `spotifyUrl`; the button then reads **Pre-save on Spotify**. On release day, add the exact `https://open.spotify.com/track/<id>` URL as `spotifyUrl` (not the album link), remove `preSaveUrl`, and redeploy.
 
 At build time `scripts/listen-pages.js` pre-renders one static `build/listen/<slug>/index.html` per track with track-specific Open Graph metadata, the inlined stylesheet, working markup before any JavaScript runs, and only the small `listen` bundle (`src/listen.tsx`). Netlify serves that file ahead of the SPA rewrite; `/listen/:slug` in `App.tsx` is the fallback for other hosts and unknown slugs. `npm start` serves the generated pages at the same pretty URLs.
 
