@@ -42,6 +42,29 @@
         "height": 630
       },
       "exploreHref": "/"
+    },
+    {
+      "slug": "reset",
+      "title": "Reset",
+      "spotifyUrl": "https://open.spotify.com/track/78RtLsnyUuAY3Y4EZwCLch",
+      "releaseDate": "2026-02-06",
+      "artwork": {
+        "src": "/listen/reset/artwork.jpg",
+        "width": 1200,
+        "height": 1200,
+        "alt": "Reset track art: pastel arches either side of a still pool facing the sea, with the title in white against the sky"
+      },
+      "shareImage": {
+        "src": "/listen/reset/og.jpg",
+        "width": 1200,
+        "height": 630
+      },
+      "loopVideo": {
+        "src": "/listen/reset/loop.mp4",
+        "width": 540,
+        "height": 540
+      },
+      "exploreHref": "/"
     }
   ]
 }
