@@ -65,7 +65,7 @@ Public and commerce routes:
 | `/instruments` | Instrument-rack catalog and pay-what-you-want acquisition flow |
 | `/instruments/success` | Stripe payment verification and signed-download delivery |
 | `/terms` | Terms page |
-| `/listen/:slug` | Per-track ad landing page with a direct **Listen on Spotify** handoff (currently `decay` and `pulsar-04`) |
+| `/listen/:slug` | Per-track ad landing page with a direct **Listen on Spotify** handoff (currently `decay`, `pulsar-04` and `reset`) |
 | `/legal/privacy` | Privacy policy; static HTML readable without JavaScript (`/privacy` redirects here) |
 | `/testblandingpage` | Deprecated compatibility path that redirects to `/resonance` |
 
