@@ -1,0 +1,2223 @@
+{
+ "packs": [
+  {
+   "id": "guitar",
+   "name": "Guitar"
+  },
+  {
+   "id": "drums",
+   "name": "Drums"
+  },
+  {
+   "id": "synths-pads",
+   "name": "Synths & Pads"
+  },
+  {
+   "id": "any-source",
+   "name": "Any Source"
+  },
+  {
+   "id": "vocals",
+   "name": "Vocals"
+  },
+  {
+   "id": "mix-fx",
+   "name": "Mix & FX"
+  },
+  {
+   "id": "lab",
+   "name": "Lab"
+  }
+ ],
+ "racks": [
+  {
+   "slug": "hm-chamber",
+   "name": "HM Chamber",
+   "pack": "guitar",
+   "device": false,
+   "macros": [
+    {
+     "n": "Sympathy",
+     "v": 0.63
+    },
+    {
+     "n": "Key",
+     "v": 0.5
+    },
+    {
+     "n": "Sustain",
+     "v": 0.551
+    },
+    {
+     "n": "Warmth",
+     "v": 0.354
+    },
+    {
+     "n": "Color",
+     "v": 0.315
+    },
+    {
+     "n": "Room",
+     "v": 0.496
+    },
+    {
+     "n": "Minor",
+     "v": 0.409
+    },
+    {
+     "n": "Width",
+     "v": 0.787
+    }
+   ],
+   "variations": [
+    "Faint",
+    "Cathedral",
+    "Cello",
+    "Drone"
+   ],
+   "devices": [
+    "Resonators",
+    "Saturator",
+    "Hybrid Reverb",
+    "Utility"
+   ],
+   "what": "Your playing excites five tuned resonators (root, sub-octave, fifth, octave and a minor-third colour) beside the untouched dry signal, with warmth and a dark room.",
+   "start": "Faint. Set Key to your song first.",
+   "version": "v2"
+  },
+  {
+   "slug": "mc-fracture",
+   "name": "MC Fracture",
+   "pack": "guitar",
+   "device": false,
+   "macros": [
+    {
+     "n": "Mix",
+     "v": 0.701
+    },
+    {
+     "n": "Pitch",
+     "v": 1.0
+    },
+    {
+     "n": "Cascade",
+     "v": 0.528
+    },
+    {
+     "n": "Glitch",
+     "v": 0.402
+    },
+    {
+     "n": "Crush",
+     "v": 0.598
+    },
+    {
+     "n": "Space",
+     "v": 0.543
+    },
+    {
+     "n": "Dark",
+     "v": 0.504
+    },
+    {
+     "n": "Slice",
+     "v": 0.535
+    }
+   ],
+   "variations": [
+    "Sparse Bloom",
+    "Climb",
+    "Sub Crush",
+    "Fracture"
+   ],
+   "devices": [
+    "Grain Delay",
+    "Beat Repeat",
+    "Redux",
+    "Hybrid Reverb"
+   ],
+   "what": "A recursive octave-up Grain Delay bloom into a tempo-locked Beat Repeat gate, bit crush and a dark hall.",
+   "start": "Sparse Bloom.",
+   "version": null
+  },
+  {
+   "slug": "mc-undertow",
+   "name": "MC Undertow",
+   "pack": "guitar",
+   "device": false,
+   "macros": [
+    {
+     "n": "Mix",
+     "v": 0.598
+    },
+    {
+     "n": "Pitch",
+     "v": 0.0
+    },
+    {
+     "n": "Cascade",
+     "v": 0.472
+    },
+    {
+     "n": "Drive",
+     "v": 0.252
+    },
+    {
+     "n": "Body",
+     "v": 0.551
+    },
+    {
+     "n": "Space",
+     "v": 0.622
+    },
+    {
+     "n": "Dark",
+     "v": 0.598
+    },
+    {
+     "n": "Decay",
+     "v": 0.551
+    }
+   ],
+   "variations": [
+    "Sparse Sub",
+    "Cello",
+    "Undertow",
+    "Hum"
+   ],
+   "devices": [
+    "Grain Delay",
+    "Saturator",
+    "Hybrid Reverb"
+   ],
+   "what": "A recursive sub-octave Grain Delay bloom into saturation and a dark hall.",
+   "start": "Sparse Sub.",
+   "version": null
+  },
+  {
+   "slug": "pjt-bloom-down",
+   "name": "PJT Bloom Down",
+   "pack": "guitar",
+   "device": false,
+   "macros": [
+    {
+     "n": "Bloom",
+     "v": 1.0
+    },
+    {
+     "n": "Cycle",
+     "v": 1.0
+    },
+    {
+     "n": "Cascade",
+     "v": 0.0
+    },
+    {
+     "n": "Edge",
+     "v": 1.0
+    },
+    {
+     "n": "Tone",
+     "v": 1.0
+    },
+    {
+     "n": "Tail",
+     "v": 0.0
+    },
+    {
+     "n": "Space",
+     "v": 0.512
+    },
+    {
+     "n": "Out",
+     "v": 0.882
+    },
+    {
+     "n": "Sustain",
+     "v": 0.0
+    },
+    {
+     "n": "Warm",
+     "v": 0.0
+    },
+    {
+     "n": "Body",
+     "v": 1.0
+    },
+    {
+     "n": "Pick",
+     "v": 0.0
+    },
+    {
+     "n": "Sense",
+     "v": 0.5
+    },
+    {
+     "n": "Room",
+     "v": 0.803
+    },
+    {
+     "n": "Width",
+     "v": 0.0
+    },
+    {
+     "n": "Damp",
+     "v": 0.0
+    }
+   ],
+   "variations": [
+    "Start Here",
+    "Bare Fall",
+    "Long Fall",
+    "Low Ember",
+    "Rest"
+   ],
+   "devices": [
+    "Compressor",
+    "Amp",
+    "Cabinet",
+    "EQ Eight",
+    "Hybrid Reverb",
+    "Utility",
+    "Grain Delay",
+    "Saturator",
+    "Auto Filter",
+    "Limiter"
+   ],
+   "what": "A clean compressed amp-and-cab guitar voice plus a second lane with an exact octave-down Grain Delay cascade on knob 1; zero is clean guitar.",
+   "start": "Start Here, then Bare Fall to hear the cascade without its reverb.",
+   "version": null
+  },
+  {
+   "slug": "pjt-bloom-up",
+   "name": "PJT Bloom Up",
+   "pack": "guitar",
+   "device": false,
+   "macros": [
+    {
+     "n": "Bloom",
+     "v": 1.0
+    },
+    {
+     "n": "Cycle",
+     "v": 1.0
+    },
+    {
+     "n": "Cascade",
+     "v": 0.0
+    },
+    {
+     "n": "Edge",
+     "v": 0.748
+    },
+    {
+     "n": "Tone",
+     "v": 1.0
+    },
+    {
+     "n": "Tail",
+     "v": 0.0
+    },
+    {
+     "n": "Space",
+     "v": 0.512
+    },
+    {
+     "n": "Out",
+     "v": 0.882
+    },
+    {
+     "n": "Sustain",
+     "v": 0.0
+    },
+    {
+     "n": "Warm",
+     "v": 0.0
+    },
+    {
+     "n": "Body",
+     "v": 1.0
+    },
+    {
+     "n": "Pick",
+     "v": 0.0
+    },
+    {
+     "n": "Sense",
+     "v": 0.5
+    },
+    {
+     "n": "Room",
+     "v": 0.803
+    },
+    {
+     "n": "Width",
+     "v": 0.0
+    },
+    {
+     "n": "Damp",
+     "v": 0.0
+    }
+   ],
+   "variations": [
+    "Start Here",
+    "Bare Rise",
+    "Fracture",
+    "Tight Bits",
+    "Rest"
+   ],
+   "devices": [
+    "Compressor",
+    "Amp",
+    "Cabinet",
+    "EQ Eight",
+    "Hybrid Reverb",
+    "Utility",
+    "Grain Delay",
+    "Beat Repeat",
+    "Redux",
+    "Auto Filter",
+    "Limiter"
+   ],
+   "what": "The same clean guitar voice plus an exact octave-up cascade with Beat Repeat articulation and crush on knob 1; the repeats need the transport running.",
+   "start": "Start Here, then Bare Rise; try Fracture for the denser version.",
+   "version": null
+  },
+  {
+   "slug": "pjt-unland",
+   "name": "PJT Unland",
+   "pack": "guitar",
+   "device": false,
+   "macros": [
+    {
+     "n": "Sustain",
+     "v": 0.504
+    },
+    {
+     "n": "Drive",
+     "v": 0.276
+    },
+    {
+     "n": "Tone",
+     "v": 0.386
+    },
+    {
+     "n": "Body",
+     "v": 0.598
+    },
+    {
+     "n": "Space",
+     "v": 0.425
+    },
+    {
+     "n": "Decay",
+     "v": 0.528
+    },
+    {
+     "n": "Dark",
+     "v": 0.598
+    },
+    {
+     "n": "Amp Sim",
+     "v": 1.0
+    }
+   ],
+   "variations": [
+    "Unland",
+    "Close",
+    "Drift",
+    "Edge",
+    "Real Amp"
+   ],
+   "devices": [
+    "Compressor",
+    "Amp",
+    "Cabinet",
+    "EQ Eight",
+    "Hybrid Reverb"
+   ],
+   "what": "A clean guitar tone: compression sustain, warm amp and 2x12 cab, EQ and a long dark hall.",
+   "start": "Unland preset on slow open chords; the character comes from your slides and swells.",
+   "version": null
+  },
+  {
+   "slug": "pt-aperture",
+   "name": "PT Aperture",
+   "pack": "guitar",
+   "device": false,
+   "macros": [
+    {
+     "n": "Maw",
+     "v": 0.724
+    },
+    {
+     "n": "Stutter",
+     "v": 0.299
+    },
+    {
+     "n": "Warp",
+     "v": 0.0
+    },
+    {
+     "n": "Reverse",
+     "v": 0.433
+    },
+    {
+     "n": "Spiral",
+     "v": 0.354
+    },
+    {
+     "n": "Filter",
+     "v": 1.0
+    },
+    {
+     "n": "Space",
+     "v": 0.433
+    },
+    {
+     "n": "Dry",
+     "v": 1.0
+    },
+    {
+     "n": "Pitch",
+     "v": 1.0
+    },
+    {
+     "n": "Dive",
+     "v": 0.0
+    },
+    {
+     "n": "Density",
+     "v": 0.433
+    },
+    {
+     "n": "Smear",
+     "v": 0.315
+    },
+    {
+     "n": "Shimmer",
+     "v": 0.315
+    },
+    {
+     "n": "Decay",
+     "v": 0.433
+    },
+    {
+     "n": "Slice",
+     "v": 0.535
+    },
+    {
+     "n": "Motion",
+     "v": 0.158
+    }
+   ],
+   "variations": [
+    "Glass",
+    "Chew",
+    "Throat",
+    "Collapse"
+   ],
+   "devices": [
+    "Beat Repeat",
+    "Grain Delay",
+    "Pitch Hack (Max for Live)",
+    "Auto Filter",
+    "Hybrid Reverb",
+    "Utility"
+   ],
+   "what": "A granular mangler you play through: Beat Repeat chops, a near-zero-delay Grain Delay spiral, reversed repeats, a filter and a shimmer hall, beside a dry lane.",
+   "start": "Glass, then turn Maw and Stutter.",
+   "version": "v2"
+  },
+  {
+   "slug": "beatglitch",
+   "name": "BeatGlitch",
+   "pack": "drums",
+   "device": false,
+   "macros": [],
+   "variations": [],
+   "devices": [
+    "Beat Repeat"
+   ],
+   "what": "Two Beat Repeats in parallel beside a dry lane for stutter fills.",
+   "start": "No knobs are mapped; open the rack to adjust the Beat Repeats.",
+   "version": null
+  },
+  {
+   "slug": "cc-impact",
+   "name": "CC Impact",
+   "pack": "drums",
+   "device": false,
+   "macros": [
+    {
+     "n": "Bite",
+     "v": 0.866
+    },
+    {
+     "n": "Chop",
+     "v": 0.0
+    },
+    {
+     "n": "Reels",
+     "v": 0.441
+    },
+    {
+     "n": "Damage",
+     "v": 0.614
+    },
+    {
+     "n": "Body",
+     "v": 0.252
+    },
+    {
+     "n": "Fill",
+     "v": 0.0
+    },
+    {
+     "n": "Drift",
+     "v": 0.0
+    },
+    {
+     "n": "Tone",
+     "v": 1.0
+    },
+    {
+     "n": "Cycle",
+     "v": 0.0
+    },
+    {
+     "n": "Time",
+     "v": 0.0
+    },
+    {
+     "n": "Sense",
+     "v": 0.5
+    },
+    {
+     "n": "Space",
+     "v": 0.0
+    },
+    {
+     "n": "Mix",
+     "v": 1.0
+    },
+    {
+     "n": "Out",
+     "v": 0.882
+    }
+   ],
+   "variations": [
+    "Start Here",
+    "Iron Kick",
+    "Tight Bits",
+    "Glass Hats",
+    "Poke Hits",
+    "Soft Metal",
+    "Five Step",
+    "Ratchet",
+    "Scrap",
+    "Dub Throw",
+    "Chord Grid"
+   ],
+   "devices": [
+    "Utility",
+    "Roar",
+    "Drum Buss",
+    "Beat Repeat",
+    "Auto Pan-Tremolo",
+    "Echo",
+    "Redux",
+    "Auto Filter",
+    "Limiter"
+   ],
+   "what": "A percussion console: Roar drive, Drum Buss body, Beat Repeat fills, a synced square gate, tape echo, 8-bit damage and a low-pass, fully processed at load.",
+   "start": "Start Here against bypass, then sweep Damage and Chop; set Sense once per source.",
+   "version": null
+  },
+  {
+   "slug": "hm-drift",
+   "name": "HM Drift",
+   "pack": "drums",
+   "device": false,
+   "macros": [
+    {
+     "n": "Drift",
+     "v": 0.394
+    },
+    {
+     "n": "Felt",
+     "v": 0.354
+    },
+    {
+     "n": "Focus",
+     "v": 0.779
+    },
+    {
+     "n": "Cycle",
+     "v": 0.709
+    },
+    {
+     "n": "Boom",
+     "v": 0.236
+    },
+    {
+     "n": "Crunch",
+     "v": 0.299
+    },
+    {
+     "n": "Distance",
+     "v": 0.354
+    },
+    {
+     "n": "Sway",
+     "v": 0.236
+    }
+   ],
+   "variations": [
+    "Steady",
+    "Tide",
+    "Train",
+    "Fog"
+   ],
+   "devices": [
+    "Drum Buss",
+    "Auto Filter",
+    "Hybrid Reverb"
+   ],
+   "what": "Drums drift in and out of focus: Drum Buss softens the attacks, a slow tempo-synced filter breathes and a small dark room adds distance.",
+   "start": "Steady.",
+   "version": null
+  },
+  {
+   "slug": "mc-tremor",
+   "name": "MC Tremor",
+   "pack": "drums",
+   "device": false,
+   "macros": [
+    {
+     "n": "Bloom",
+     "v": 0.669
+    },
+    {
+     "n": "Pitch",
+     "v": 0.0
+    },
+    {
+     "n": "Cascade",
+     "v": 0.433
+    },
+    {
+     "n": "Glitch",
+     "v": 0.354
+    },
+    {
+     "n": "Crush",
+     "v": 0.598
+    },
+    {
+     "n": "Space",
+     "v": 0.472
+    },
+    {
+     "n": "Sift",
+     "v": 0.366
+    },
+    {
+     "n": "Slice",
+     "v": 0.535
+    }
+   ],
+   "variations": [
+    "Shadow",
+    "Aftershock",
+    "Strobe",
+    "Riser"
+   ],
+   "devices": [
+    "Auto Filter",
+    "Grain Delay",
+    "Beat Repeat",
+    "Redux",
+    "Hybrid Reverb",
+    "Utility"
+   ],
+   "what": "Pitched Grain Delay bloom, Beat Repeat glitch and crush for percussion, high-passed so the kick stays out, beside the untouched dry drums.",
+   "start": "Shadow.",
+   "version": null
+  },
+  {
+   "slug": "organic-glitch",
+   "name": "Organic Glitch",
+   "pack": "drums",
+   "device": false,
+   "macros": [
+    {
+     "n": "Grain Pitch",
+     "v": 0.504
+    },
+    {
+     "n": "Spray",
+     "v": 0.276
+    },
+    {
+     "n": "Stutter",
+     "v": 0.315
+    },
+    {
+     "n": "Grid Size",
+     "v": 0.551
+    },
+    {
+     "n": "Filter",
+     "v": 0.394
+    },
+    {
+     "n": "Sweep",
+     "v": 0.433
+    },
+    {
+     "n": "Grain FB",
+     "v": 0.315
+    },
+    {
+     "n": "Smear",
+     "v": 0.433
+    }
+   ],
+   "variations": [
+    "Subtle",
+    "Mangled",
+    "Granular",
+    "Destroyed"
+   ],
+   "devices": [
+    "Grain Delay",
+    "Beat Repeat",
+    "Auto Filter",
+    "Reverb"
+   ],
+   "what": "Pitched Grain Delay smear and Beat Repeat stutter into a filter and reverb, for loops, percussion and found sounds.",
+   "start": "Subtle, then turn Stutter.",
+   "version": null
+  },
+  {
+   "slug": "rhythmic-destroy",
+   "name": "Rhythmic Destroy",
+   "pack": "drums",
+   "device": false,
+   "macros": [
+    {
+     "n": "Grid",
+     "v": 0.512
+    },
+    {
+     "n": "Chance",
+     "v": 0.591
+    },
+    {
+     "n": "Gate",
+     "v": 0.276
+    },
+    {
+     "n": "Filter",
+     "v": 0.472
+    },
+    {
+     "n": "Delay",
+     "v": 0.354
+    },
+    {
+     "n": "Space",
+     "v": 0.276
+    },
+    {
+     "n": "Lo-fi",
+     "v": 0.236
+    },
+    {
+     "n": "Movement",
+     "v": 0.315
+    }
+   ],
+   "variations": [
+    "Init",
+    "Subtle",
+    "Chopped",
+    "Wrecked",
+    "Tape Glitch"
+   ],
+   "devices": [
+    "Beat Repeat",
+    "Auto Filter",
+    "Echo",
+    "Hybrid Reverb"
+   ],
+   "what": "Beat Repeat chopping into filter, echo and hall for chopped fills and breakdowns.",
+   "start": "Subtle, then raise Chance.",
+   "version": null
+  },
+  {
+   "slug": "crystal-gates",
+   "name": "Crystal Gates",
+   "pack": "synths-pads",
+   "device": false,
+   "macros": [
+    {
+     "n": "Shimmer",
+     "v": 0.236
+    },
+    {
+     "n": "Ensemble",
+     "v": 0.677
+    },
+    {
+     "n": "Motion",
+     "v": 0.622
+    },
+    {
+     "n": "Space",
+     "v": 0.197
+    },
+    {
+     "n": "Air",
+     "v": 1.0
+    },
+    {
+     "n": "Presence",
+     "v": 0.48
+    },
+    {
+     "n": "Width",
+     "v": 0.5
+    },
+    {
+     "n": "Wash",
+     "v": 0.614
+    }
+   ],
+   "variations": [
+    "Original",
+    "Frost",
+    "Cathedral Glass",
+    "Echo Prism",
+    "Warm Crystal",
+    "Close Focus"
+   ],
+   "devices": [
+    "Chorus-Ensemble",
+    "Echo",
+    "Hybrid Reverb",
+    "EQ Eight",
+    "Utility"
+   ],
+   "what": "Bright pad space: chorus, synced echo, shimmer reverb, presence and air.",
+   "start": "Original, then Frost or Cathedral Glass.",
+   "version": null
+  },
+  {
+   "slug": "dust-bloom",
+   "name": "Dust Bloom",
+   "pack": "synths-pads",
+   "device": false,
+   "macros": [
+    {
+     "n": "Noise Amount",
+     "v": 0.543
+    },
+    {
+     "n": "Texture Grit",
+     "v": 0.638
+    },
+    {
+     "n": "Drift",
+     "v": 0.583
+    },
+    {
+     "n": "Bloom",
+     "v": 0.921
+    },
+    {
+     "n": "Shimmer",
+     "v": 0.0
+    },
+    {
+     "n": "Air",
+     "v": 0.0
+    },
+    {
+     "n": "Width",
+     "v": 0.165
+    },
+    {
+     "n": "Wash",
+     "v": 1.0
+    }
+   ],
+   "variations": [
+    "Original",
+    "Faded Photo",
+    "Cassette Heaven",
+    "Glass Dust",
+    "Broken Radio",
+    "Endless Haze"
+   ],
+   "devices": [
+    "Erosion",
+    "Redux",
+    "Chorus-Ensemble",
+    "Hybrid Reverb",
+    "EQ Eight",
+    "Utility"
+   ],
+   "what": "Lo-fi pad haze: noise and digital grit, drifting chorus and a long shimmer bloom.",
+   "start": "Original, then Cassette Heaven.",
+   "version": null
+  },
+  {
+   "slug": "follow-gate",
+   "name": "Follow Gate",
+   "pack": "synths-pads",
+   "device": false,
+   "macros": [
+    {
+     "n": "Duck",
+     "v": 0.551
+    },
+    {
+     "n": "Pump",
+     "v": 0.354
+    },
+    {
+     "n": "Gate",
+     "v": 0.0
+    },
+    {
+     "n": "Length",
+     "v": 0.315
+    },
+    {
+     "n": "Gate Listen",
+     "v": 0.787
+    },
+    {
+     "n": "Sense",
+     "v": 0.504
+    },
+    {
+     "n": "Flip",
+     "v": 0.0
+    },
+    {
+     "n": "Trails",
+     "v": 0.158
+    },
+    {
+     "n": "Accent",
+     "v": 0.0
+    },
+    {
+     "n": "Duck Listen",
+     "v": 0.118
+    },
+    {
+     "n": "Echo Time",
+     "v": 0.4
+    },
+    {
+     "n": "Echo Tone",
+     "v": 0.472
+    }
+   ],
+   "variations": [
+    "Pump",
+    "Swell",
+    "Follow",
+    "Stabs",
+    "Pump + Follow",
+    "Cut"
+   ],
+   "devices": [
+    "Compressor",
+    "Gate",
+    "Auto Filter",
+    "Delay"
+   ],
+   "what": "A sidechain duck and gate driven by any audio track, so held chords move with what your drums play.",
+   "start": "Pump; first set Audio From on the Compressor and the Gate to your drum track.",
+   "version": null
+  },
+  {
+   "slug": "glass-and-glow",
+   "name": "Glass & Glow",
+   "pack": "synths-pads",
+   "device": false,
+   "macros": [
+    {
+     "n": "Glow",
+     "v": 0.315
+    },
+    {
+     "n": "Warmth",
+     "v": 0.276
+    },
+    {
+     "n": "Glass",
+     "v": 0.354
+    },
+    {
+     "n": "Space",
+     "v": 0.315
+    },
+    {
+     "n": "Air",
+     "v": 0.299
+    },
+    {
+     "n": "Motion",
+     "v": 0.276
+    },
+    {
+     "n": "Width",
+     "v": 0.433
+    },
+    {
+     "n": "Clear",
+     "v": 0.197
+    }
+   ],
+   "variations": [
+    "Polish",
+    "Barely",
+    "Candle",
+    "Crystal",
+    "Frosted",
+    "Lit"
+   ],
+   "devices": [
+    "Saturator",
+    "Multiband Dynamics",
+    "Chorus-Ensemble",
+    "Hybrid Reverb",
+    "EQ Eight",
+    "Utility"
+   ],
+   "what": "Pad polish: Glow morphs in upward multiband compression, Glass adds reverb sheen, with warmth, air, chorus motion and width.",
+   "start": "Polish, then raise Glow.",
+   "version": "v2"
+  },
+  {
+   "slug": "groove-gate",
+   "name": "Groove Gate",
+   "pack": "synths-pads",
+   "device": false,
+   "macros": [
+    {
+     "n": "Rate",
+     "v": 0.6
+    },
+    {
+     "n": "Chop",
+     "v": 0.787
+    },
+    {
+     "n": "Length",
+     "v": 0.63
+    },
+    {
+     "n": "Push",
+     "v": 0.0
+    },
+    {
+     "n": "Skip",
+     "v": 0.0
+    },
+    {
+     "n": "Pattern",
+     "v": 0.0
+    },
+    {
+     "n": "Breathe",
+     "v": 0.0
+    },
+    {
+     "n": "Trails",
+     "v": 0.236
+    },
+    {
+     "n": "Accent",
+     "v": 0.197
+    },
+    {
+     "n": "Nudge",
+     "v": 0.056
+    },
+    {
+     "n": "Echo Time",
+     "v": 0.4
+    },
+    {
+     "n": "Echo Tone",
+     "v": 0.472
+    }
+   ],
+   "variations": [
+    "Breathe",
+    "Chop",
+    "Stabs",
+    "Skip",
+    "Answer",
+    "Trance"
+   ],
+   "devices": [
+    "Auto Pan-Tremolo",
+    "Auto Filter",
+    "Delay"
+   ],
+   "what": "Tempo-locked pump, chop and skip-pattern gates give held chords their own groove, with echo trails in the gaps.",
+   "start": "Breathe, then turn Chop and Push, with the transport running.",
+   "version": null
+  },
+  {
+   "slug": "hypnotic-pulse",
+   "name": "Hypnotic Pulse",
+   "pack": "synths-pads",
+   "device": false,
+   "macros": [
+    {
+     "n": "Pulse Rate",
+     "v": 0.276
+    },
+    {
+     "n": "Pulse Depth",
+     "v": 0.433
+    },
+    {
+     "n": "Filter Rate",
+     "v": 0.197
+    },
+    {
+     "n": "Filter Depth",
+     "v": 0.433
+    },
+    {
+     "n": "Filter Freq",
+     "v": 0.354
+    },
+    {
+     "n": "Phase Rate",
+     "v": 0.158
+    },
+    {
+     "n": "Phase FB",
+     "v": 0.433
+    },
+    {
+     "n": "Glue",
+     "v": 0.394
+    }
+   ],
+   "variations": [
+    "Subtle Drift",
+    "Motorik",
+    "Polyrhythm",
+    "Zen Mode"
+   ],
+   "devices": [
+    "Auto Pan-Tremolo",
+    "Auto Filter",
+    "Phaser-Flanger",
+    "Compressor"
+   ],
+   "what": "Coordinated tremolo, filter and phaser motion with glue compression for held chords and repeated patterns.",
+   "start": "Subtle Drift, then Motorik.",
+   "version": null
+  },
+  {
+   "slug": "mc-seq",
+   "name": "MC Seq",
+   "pack": "synths-pads",
+   "device": false,
+   "macros": [
+    {
+     "n": "Dry",
+     "v": 1.0
+    },
+    {
+     "n": "Activity",
+     "v": 1.0
+    },
+    {
+     "n": "Pattern",
+     "v": 0.0
+    },
+    {
+     "n": "Push",
+     "v": 0.0
+    },
+    {
+     "n": "Pitch",
+     "v": 0.0
+    },
+    {
+     "n": "Follow",
+     "v": 0.0
+    },
+    {
+     "n": "Space",
+     "v": 1.0
+    },
+    {
+     "n": "Return",
+     "v": 1.0
+    }
+   ],
+   "variations": [
+    "Start Here",
+    "Octave Steps",
+    "Chord Bloom",
+    "Seq Only",
+    "Five Grid",
+    "Offbeat Seven"
+   ],
+   "devices": [
+    "Utility",
+    "Beat Repeat",
+    "Shifter",
+    "Auto Pan-Tremolo",
+    "Echo"
+   ],
+   "what": "The transport turns a held chord into a sequenced part: tempo-locked Beat Repeat capture, two multiplying gates, octave steps and echo, beside a dry lane.",
+   "start": "Start Here with the transport running; hold a two-chord bar.",
+   "version": null
+  },
+  {
+   "slug": "motion",
+   "name": "Motion",
+   "pack": "synths-pads",
+   "device": false,
+   "macros": [
+    {
+     "n": "Motion",
+     "v": 0.164
+    },
+    {
+     "n": "Pulse",
+     "v": 0.231
+    },
+    {
+     "n": "Pump",
+     "v": 0.401
+    }
+   ],
+   "variations": [],
+   "devices": [
+    "Phaser-Flanger",
+    "Auto Pan (legacy)",
+    "Compressor"
+   ],
+   "what": "A simple phaser, auto-pan and compression chain with three controls: Motion, Pulse and Pump.",
+   "start": "Turn Motion and Pulse.",
+   "version": null
+  },
+  {
+   "slug": "shadow-pulse",
+   "name": "Shadow Pulse",
+   "pack": "synths-pads",
+   "device": false,
+   "macros": [
+    {
+     "n": "Drive",
+     "v": 0.291
+    },
+    {
+     "n": "Pulse Rate",
+     "v": 0.6
+    },
+    {
+     "n": "Pulse Depth",
+     "v": 0.669
+    },
+    {
+     "n": "Pulse Shape",
+     "v": 0.5
+    },
+    {
+     "n": "Darkness",
+     "v": 0.472
+    },
+    {
+     "n": "Repeats",
+     "v": 0.575
+    },
+    {
+     "n": "Space",
+     "v": 0.465
+    },
+    {
+     "n": "Wash",
+     "v": 0.465
+    },
+    {
+     "n": "Width",
+     "v": 0.394
+    },
+    {
+     "n": "Echo Time",
+     "v": 0.134
+    }
+   ],
+   "variations": [
+    "Shadow",
+    "Heartbeat",
+    "Tremor",
+    "Triplet Fog",
+    "Three Over Four",
+    "Still"
+   ],
+   "devices": [
+    "Saturator",
+    "Auto Pan-Tremolo",
+    "Echo",
+    "Hybrid Reverb",
+    "EQ Eight",
+    "Utility"
+   ],
+   "what": "The dark pad: drive, a synced tremolo pulse, filtered echo and a dark hall.",
+   "start": "Shadow on held chords; it pulses from the first bar.",
+   "version": "v2"
+  },
+  {
+   "slug": "bk-baklengs",
+   "name": "BK Baklengs",
+   "pack": "any-source",
+   "device": true,
+   "macros": [
+    {
+     "n": "Mix",
+     "v": 0.5
+    },
+    {
+     "n": "Mode",
+     "v": 0.0
+    },
+    {
+     "n": "Time",
+     "v": 0.35
+    },
+    {
+     "n": "Clock",
+     "v": 0.562
+    },
+    {
+     "n": "Loop",
+     "v": 0.5
+    },
+    {
+     "n": "Octave",
+     "v": 0.5
+    },
+    {
+     "n": "Hold",
+     "v": 0.0
+    },
+    {
+     "n": "Throw",
+     "v": 0.0
+    },
+    {
+     "n": "Length",
+     "v": 0.81
+    },
+    {
+     "n": "Gap",
+     "v": 0.34
+    },
+    {
+     "n": "Quiet",
+     "v": 0.538
+    },
+    {
+     "n": "Size",
+     "v": 1.0
+    },
+    {
+     "n": "Style",
+     "v": 0.0
+    },
+    {
+     "n": "Width",
+     "v": 0.0
+    },
+    {
+     "n": "Mod",
+     "v": 0.0
+    },
+    {
+     "n": "Tone",
+     "v": 0.428
+    }
+   ],
+   "variations": [
+    "Long Back",
+    "Grain Answer",
+    "Split Answer",
+    "Unland Bed",
+    "Half-Speed Floor",
+    "Undertow",
+    "Fracture",
+    "Wander",
+    "Apparat Fragment",
+    "Glitch"
+   ],
+   "devices": [
+    "BK Baklengs (Max for Live)"
+   ],
+   "what": "Wraps Glenn's own Note Memory Baklengs-style Max device with its ten presets: long backwards answers, held reverse beds, octave cascades and glitch.",
+   "start": "Long Back: play a phrase, stop and hear it backwards; then Unland Bed and press Hold.",
+   "version": null
+  },
+  {
+   "slug": "cc-cassette",
+   "name": "CC Cassette",
+   "pack": "any-source",
+   "device": false,
+   "macros": [
+    {
+     "n": "Texture",
+     "v": 0.63
+    },
+    {
+     "n": "Character",
+     "v": 0.504
+    },
+    {
+     "n": "Movement",
+     "v": 0.0
+    },
+    {
+     "n": "Diffusion",
+     "v": 0.504
+    },
+    {
+     "n": "Drift",
+     "v": 0.0
+    },
+    {
+     "n": "Tone",
+     "v": 1.0
+    },
+    {
+     "n": "Gesture",
+     "v": 1.0
+    },
+    {
+     "n": "Mix",
+     "v": 1.0
+    }
+   ],
+   "variations": [
+    "Start Here",
+    "Four Track",
+    "Worn Reels",
+    "Sweet Warble",
+    "Dissolving Tape",
+    "Still Frame"
+   ],
+   "devices": [
+    "Utility",
+    "Roar",
+    "Saturator",
+    "Chorus-Ensemble",
+    "Auto Pan-Tremolo",
+    "Echo",
+    "Auto Filter"
+   ],
+   "what": "A tape console: VHS-style texture, preamp, vibrato and tape echo with a 2-bar synced Gesture, fully wet at load.",
+   "start": "Start Here with the transport running, then Worn Reels.",
+   "version": null
+  },
+  {
+   "slug": "cs-drift",
+   "name": "CS Drift",
+   "pack": "any-source",
+   "device": false,
+   "macros": [
+    {
+     "n": "Feed",
+     "v": 1.0
+    },
+    {
+     "n": "Memory",
+     "v": 0.0
+    },
+    {
+     "n": "Blur",
+     "v": 0.504
+    },
+    {
+     "n": "Drift",
+     "v": 1.0
+    },
+    {
+     "n": "Tone",
+     "v": 1.0
+    },
+    {
+     "n": "Drive",
+     "v": 0.315
+    },
+    {
+     "n": "Space",
+     "v": 0.315
+    },
+    {
+     "n": "Return",
+     "v": 1.0
+    }
+   ],
+   "variations": [
+    "Start Here",
+    "Long Memory",
+    "Prime Blur",
+    "Close Drift",
+    "Tape Decay",
+    "Giant Space"
+   ],
+   "devices": [
+    "Utility",
+    "Delay",
+    "Auto Pan-Tremolo",
+    "Saturator",
+    "Hybrid Reverb",
+    "Limiter"
+   ],
+   "what": "A drifting memory: three prime-length delay lines in series that never repeat as a loop, so you play, then play over what remains.",
+   "start": "Start Here: play a short phrase and wait for the answers (the first arrives after 2.3 s).",
+   "version": null
+  },
+  {
+   "slug": "md-sides",
+   "name": "MD Sides",
+   "pack": "any-source",
+   "device": false,
+   "macros": [
+    {
+     "n": "Sides",
+     "v": 1.0
+    },
+    {
+     "n": "Chop",
+     "v": 1.0
+    },
+    {
+     "n": "Length",
+     "v": 0.0
+    },
+    {
+     "n": "Rate",
+     "v": 0.667
+    },
+    {
+     "n": "Pattern",
+     "v": 0.0
+    },
+    {
+     "n": "Split",
+     "v": 0.246
+    },
+    {
+     "n": "Wide",
+     "v": 0.0
+    },
+    {
+     "n": "Trails",
+     "v": 0.0
+    }
+   ],
+   "variations": [
+    "Undo Redo",
+    "Rest",
+    "Alternate",
+    "Hard Sides",
+    "Accents",
+    "Long Chops",
+    "Deep Cut",
+    "Top Only",
+    "One Bar",
+    "Three Beats",
+    "Fast Ping"
+   ],
+   "devices": [
+    "EQ Eight",
+    "Utility",
+    "Auto Pan-Tremolo",
+    "Delay"
+   ],
+   "what": "Chops the upper part of any sound into short hits thrown left, right and centre in a two-beat pattern while the low end stays put.",
+   "start": "Undo Redo with the transport running (about 150 BPM) on a held chord or pad; Sides at 0 is the dry sound.",
+   "version": null
+  },
+  {
+   "slug": "ap-vessel",
+   "name": "AP Vessel",
+   "pack": "vocals",
+   "device": false,
+   "macros": [
+    {
+     "n": "Key",
+     "v": 0.0
+    },
+    {
+     "n": "Scale",
+     "v": 0.0
+    },
+    {
+     "n": "Lock",
+     "v": 1.0
+    },
+    {
+     "n": "Glide",
+     "v": 0.063
+    },
+    {
+     "n": "Echo",
+     "v": 0.472
+    },
+    {
+     "n": "Space",
+     "v": 0.433
+    },
+    {
+     "n": "Choir",
+     "v": 0.331
+    },
+    {
+     "n": "Duck",
+     "v": 0.63
+    },
+    {
+     "n": "Harmony",
+     "v": 0.354
+    },
+    {
+     "n": "Vibrato",
+     "v": 0.142
+    },
+    {
+     "n": "Formant",
+     "v": 0.504
+    },
+    {
+     "n": "Warmth",
+     "v": 0.315
+    },
+    {
+     "n": "Degrade",
+     "v": 0.063
+    },
+    {
+     "n": "Feedback",
+     "v": 0.433
+    },
+    {
+     "n": "Decay",
+     "v": 0.354
+    },
+    {
+     "n": "Air",
+     "v": 0.331
+    }
+   ],
+   "variations": [
+    "Silk",
+    "Robot Hymn",
+    "Gaps",
+    "Cathedral"
+   ],
+   "devices": [
+    "EQ Eight",
+    "Auto Shift",
+    "Glue Compressor",
+    "Saturator",
+    "Redux",
+    "Echo",
+    "Hybrid Reverb",
+    "Chorus-Ensemble",
+    "Utility"
+   ],
+   "what": "A pitch-corrected vocal chain: Auto Shift lock and glide, glue, warmth, ducked echo and a dark hall, plus a parallel diatonic choir harmony.",
+   "start": "Silk; set Key and Scale first.",
+   "version": null
+  },
+  {
+   "slug": "vocal-pro",
+   "name": "Vocal Pro",
+   "pack": "vocals",
+   "device": false,
+   "macros": [
+    {
+     "n": "Body",
+     "v": 0.0
+    },
+    {
+     "n": "Presence",
+     "v": 0.0
+    },
+    {
+     "n": "Compress",
+     "v": 0.0
+    },
+    {
+     "n": "Space",
+     "v": 0.0
+    },
+    {
+     "n": "Delay",
+     "v": 0.0
+    },
+    {
+     "n": "Width",
+     "v": 0.0
+    },
+    {
+     "n": "Air",
+     "v": 0.0
+    },
+    {
+     "n": "Output",
+     "v": 0.0
+    }
+   ],
+   "variations": [],
+   "devices": [
+    "EQ Eight",
+    "Compressor",
+    "Saturator",
+    "Echo",
+    "Hybrid Reverb",
+    "Utility"
+   ],
+   "what": "A clean vocal chain: EQ, compression, saturation, echo, reverb and width.",
+   "start": "Raise Presence and Space to taste.",
+   "version": null
+  },
+  {
+   "slug": "bass-sculptor",
+   "name": "Bass Sculptor",
+   "pack": "mix-fx",
+   "device": false,
+   "macros": [
+    {
+     "n": "Harmonics",
+     "v": 0.315
+    },
+    {
+     "n": "Crunch",
+     "v": 0.315
+    },
+    {
+     "n": "Boom",
+     "v": 0.394
+    },
+    {
+     "n": "Sub Freq",
+     "v": 0.315
+    },
+    {
+     "n": "Squash",
+     "v": 0.354
+    },
+    {
+     "n": "Transient",
+     "v": 0.472
+    },
+    {
+     "n": "Mud Cut",
+     "v": 0.315
+    },
+    {
+     "n": "Sat Mix",
+     "v": 0.394
+    }
+   ],
+   "variations": [
+    "Init",
+    "Clean",
+    "Present",
+    "Heavy",
+    "Sub Cannon"
+   ],
+   "devices": [
+    "EQ Eight",
+    "Saturator",
+    "Compressor",
+    "Drum Buss"
+   ],
+   "what": "Bass shaping: harmonics, crunch, boom, sub weight, squash and transient control.",
+   "start": "Clean, then Present.",
+   "version": null
+  },
+  {
+   "slug": "mix-glue",
+   "name": "Mix Glue",
+   "pack": "mix-fx",
+   "device": false,
+   "macros": [
+    {
+     "n": "Compress",
+     "v": 0.433
+    },
+    {
+     "n": "Glue",
+     "v": 0.512
+    },
+    {
+     "n": "Push",
+     "v": 0.0
+    },
+    {
+     "n": "Ceiling",
+     "v": 0.945
+    },
+    {
+     "n": "Air",
+     "v": 0.433
+    },
+    {
+     "n": "Low Cut",
+     "v": 0.236
+    },
+    {
+     "n": "Width",
+     "v": 0.394
+    },
+    {
+     "n": "Bass Mono",
+     "v": 0.236
+    }
+   ],
+   "variations": [
+    "Init",
+    "Gentle",
+    "Tight",
+    "Loud",
+    "Broadcast"
+   ],
+   "devices": [
+    "EQ Eight",
+    "Compressor",
+    "Glue Compressor",
+    "Limiter",
+    "Utility"
+   ],
+   "what": "Bus glue: EQ, serial compression, limiting, air, width and mono bass.",
+   "start": "Gentle.",
+   "version": null
+  },
+  {
+   "slug": "parallel-crush",
+   "name": "Parallel Crush",
+   "pack": "mix-fx",
+   "device": false,
+   "macros": [
+    {
+     "n": "Blend",
+     "v": 0.315
+    },
+    {
+     "n": "Crush",
+     "v": 0.236
+    },
+    {
+     "n": "Attack",
+     "v": 0.039
+    },
+    {
+     "n": "Release",
+     "v": 0.236
+    },
+    {
+     "n": "Ratio",
+     "v": 0.433
+    }
+   ],
+   "variations": [
+    "Init",
+    "Subtle",
+    "Punchy",
+    "Aggressive",
+    "Wall"
+   ],
+   "devices": [
+    "Compressor"
+   ],
+   "what": "Parallel compression inside one Compressor, with Blend and Crush controls.",
+   "start": "Subtle, then raise Blend.",
+   "version": null
+  },
+  {
+   "slug": "tidal-wreck",
+   "name": "Tidal Wreck",
+   "pack": "mix-fx",
+   "device": false,
+   "macros": [
+    {
+     "n": "Filter",
+     "v": 0.276
+    },
+    {
+     "n": "Drive",
+     "v": 0.236
+    },
+    {
+     "n": "Destroy",
+     "v": 0.158
+    },
+    {
+     "n": "Space",
+     "v": 0.433
+    },
+    {
+     "n": "Shimmer",
+     "v": 0.394
+    },
+    {
+     "n": "Delay",
+     "v": 0.236
+    },
+    {
+     "n": "Width",
+     "v": 0.472
+    },
+    {
+     "n": "Movement",
+     "v": 0.197
+    }
+   ],
+   "variations": [
+    "Submerged",
+    "Drift",
+    "Init",
+    "Aggro",
+    "Berlin"
+   ],
+   "devices": [
+    "Auto Filter",
+    "Saturator",
+    "Roar",
+    "Chorus-Ensemble",
+    "Echo",
+    "Hybrid Reverb"
+   ],
+   "what": "Transition effects: filter, drive, Roar distortion, chorus, echo and hall.",
+   "start": "Submerged for a fade-out.",
+   "version": null
+  },
+  {
+   "slug": "mc-fracture-lead",
+   "name": "MC Fracture Lead",
+   "pack": "lab",
+   "device": false,
+   "macros": [
+    {
+     "n": "Bloom",
+     "v": 0.701
+    },
+    {
+     "n": "Pitch",
+     "v": 1.0
+    },
+    {
+     "n": "Cascade",
+     "v": 0.528
+    },
+    {
+     "n": "Glitch",
+     "v": 0.402
+    },
+    {
+     "n": "Crush",
+     "v": 0.598
+    },
+    {
+     "n": "Space",
+     "v": 0.543
+    },
+    {
+     "n": "Dark",
+     "v": 0.504
+    },
+    {
+     "n": "Slice",
+     "v": 0.535
+    }
+   ],
+   "variations": [
+    "Sparse Bloom",
+    "Climb",
+    "Sub Crush",
+    "Fracture"
+   ],
+   "devices": [
+    "Grain Delay",
+    "Beat Repeat",
+    "Redux",
+    "Hybrid Reverb",
+    "Utility"
+   ],
+   "what": "MC Fracture's bloom chain on a fully wet lane beside your untouched dry guitar.",
+   "start": "Sparse Bloom.",
+   "version": null
+  },
+  {
+   "slug": "mc-undertow-lead",
+   "name": "MC Undertow Lead",
+   "pack": "lab",
+   "device": false,
+   "macros": [
+    {
+     "n": "Bloom",
+     "v": 0.598
+    },
+    {
+     "n": "Pitch",
+     "v": 0.0
+    },
+    {
+     "n": "Cascade",
+     "v": 0.472
+    },
+    {
+     "n": "Drive",
+     "v": 0.252
+    },
+    {
+     "n": "Body",
+     "v": 0.551
+    },
+    {
+     "n": "Space",
+     "v": 0.622
+    },
+    {
+     "n": "Dark",
+     "v": 0.598
+    },
+    {
+     "n": "Decay",
+     "v": 0.551
+    }
+   ],
+   "variations": [
+    "Sparse Sub",
+    "Cello",
+    "Undertow",
+    "Hum"
+   ],
+   "devices": [
+    "Grain Delay",
+    "Saturator",
+    "Hybrid Reverb",
+    "Utility"
+   ],
+   "what": "MC Undertow's bloom chain on a fully wet lane beside your untouched dry guitar.",
+   "start": "Sparse Sub.",
+   "version": null
+  },
+  {
+   "slug": "pjt-reverse-sketch",
+   "name": "PJT Reverse Sketch",
+   "pack": "lab",
+   "device": false,
+   "macros": [
+    {
+     "n": "Answer",
+     "v": 1.0
+    },
+    {
+     "n": "Back",
+     "v": 1.0
+    },
+    {
+     "n": "Recycle",
+     "v": 0.0
+    },
+    {
+     "n": "Edge",
+     "v": 0.0
+    },
+    {
+     "n": "Tone",
+     "v": 1.0
+    },
+    {
+     "n": "Tail",
+     "v": 0.0
+    },
+    {
+     "n": "Space",
+     "v": 0.354
+    },
+    {
+     "n": "Out",
+     "v": 0.882
+    },
+    {
+     "n": "Sustain",
+     "v": 0.0
+    },
+    {
+     "n": "Warm",
+     "v": 0.0
+    },
+    {
+     "n": "Body",
+     "v": 1.0
+    },
+    {
+     "n": "Pick",
+     "v": 0.0
+    },
+    {
+     "n": "Sense",
+     "v": 0.5
+    },
+    {
+     "n": "Room",
+     "v": 0.803
+    },
+    {
+     "n": "Width",
+     "v": 0.0
+    },
+    {
+     "n": "Damp",
+     "v": 0.0
+    }
+   ],
+   "variations": [
+    "Start Here",
+    "Bare Back",
+    "Back Echo",
+    "Worn Back",
+    "Forward",
+    "Rest"
+   ],
+   "devices": [
+    "Compressor",
+    "Amp",
+    "Cabinet",
+    "EQ Eight",
+    "Hybrid Reverb",
+    "Utility",
+    "Pitch Hack (Max for Live)",
+    "Saturator",
+    "Auto Filter",
+    "Limiter"
+   ],
+   "what": "Reverses fixed half-note blocks over the clean guitar voice, with a Forward variation that keeps the processing and reverses nothing.",
+   "start": "Bare Back, then Forward: same processing, nothing reversed.",
+   "version": null
+  }
+ ]
+}

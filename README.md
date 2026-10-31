@@ -60,14 +60,17 @@ Public and commerce routes:
 
 | Path | Purpose |
 | --- | --- |
-| `/` | Public Signal-23 portal and audio entry point |
-| `/terminal` | Public B.A.N.I.S. terminal |
-| `/instruments` | Instrument-rack catalog and pay-what-you-want acquisition flow |
+| `/` | Public portal: a window lit by the visitor's clock, Station 23's number groups and the hidden home audio |
+| `/terminal` | Public terminal: LOG, TUNE (full releases), DECODE (number groups), SCAN, ARCHIVES |
+| `/av` | A/V: every release as a window drawn from its measured spectrum, plus films and excerpts |
+| `/instruments` | DL: the schedule sheet of devices and racks, with pay-what-you-want downloads per pack (`/dl` redirects here) |
 | `/instruments/success` | Stripe payment verification and signed-download delivery |
 | `/terms` | Terms page |
 | `/listen/:slug` | Per-track ad landing page with a direct **Listen on Spotify** handoff (currently `decay`, `pulsar-04` and `reset`) |
 | `/legal/privacy` | Privacy policy; static HTML readable without JavaScript (`/privacy` redirects here) |
 | `/testblandingpage` | Deprecated compatibility path that redirects to `/resonance` |
+
+The public routes above (except `/listen/*`, `/legal/*` and the redirect) carry the site nav, **HOME / A/V / DL**, set in American Typewriter. Its items and route allowlist live in `src/data/siteNav.ts`.
 
 Soft-secret visual transmissions:
 
@@ -179,6 +182,18 @@ Older requirements and review notes for the first version live in `feature-dev-d
 
 To change the policy, edit the content file and update the effective date in its header. The page must never add analytics, pixels or cookies of its own. The listen pages' consent banner links to its `#listen-pages` section.
 
+## Portal, Number Station and Terminal
+
+The home portal (`src/components/Station/`) draws one window on the GPU: a detailed cloud in a single fragment shader, three parallax layers with self-shadowing, colored by the visitor's local clock (dawn, day, dusk, night; no location prompt). The window element is also the click area into the terminal. Without WebGL it falls back to a soft cloud drawn on the CPU. `?sky=dawn|day|dusk|night` previews a time of day and `?at23=1` previews the call-up the station sends 23 minutes past each hour.
+
+The number readout steps through the day's groups digit by digit; the red dot blinks in time and is the home audio's hidden play button. Each of the 23 soft-secret visuals in `src/data/transmissions.ts` has one group, numbered in registry order; the scheme, the daily schedule and the flash timing live in `src/data/numberStation.ts`. The terminal's DECODE turns a group into its route and remembers recovered routes in the visitor's own browser (`localStorage`).
+
+TUNE lists every release on a frequency taken from its release date. Measured numbers and spectra live in `src/data/releaseTelemetry.json`; release metadata, audio paths and YouTube IDs in `src/data/releases.ts`. Full tracks are 192 kbps MP3s of the released masters in `public/audio/`; the home page's hidden player loops Pieces from there. A release without audio shows as not loaded. A/V links each release to its Spotify and Bandcamp page (the single where there is one) and each EP to its album. SCAN still plays a random stretch of the HLS stream in `src/components/Terminal/AudioStreamer.ts`.
+
+## A/V
+
+`/av` (`src/components/AV/`) shows the latest release, EP2 and the Pillars EP as small portals painted from each track's measured spectrum in the visitor's sky colours; hovering shows the data as lines and clicking opens the terminal on that release (`/terminal?tune=MM.DD`). Films (official visuals) and excerpts (Shorts) come from `src/data/releases.ts`. Their stills are served from `public/av/`, and the YouTube player loads only when a visitor presses play, with a direct YouTube link beside it in case YouTube refuses to play embedded.
+
 ## Payment and Download Flow
 
 - An exact `$0` selection calls `/.netlify/functions/free-download` and returns a 30-minute Cloudflare R2 signed URL without involving Stripe.
@@ -186,7 +201,11 @@ To change the policy, edit the content file and update the effective date in its
 - Stripe returns successful payments to `/instruments/success?session_id=...`; that page calls `/.netlify/functions/verify-payment` before receiving a 30-minute R2 signed URL.
 - `/.netlify/functions/stripe-webhook` verifies Stripe signatures and logs completed or expired checkout sessions.
 
-The current rack IDs are `arps`, `audio-fx`, `bass`, and `keys`. Their R2 object mapping lives in `netlify/functions/utils/storage.ts`.
+DL sells one pack per rack folder: `guitar`, `drums`, `synths-pads`, `any-source`, `vocals`, `mix-fx` and `lab`. Their R2 object names live in `netlify/functions/utils/storage.ts` (`Signal-23 <Pack> Racks.zip`); the retired `arps`, `audio-fx`, `bass` and `keys` stay mapped so earlier receipts still resolve.
+
+## DL
+
+`/instruments` (`src/components/DL/`) is a numbers-station schedule sheet: one line per rack, each digit one of its knobs at its saved position (0 to 9), devices first and then each pack in folder order. Rack names, knobs, presets and descriptions live in `src/data/racks.json`, generated from the racks in Ableton's User Library (`Presets/Audio Effects/Audio Effect Rack/1 Guitar` to `7 Lab`) and Glenn's racksmith notes. Third-party presets are left out. BK Baklengs is listed under Devices as in development, with demos in `public/audio/bk/` rendered from a plain synth phrase; while one plays, its line reads out the sound's energy band by band.
 
 ## Repository Layout
 
@@ -195,6 +214,8 @@ src/
   App.tsx                         React Router configuration
   components/                    Route and shared UI components
   data/transmissions.ts          Operator and visual-export registry
+  data/releases.ts               Releases for TUNE and A/V (audio, films, measured telemetry)
+  data/numberStation.ts          Number groups, daily schedule and DECODE
   data/listenTracks.json         Listen landing page track configuration
   listen.tsx                     Standalone entry for the static /listen/<slug> pages
   hooks/                         Shared React hooks
@@ -205,7 +226,7 @@ netlify/edge-functions/          listen-region: sets each listen page's consent 
 netlify/shared/                  Code shared by functions and edge functions (opt-in country list)
 scripts/listen-pages.js          Pre-renders static /listen/<slug> pages for webpack
 scripts/legal-pages.js           Pre-renders the script-free /legal/privacy page for webpack
-public/                          Static files, models, audio, and thumbnails
+public/                          Static files, models, audio (public/audio/ holds release MP3s), and thumbnails
 feature-dev-docs/                Older per-feature notes (reference only; may be stale)
 Dockerfile.frontend              Node 18 development image
 docker-compose.yml               Host port 9823 → container port 8080
