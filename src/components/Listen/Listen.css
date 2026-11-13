@@ -173,6 +173,27 @@
   fill: var(--listen-spotify);
 }
 
+/* Playlist pages only ------------------------------------------------- */
+
+/* "Open the playlist in Spotify" is longer than "Listen on Spotify": tighten it to stay on one line on phones. */
+.listen--playlist .listen__cta {
+  gap: 10px;
+  padding-left: 16px;
+  padding-right: 16px;
+  letter-spacing: 0.04em;
+}
+
+/* One line under the Spotify button (49 characters at 11px fits a 375px-wide phone). */
+.listen__hint {
+  margin: 0;
+  padding-top: 4px;
+  font-size: 11px;
+  line-height: 1.4;
+  text-align: center;
+  text-wrap: balance;
+  color: var(--listen-dim);
+}
+
 .listen__secondary {
   display: flex;
   justify-content: space-between;

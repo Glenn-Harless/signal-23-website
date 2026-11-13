@@ -65,7 +65,7 @@ Public and commerce routes:
 | `/instruments` | Instrument-rack catalog and pay-what-you-want acquisition flow |
 | `/instruments/success` | Stripe payment verification and signed-download delivery |
 | `/terms` | Terms page |
-| `/listen/:slug` | Per-track ad landing page with a direct **Listen on Spotify** handoff (currently `decay`, `pulsar-04` and `reset`) |
+| `/listen/:slug` | Per-track ad landing page with a direct **Listen on Spotify** handoff (currently `decay`, `pulsar-04` and `reset`), plus the `playlist` page that opens a Spotify playlist |
 | `/legal/privacy` | Privacy policy; static HTML readable without JavaScript (`/privacy` redirects here) |
 | `/testblandingpage` | Deprecated compatibility path that redirects to `/resonance` |
 
@@ -136,6 +136,8 @@ Capture at 1080×1920 for 9:16, 1080×1350 for 4:5, or 1920×1080 for 16:9 with 
 Tracks are configured in `src/data/listenTracks.json` (title, slug, canonical Spotify track URL, artwork, optional share crop, optional muted loop video, optional one-sentence description, explore destination). Derived web assets live under `public/listen/<slug>/`.
 
 Before a track is released, give it a `preSaveUrl` (the DistroKid HyperFollow page) instead of `spotifyUrl`; the button then reads **Pre-save on Spotify**. On release day, add the exact `https://open.spotify.com/track/<id>` URL as `spotifyUrl` (not the album link), remove `preSaveUrl`, and redeploy.
+
+A `spotifyUrl` of the form `https://open.spotify.com/playlist/<id>` makes a playlist page instead: the line above the title reads **A Signal-23 playlist**, the button reads **Open the playlist in Spotify**, a line under it tells visitors to tap + in Spotify to save it, and the share metadata uses `og:type` `music.playlist`. Measurement is unchanged: a tap is still `spotify_outbound_click` with `destination: "spotify"`. `/listen/playlist` is the Meta ad test page; keep its slug, since the ads and Meta's conversion rule depend on it, and swap the playlist by changing its `spotifyUrl`, title, description and artwork.
 
 At build time `scripts/listen-pages.js` pre-renders one static `build/listen/<slug>/index.html` per track with track-specific Open Graph metadata, the inlined stylesheet, working markup before any JavaScript runs, and only the small `listen` bundle (`src/listen.tsx`). Netlify serves that file ahead of the SPA rewrite; `/listen/:slug` in `App.tsx` is the fallback for other hosts and unknown slugs. `npm start` serves the generated pages at the same pretty URLs.
 

@@ -3,9 +3,12 @@ import './Listen.css';
 import spotifyIcon from './spotify-icon.json';
 import {
   LISTEN_ARTIST,
+  LISTEN_PLAYLIST_HINT,
   ListenTrack,
   ListenVideo,
+  isListenPlaylist,
   listenDestination,
+  listenKicker,
   listenPageTitle,
 } from './listenTracks';
 import { ConsentBanner, useListenConsent } from './ListenConsent';
@@ -76,6 +79,7 @@ export const ListenPage: React.FC<ListenPageProps> = ({ track }) => {
   );
   const [showLoop] = useState(() => Boolean(track.loopVideo) && motionAllowed());
   const destination = listenDestination(track);
+  const playlist = isListenPlaylist(track);
   const consent = useListenConsent();
   const cookiesButton = useRef<HTMLButtonElement>(null);
 
@@ -112,10 +116,10 @@ export const ListenPage: React.FC<ListenPageProps> = ({ track }) => {
   };
 
   return (
-    <main className="listen">
+    <main className={playlist ? 'listen listen--playlist' : 'listen'}>
       <div className="listen__frame">
         <header className="listen__head">
-          <p className="listen__artist">{LISTEN_ARTIST}</p>
+          <p className="listen__artist">{listenKicker(track)}</p>
           <h1 className="listen__title">{track.title}</h1>
           {track.description ? <p className="listen__description">{track.description}</p> : null}
         </header>
@@ -144,6 +148,8 @@ export const ListenPage: React.FC<ListenPageProps> = ({ track }) => {
             </svg>
             <span>{destination.label}</span>
           </a>
+
+          {playlist ? <p className="listen__hint">{LISTEN_PLAYLIST_HINT}</p> : null}
 
           <nav className="listen__secondary" aria-label={`More from ${LISTEN_ARTIST}`}>
             <a className="listen__explore" href={track.exploreHref || '/'}>

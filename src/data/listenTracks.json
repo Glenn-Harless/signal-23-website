@@ -65,6 +65,24 @@
         "height": 540
       },
       "exploreHref": "/"
+    },
+    {
+      "slug": "playlist",
+      "title": "Weekly Broadcast",
+      "spotifyUrl": "https://open.spotify.com/playlist/07aO4QKlMIPeftkw55CCCx",
+      "description": "A Signal-23 playlist of melodic and cinematic electronica, for fans of Moderat and Lorn",
+      "artwork": {
+        "src": "/listen/playlist/artwork.jpg",
+        "width": 640,
+        "height": 640,
+        "alt": "Weekly Broadcast playlist cover: a bright white ellipse over rows of glyphs on a blue CRT screen"
+      },
+      "shareImage": {
+        "src": "/listen/playlist/og.jpg",
+        "width": 1200,
+        "height": 630
+      },
+      "exploreHref": "/"
     }
   ]
 }
