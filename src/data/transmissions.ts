@@ -404,7 +404,7 @@ export const transmissions: Transmission[] = [
   {
     slug: 'terminal',
     route: '/terminal',
-    title: 'B.A.N.I.S TERMINAL',
+    title: 'TERMINAL',
     type: 'interactive',
     status: 'active',
     visibility: 'public',
@@ -412,6 +412,18 @@ export const transmissions: Transmission[] = [
     exportUse: [],
     notes: 'Public command surface. Operator routes remain undisclosed unless intentionally leaked later.',
     addedAt: '2026-05-07',
+  },
+  {
+    slug: 'av',
+    route: '/av',
+    title: 'A/V',
+    type: 'page',
+    status: 'active',
+    visibility: 'public',
+    tags: ['releases', 'films'],
+    exportUse: [],
+    notes: 'Releases drawn from their measured spectra, plus films and excerpts (YouTube loads on press).',
+    addedAt: '2026-10-15',
   },
   {
     slug: 'instruments',

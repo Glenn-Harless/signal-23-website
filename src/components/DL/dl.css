@@ -1,0 +1,478 @@
+/* DL: a numbers-station schedule sheet for the workshop, beside the devices and rack packs. */
+
+.dl-page {
+    position: relative;
+    width: 100%;
+    min-height: 100%;
+    background: #000;
+    color: #e8e4d8;
+    font-family: 'IBM Plex Mono', monospace;
+}
+
+/* A legacy responsive rule sets section { width: 48% } on wide screens. */
+.dl-page section {
+    width: 100%;
+}
+
+.dl-defs {
+    position: absolute;
+}
+
+.dl-grain {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    opacity: 0.07;
+    z-index: 1;
+}
+
+.dl-page .tw {
+    font-family: 'American Typewriter', 'Courier Prime', 'Courier New', monospace;
+    font-weight: 700;
+}
+
+.dl-page .ink {
+    filter: url(#dl-ink);
+}
+
+.dl-ro {
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    color: rgba(232, 228, 216, 0.55);
+}
+
+.dl-lbl {
+    font-size: 10px;
+    letter-spacing: 0.26em;
+    color: rgba(232, 228, 216, 0.4);
+}
+
+.dl-mac {
+    font-size: 12px;
+    line-height: 1.8;
+    letter-spacing: 0.06em;
+    color: rgba(232, 228, 216, 0.62);
+}
+
+.dl-wrap {
+    position: relative;
+    z-index: 2;
+    max-width: 1300px;
+    margin: 0 auto;
+    padding: 0 3rem 7rem;
+    display: block;
+}
+
+.dl-sky {
+    display: flex;
+    gap: 18px;
+    margin-bottom: 1.5rem;
+}
+
+.dl-cols {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 72px;
+    align-items: start;
+}
+
+.dl-pin {
+    position: sticky;
+    /* Clears the fixed nav band. */
+    top: 6.5rem;
+    max-height: calc(100vh - 7.5rem);
+    overflow-y: auto;
+    scrollbar-width: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.dl-pin::-webkit-scrollbar {
+    display: none;
+}
+
+.dl-pad {
+    width: 100%;
+    max-width: 600px;
+    font-size: 15px;
+    line-height: 1.6;
+    letter-spacing: 0.2em;
+}
+
+.dl-padhead {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    letter-spacing: 0.26em;
+    color: rgba(232, 228, 216, 0.55);
+    border-bottom: 1px solid rgba(232, 228, 216, 0.14);
+    padding-bottom: 10px;
+    margin-bottom: 12px;
+}
+
+.dl-prow {
+    display: grid;
+    grid-template-columns: 34px minmax(0, 1fr) auto;
+    gap: 14px;
+    align-items: baseline;
+    width: 100%;
+    padding: 0;
+    background: transparent;
+    border: 0;
+    color: rgba(232, 228, 216, 0.62);
+    font: inherit;
+    letter-spacing: inherit;
+    text-align: left;
+    white-space: pre;
+    cursor: pointer;
+    transition: color 0.3s ease;
+}
+
+.dl-prow:hover {
+    color: rgba(232, 228, 216, 0.85);
+}
+
+.dl-prow.is-on {
+    color: #f2f1ec;
+}
+
+.dl-prow.is-on .dl-pg {
+    padding-bottom: 2px;
+    background: repeating-linear-gradient(90deg, #ef4444 0 0.62em, transparent 0.62em 0.76em) left bottom / 100% 2px no-repeat;
+}
+
+.dl-prow.is-gap {
+    margin-top: 16px;
+}
+
+.dl-prow:focus-visible {
+    outline: 1px solid rgba(242, 241, 236, 0.6);
+    outline-offset: 2px;
+}
+
+.dl-pn {
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    opacity: 0.8;
+}
+
+.dl-pg {
+    overflow: hidden;
+    text-overflow: clip;
+}
+
+.dl-pl {
+    font-size: 10px;
+    letter-spacing: 0.22em;
+}
+
+.dl-cur {
+    background: #f2f1ec;
+    color: #000;
+}
+
+.dl-padfoot {
+    margin-top: 16px;
+    min-height: 18px;
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    color: #f2f1ec;
+}
+
+.dl-key {
+    margin-top: 10px;
+    line-height: 2;
+    letter-spacing: 0.14em;
+}
+
+.dl-main {
+    display: flex;
+    flex-direction: column;
+    gap: 64px;
+    padding-top: 10px;
+}
+
+.dl-head {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.dl-title.grit-text {
+    flex-direction: row;
+    align-items: flex-end;
+    gap: 26px;
+}
+
+.dl-title .grit-text__layer {
+    font-size: 112px;
+}
+
+.dl-tag {
+    margin: 0;
+    font-size: 19px;
+    font-weight: 400;
+    letter-spacing: 0.04em;
+}
+
+.dl-section {
+    display: flex;
+    flex-direction: column;
+    gap: 26px;
+}
+
+.dl-sh {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 16px;
+}
+
+.dl-sh h2 {
+    margin: 0;
+    font-size: 15px;
+    letter-spacing: 0.26em;
+}
+
+.dl-item {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 6px 0 22px;
+    border-bottom: 1px solid transparent;
+    border-image: linear-gradient(90deg, rgba(232, 228, 216, 0.18), transparent) 1;
+}
+
+.dl-item h3 {
+    margin: 0;
+    font-size: 22px;
+    letter-spacing: 0.1em;
+}
+
+.dl-device-name {
+    font-size: 30px !important;
+}
+
+.dl-ver {
+    font-family: 'IBM Plex Mono', monospace;
+    font-weight: 400;
+}
+
+.dl-what {
+    margin: 0;
+    max-width: 520px;
+    font-size: 14px;
+    line-height: 1.7;
+    color: #cfcabd;
+}
+
+.dl-start {
+    letter-spacing: 0.12em;
+}
+
+.dl-demos {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin-top: 6px;
+}
+
+.dl-demos .dl-lbl {
+    margin-bottom: 6px;
+}
+
+.dl-demo {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    width: 100%;
+    min-height: 44px;
+    margin: 0;
+    padding: 0;
+    background: transparent;
+    border: 0;
+    color: #e8e4d8;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    letter-spacing: 0.14em;
+    text-align: left;
+    cursor: pointer;
+}
+
+.dl-demo .dl-ro {
+    margin-left: auto;
+}
+
+.dl-demo__ic {
+    width: 30px;
+    height: 30px;
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    border: 1px solid rgba(232, 228, 216, 0.45);
+    font-size: 10px;
+}
+
+.dl-demo:hover .dl-demo__ic {
+    border-color: #f2f1ec;
+}
+
+.dl-demo.is-on {
+    color: #fff;
+}
+
+.dl-demo.is-on .dl-demo__ic {
+    border-color: #ef4444;
+    box-shadow: 0 0 12px rgba(239, 68, 68, 0.5);
+}
+
+.dl-demo.is-on .dl-demo__nm {
+    padding-bottom: 4px;
+    background: repeating-linear-gradient(90deg, #ef4444 0 0.62em, transparent 0.62em 0.76em) left bottom / 100% 2px no-repeat;
+}
+
+.dl-demo:focus-visible {
+    outline: 1px solid #f2f1ec;
+    outline-offset: 4px;
+}
+
+.dl-pack {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    padding-top: 18px;
+}
+
+.dl-packhead {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 16px;
+}
+
+.dl-packhead h3 {
+    margin: 0;
+    font-size: 26px;
+    letter-spacing: 0.12em;
+}
+
+.dl-buy {
+    display: flex;
+    align-items: center;
+    gap: 28px;
+    flex-wrap: wrap;
+}
+
+.dl-price {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 44px;
+    padding: 0 4px;
+    border-bottom: 1px solid rgba(232, 228, 216, 0.5);
+    font-size: 20px;
+}
+
+.dl-price input {
+    width: 90px;
+    background: transparent;
+    border: 0;
+    outline: none;
+    color: #f2f1ec;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 20px;
+}
+
+.dl-dlb {
+    min-height: 44px;
+    padding: 0;
+    background: transparent;
+    border: 0;
+    color: #f2f1ec;
+    font-size: 15px;
+    letter-spacing: 0.2em;
+    cursor: pointer;
+}
+
+.dl-dlb span {
+    padding-bottom: 6px;
+    background: repeating-linear-gradient(90deg, #ef4444 0 0.62em, transparent 0.62em 0.76em) left bottom / calc(100% - 0.2em) 2px no-repeat;
+}
+
+.dl-dlb:disabled {
+    opacity: 0.6;
+    cursor: progress;
+}
+
+.dl-dlb:focus-visible {
+    outline: 1px solid #f2f1ec;
+    outline-offset: 4px;
+}
+
+.dl-err {
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    color: #caa53a;
+}
+
+.dl-foot {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding-top: 10px;
+}
+
+.dl-foot a {
+    color: rgba(232, 228, 216, 0.6);
+    text-decoration: none;
+    font-size: 12px;
+}
+
+.dl-foot .dl-ro a {
+    font-size: 11px;
+    color: inherit;
+}
+
+@media (max-width: 900px) {
+    .dl-wrap {
+        padding: 0 1.25rem 4rem;
+    }
+
+    .dl-cols {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 36px;
+    }
+
+    .dl-pin {
+        position: relative;
+        top: 0;
+        max-height: none;
+        overflow: visible;
+    }
+
+    .dl-pad {
+        font-size: 12px;
+        letter-spacing: 0.14em;
+    }
+
+    .dl-prow {
+        grid-template-columns: 26px minmax(0, 1fr);
+        gap: 10px;
+        row-gap: 0;
+    }
+
+    .dl-pl {
+        grid-column: 2;
+        font-size: 9px;
+        margin-bottom: 4px;
+    }
+
+    .dl-title .grit-text__layer {
+        font-size: 72px;
+    }
+}

@@ -20,6 +20,15 @@ const r2Client = new S3Client({
 // Pack ID to file mapping
 // Update this when adding new packs
 export const PACK_FILES: Record<string, string> = {
+  // DL packs, one per rack folder (src/data/racks.json).
+  'guitar': 'Signal-23 Guitar Racks.zip',
+  'drums': 'Signal-23 Drums Racks.zip',
+  'synths-pads': 'Signal-23 Synths and Pads Racks.zip',
+  'any-source': 'Signal-23 Any Source Racks.zip',
+  'vocals': 'Signal-23 Vocals Racks.zip',
+  'mix-fx': 'Signal-23 Mix and FX Racks.zip',
+  'lab': 'Signal-23 Lab Racks.zip',
+  // Retired packs, kept so earlier Stripe receipts still resolve on /instruments/success.
   'arps': 'Arps.zip',
   'audio-fx': 'Audio Effect Rack.zip',
   'bass': 'Bass.zip',

@@ -1,0 +1,355 @@
+/* The terminal: a full green phosphor screen, no housing. */
+
+@import './Terminal.css';
+
+.station-terminal {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: #000b00;
+    color: #4ade80;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 14px;
+    line-height: 24px;
+    text-shadow: 0 0 8px rgba(0, 255, 0, 0.55);
+}
+
+.station-terminal__screen {
+    position: absolute;
+    inset: 8rem 3.5rem 2.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    z-index: 10;
+}
+
+.station-terminal__body {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    scrollbar-width: none;
+}
+
+.station-terminal__body::-webkit-scrollbar {
+    display: none;
+}
+
+.station-terminal__vignette {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 19;
+    background: radial-gradient(circle, transparent 40%, rgba(0, 0, 0, 0.6) 100%);
+    box-shadow: inset 0 0 150px rgba(0, 40, 0, 0.4);
+}
+
+.st-header {
+    display: flex;
+    justify-content: flex-end;
+    gap: 16px;
+    white-space: pre;
+}
+
+.st-glow {
+    filter: blur(0.4px);
+}
+
+.st-dim,
+.st-separator {
+    color: #1f7a43;
+    text-shadow: none;
+}
+
+.st-warning {
+    color: #caa53a;
+    text-shadow: 0 0 6px rgba(202, 165, 58, 0.35);
+}
+
+.st-bright {
+    color: #b8ffcf;
+}
+
+.st-system {
+    color: #4ade80;
+}
+
+.st-pre,
+.st-dial {
+    white-space: pre;
+    overflow: hidden;
+}
+
+.st-dial {
+    margin-top: 8px;
+    line-height: 18px;
+}
+
+.st-gap {
+    height: 10px;
+}
+
+.st-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.st-log-row {
+    display: flex;
+    gap: 24px;
+}
+
+.st-log-row > span:first-child {
+    width: 56px;
+    flex-shrink: 0;
+}
+
+.st-tune {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.st-plot {
+    display: block;
+    width: 100%;
+    height: 170px;
+    margin: 8px 0;
+}
+
+.st-plot--scan {
+    height: 220px;
+}
+
+.st-controls {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    min-height: 40px;
+}
+
+.st-cmd {
+    background: transparent;
+    border: 1px solid rgba(0, 255, 0, 0.3);
+    color: #4ade80;
+    font: inherit;
+    font-size: 12px;
+    letter-spacing: 0.15em;
+    text-shadow: 0 0 8px rgba(0, 255, 0, 0.8);
+    min-height: 36px;
+    padding: 0 18px;
+    cursor: pointer;
+}
+
+.st-cmd:hover {
+    background: rgba(0, 255, 0, 0.06);
+}
+
+.st-cmd:focus-visible,
+.st-key:focus-visible,
+.st-channel:focus-visible,
+.st-link:focus-visible,
+.st-a:focus-visible {
+    outline: 1px solid #4ade80;
+    outline-offset: 2px;
+}
+
+.st-channels {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 24px;
+    margin-top: 6px;
+}
+
+.st-channel {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    min-height: 26px;
+    padding: 0 6px;
+    background: transparent;
+    border: 0;
+    color: #4ade80;
+    font: inherit;
+    text-shadow: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+.st-channel:hover {
+    background: rgba(74, 222, 128, 0.08);
+}
+
+.st-channel.is-on {
+    background: #4ade80;
+    color: #000b00;
+    text-shadow: none;
+}
+
+.st-channel__freq {
+    width: 72px;
+    flex-shrink: 0;
+}
+
+.st-decode {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin: 10px 0 12px;
+}
+
+.st-input {
+    background: transparent;
+    border: 0;
+    border-bottom: 1px solid transparent;
+    color: #b8ffcf;
+    font: inherit;
+    text-shadow: inherit;
+    outline: none;
+    caret-color: #4ade80;
+    flex: 1;
+    min-width: 0;
+}
+
+.st-input::placeholder {
+    color: #1f7a43;
+}
+
+.st-input--group {
+    flex: 0 0 auto;
+    width: 120px;
+    border-bottom-color: #1f7a43;
+    letter-spacing: 0.3em;
+    font-size: 18px;
+}
+
+.st-link {
+    display: block;
+    background: transparent;
+    border: 0;
+    padding: 0;
+    font: inherit;
+    text-shadow: inherit;
+    text-align: left;
+    cursor: pointer;
+    text-decoration: underline;
+    text-decoration-color: #1f7a43;
+    text-underline-offset: 4px;
+}
+
+.st-a {
+    color: #4ade80;
+    text-decoration: underline;
+    text-decoration-color: #1f7a43;
+    text-underline-offset: 4px;
+}
+
+.station-terminal__foot {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.st-keys {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 22px;
+}
+
+.st-key {
+    background: transparent;
+    border: 0;
+    padding: 0 2px;
+    color: #4ade80;
+    font: inherit;
+    text-shadow: inherit;
+    letter-spacing: 0.12em;
+    min-height: 32px;
+    cursor: pointer;
+}
+
+.st-key:hover {
+    color: #b8ffcf;
+}
+
+.st-key.is-on {
+    background: #4ade80;
+    color: #000b00;
+    text-shadow: none;
+}
+
+.st-prompt {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+@media (max-width: 768px) {
+    .station-terminal {
+        font-size: 12px;
+        line-height: 20px;
+    }
+
+    .station-terminal__screen {
+        inset: calc(var(--site-nav-offset, 3.25rem) + 1rem) 1.25rem calc(env(safe-area-inset-bottom, 0px) + 13.5rem);
+    }
+
+    .st-header {
+        justify-content: flex-start;
+    }
+
+    .st-row {
+        flex-direction: column;
+        gap: 0;
+    }
+
+    .st-pre {
+        white-space: normal;
+    }
+
+    .st-dial {
+        font-size: 10px;
+        line-height: 14px;
+    }
+
+    .st-plot {
+        height: 130px;
+    }
+
+    .st-channels {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .station-terminal__tray {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 30;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+        padding: 12px 16px calc(env(safe-area-inset-bottom, 0px) + 18px);
+        border-top: 1px solid rgba(0, 255, 0, 0.25);
+        background: #000b00;
+    }
+
+    .st-tray-btn {
+        min-height: 48px;
+        background: transparent;
+        border: 1px solid rgba(0, 255, 0, 0.3);
+        color: #4ade80;
+        font-family: 'IBM Plex Mono', monospace;
+        font-size: 11px;
+        letter-spacing: 0.15em;
+        text-shadow: 0 0 8px rgba(0, 255, 0, 0.8);
+        cursor: pointer;
+    }
+
+    .st-tray-btn.is-on {
+        background: rgba(0, 255, 0, 0.12);
+        border-color: rgba(0, 255, 0, 0.65);
+        color: #b8ffcf;
+    }
+}

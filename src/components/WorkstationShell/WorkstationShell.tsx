@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import '../../styles/workstation.css';
+import { SiteNav } from '../SiteNav/SiteNav';
+import { showsSiteNav } from '../../data/siteNav';
 
 interface WorkstationShellProps {
     children: React.ReactNode;
@@ -16,6 +18,7 @@ export const WorkstationShell: React.FC<WorkstationShellProps> = ({ children }) 
     const isDeterministicVisual = currentPath === '/signal-memory';
     // Plain documents (ad landing pages, legal pages): plain scrolling container, no route-change flicker.
     const isPlainDocument = currentPath.startsWith('/listen/') || currentPath.startsWith('/legal/');
+    const hasSiteNav = showsSiteNav(currentPath);
 
     // Add page-specific detection for layout containment
     const isLanding = currentPath === '/' || currentPath === '/testblandingpage' || currentPath === '/terminal' || currentPath === '/resonance' || currentPath === '/tangle' || currentPath === '/learning' || currentPath === '/forbidding' || currentPath === '/well' || currentPath === '/stepwell' || currentPath === '/broadcast' || currentPath === '/forest' || isDeterministicVisual;
@@ -28,9 +31,10 @@ export const WorkstationShell: React.FC<WorkstationShellProps> = ({ children }) 
     }, [location.pathname]);
 
     return (
-        <div className={`workstation-shell ${flicker ? 'ws-transitioning' : ''} ${isDeterministicVisual ? 'ws-deterministic-visual' : ''} ${isPlainDocument ? 'ws-plain-route' : ''}`}>
+        <div className={`workstation-shell ${flicker ? 'ws-transitioning' : ''} ${isDeterministicVisual ? 'ws-deterministic-visual' : ''} ${isPlainDocument ? 'ws-plain-route' : ''} ${hasSiteNav ? 'has-site-nav' : ''}`}>
             <div className="ws-scanlines" />
             <div className="ws-noise" />
+            {hasSiteNav && <SiteNav path={currentPath} />}
 
 
             <div className={`ws-main-container ${isLanding ? 'no-padding ws-reset' : ''} ${isPlainDocument ? 'ws-plain' : ''}`}>
