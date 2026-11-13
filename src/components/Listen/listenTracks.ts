@@ -18,7 +18,10 @@ export type ListenTrack = {
   slug: string;
   /** Exact advertised track title. */
   title: string;
-  /** Verified https://open.spotify.com/track/... URL for the recording heard in the ad. */
+  /**
+   * Verified https://open.spotify.com/track/... URL for the recording heard in the ad,
+   * or a https://open.spotify.com/playlist/... URL for a playlist page.
+   */
   spotifyUrl?: string;
   /** Pre-release only: the DistroKid HyperFollow pre-save page, used until `spotifyUrl` is set. */
   preSaveUrl?: string;
@@ -51,11 +54,31 @@ export type ListenDestination = {
   kind: 'spotify' | 'presave';
 };
 
-/** The main button: the track on Spotify once released, the pre-save page before. Mirrored in scripts/listen-pages.js. */
+/** True when the page's button opens a Spotify playlist rather than a track. Mirrored in scripts/listen-pages.js. */
+export function isListenPlaylist(track: ListenTrack): boolean {
+  return Boolean(track.spotifyUrl && track.spotifyUrl.startsWith('https://open.spotify.com/playlist/'));
+}
+
+/**
+ * The main button: the track (or playlist) on Spotify once released, the pre-save page before.
+ * Playlists keep kind 'spotify', so their taps are the same spotify_outbound_click event.
+ * Mirrored in scripts/listen-pages.js.
+ */
 export function listenDestination(track: ListenTrack): ListenDestination {
-  if (track.spotifyUrl) return { href: track.spotifyUrl, label: 'Listen on Spotify', kind: 'spotify' };
+  if (track.spotifyUrl) {
+    const label = isListenPlaylist(track) ? 'Open the playlist in Spotify' : 'Listen on Spotify';
+    return { href: track.spotifyUrl, label, kind: 'spotify' };
+  }
   return { href: track.preSaveUrl || '/', label: 'Pre-save on Spotify', kind: 'presave' };
 }
+
+/** The small line above the title: the artist, or "A Signal-23 playlist" on playlist pages. */
+export function listenKicker(track: ListenTrack): string {
+  return isListenPlaylist(track) ? `A ${LISTEN_ARTIST} playlist` : LISTEN_ARTIST;
+}
+
+/** Shown under the button on playlist pages only. */
+export const LISTEN_PLAYLIST_HINT = 'Then tap + in Spotify to save it to your library.';
 
 export function listenPageTitle(track: ListenTrack): string {
   return `${track.title} · ${LISTEN_ARTIST}`;

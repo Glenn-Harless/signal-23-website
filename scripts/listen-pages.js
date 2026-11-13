@@ -20,7 +20,9 @@ const spotifyIcon = require('../src/components/Listen/spotify-icon.json');
 
 const FONT_HREF = 'https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap';
 const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
-const SPOTIFY_TRACK_PATTERN = /^https:\/\/open\.spotify\.com\/track\/[A-Za-z0-9]+$/;
+const SPOTIFY_URL_PATTERN = /^https:\/\/open\.spotify\.com\/(?:track|playlist)\/[A-Za-z0-9]+$/;
+const SPOTIFY_PLAYLIST_PREFIX = 'https://open.spotify.com/playlist/';
+const PLAYLIST_HINT = 'Then tap + in Spotify to save it to your library.';
 const PRE_SAVE_PATTERN = /^https:\/\/distrokid\.com\/hyperfollow\/[a-z0-9-]+\/[a-z0-9-]+$/;
 
 function escapeHtml(value) {
@@ -43,8 +45,8 @@ function validateTrack(track) {
   if (!SLUG_PATTERN.test(track.slug || '')) problems.push(`slug "${track.slug}" must be lowercase letters, digits and hyphens`);
   if (!track.title) problems.push('title is required');
   if (track.spotifyUrl !== undefined) {
-    if (!SPOTIFY_TRACK_PATTERN.test(track.spotifyUrl)) {
-      problems.push(`spotifyUrl "${track.spotifyUrl}" must be a canonical https://open.spotify.com/track/<id> URL`);
+    if (!SPOTIFY_URL_PATTERN.test(track.spotifyUrl)) {
+      problems.push(`spotifyUrl "${track.spotifyUrl}" must be a canonical https://open.spotify.com/track/<id> or /playlist/<id> URL`);
     }
   } else if (track.preSaveUrl !== undefined) {
     if (!PRE_SAVE_PATTERN.test(track.preSaveUrl)) {
@@ -66,10 +68,22 @@ function pageDescription(track) {
   return track.description || `Listen to ${track.title} by ${config.artist} on Spotify.`;
 }
 
+/** Mirrors isListenPlaylist() in src/components/Listen/listenTracks.ts. */
+function isPlaylist(track) {
+  return Boolean(track.spotifyUrl && track.spotifyUrl.startsWith(SPOTIFY_PLAYLIST_PREFIX));
+}
+
 /** Mirrors listenDestination() in src/components/Listen/listenTracks.ts. */
 function listenDestination(track) {
-  if (track.spotifyUrl) return { href: track.spotifyUrl, label: 'Listen on Spotify' };
+  if (track.spotifyUrl) {
+    return { href: track.spotifyUrl, label: isPlaylist(track) ? 'Open the playlist in Spotify' : 'Listen on Spotify' };
+  }
   return { href: track.preSaveUrl || '/', label: 'Pre-save on Spotify' };
+}
+
+/** Mirrors listenKicker() in src/components/Listen/listenTracks.ts. */
+function listenKicker(track) {
+  return isPlaylist(track) ? `A ${config.artist} playlist` : config.artist;
 }
 
 /** Mirrors the JSX in ListenPage.tsx (minus the JS-only loop video and consent controls). */
@@ -80,11 +94,12 @@ function renderListenMarkup(track) {
   const description = track.description
     ? `\n      <p class="listen__description">${escapeHtml(track.description)}</p>`
     : '';
+  const hint = isPlaylist(track) ? `\n      <p class="listen__hint">${escapeHtml(PLAYLIST_HINT)}</p>` : '';
 
-  return `<main class="listen">
+  return `<main class="${isPlaylist(track) ? 'listen listen--playlist' : 'listen'}">
   <div class="listen__frame">
     <header class="listen__head">
-      <p class="listen__artist">${artist}</p>
+      <p class="listen__artist">${escapeHtml(listenKicker(track))}</p>
       <h1 class="listen__title">${escapeHtml(track.title)}</h1>${description}
     </header>
     <figure class="listen__art">
@@ -94,7 +109,7 @@ function renderListenMarkup(track) {
       <a class="listen__cta" href="${escapeHtml(destination.href)}" data-track-slug="${escapeHtml(track.slug)}">
         <svg viewBox="${spotifyIcon.viewBox}" aria-hidden="true" focusable="false"><path d="${spotifyIcon.path}"></path></svg>
         <span>${escapeHtml(destination.label)}</span>
-      </a>
+      </a>${hint}
       <nav class="listen__secondary" aria-label="More from ${artist}">
         <a class="listen__explore" href="${escapeHtml(track.exploreHref || '/')}">Explore ${artist}</a>
         <a class="listen__privacy" href="/legal/privacy/">Privacy</a>
@@ -109,6 +124,7 @@ function listenPageParameters(track, css) {
   const share = track.shareImage || track.artwork;
   return {
     slug: escapeHtml(track.slug),
+    ogType: isPlaylist(track) ? 'music.playlist' : 'music.song',
     artist: escapeHtml(config.artist),
     title: escapeHtml(pageTitle(track)),
     description: escapeHtml(pageDescription(track)),
